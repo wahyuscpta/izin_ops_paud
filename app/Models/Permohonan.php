@@ -70,10 +70,10 @@ class Permohonan extends Model
         return $this->hasOne(Prasarana::class);
     }
 
-    // public function sarana(): HasOne
-    // {
-    //     return $this->hasOne(Sarana::class);
-    // }
+    public function sarana(): HasOne
+    {
+        return $this->hasOne(Sarana::class);
+    }
 
     // public function lampiran(): HasMany
     // {

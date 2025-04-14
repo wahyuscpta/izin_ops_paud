@@ -1221,7 +1221,90 @@ class PermohonanResource extends Resource
                         ])->relationship('prasarana'),
                     ]),
 
-                    
+                    Step::make('Sarana')
+                    ->schema([
+                        Group::make([
+                            Grid::make(2)
+                                ->schema([
+                                    Select::make('buku_pelajaran')
+                                        ->label('Buku Pelajaran/Sesuai Kurikulum')
+                                        ->options([
+                                            'lebih_dari_cukup' => 'Lebih Dari Cukup',
+                                            'cukup' => 'Cukup',
+                                            'sedang' => 'Sedang',
+                                            'kurang' => 'Kurang',
+                                            'tidak_ada' => 'Tidak Ada',
+                                        ])
+                                        ->required(),
+
+                                    Select::make('alat_permainan_edukatif')
+                                        ->label('Alat Permainan Edukatif')
+                                        ->options([
+                                            'lebih_dari_cukup' => 'Lebih Dari Cukup',
+                                            'cukup' => 'Cukup',
+                                            'sedang' => 'Sedang',
+                                            'kurang' => 'Kurang',
+                                            'tidak_ada' => 'Tidak Ada',
+                                        ])
+                                        ->required(),
+
+                                    Select::make('meja_kursi')
+                                        ->label('Meja+Kursi/Bangku untuk Belajar')
+                                        ->options([
+                                            'lebih_dari_cukup' => 'Lebih Dari Cukup',
+                                            'cukup' => 'Cukup',
+                                            'sedang' => 'Sedang',
+                                            'kurang' => 'Kurang',
+                                            'tidak_ada' => 'Tidak Ada',
+                                        ])
+                                        ->required(),
+
+                                    Select::make('papan_tulis')
+                                        ->label('Papan Tulis')
+                                        ->options([
+                                            'lebih_dari_cukup' => 'Lebih Dari Cukup',
+                                            'cukup' => 'Cukup',
+                                            'sedang' => 'Sedang',
+                                            'kurang' => 'Kurang',
+                                            'tidak_ada' => 'Tidak Ada',
+                                        ])
+                                        ->required(),
+
+                                    Select::make('alat_tata_usaha')
+                                        ->label('Alat Perlengkapan Tata Usaha')
+                                        ->options([
+                                            'lebih_dari_cukup' => 'Lebih Dari Cukup',
+                                            'cukup' => 'Cukup',
+                                            'sedang' => 'Sedang',
+                                            'kurang' => 'Kurang',
+                                            'tidak_ada' => 'Tidak Ada',
+                                        ])
+                                        ->required(),
+
+                                    Select::make('listrik')
+                                        ->label('Listrik')
+                                        ->options([
+                                            'lebih_dari_cukup' => 'Lebih Dari Cukup',
+                                            'cukup' => 'Cukup',
+                                            'sedang' => 'Sedang',
+                                            'kurang' => 'Kurang',
+                                            'tidak_ada' => 'Tidak Ada',
+                                        ])
+                                        ->required(),
+                                ]),
+
+                            Select::make('air_bersih')
+                                ->label('Air Bersih')
+                                ->options([
+                                    'lebih_dari_cukup' => 'Lebih Dari Cukup',
+                                    'cukup' => 'Cukup',
+                                    'sedang' => 'Sedang',
+                                    'kurang' => 'Kurang',
+                                    'tidak_ada' => 'Tidak Ada',
+                                ])
+                                ->required(),
+                        ])->relationship('sarana'),
+                    ]),
 
 
                 ])
