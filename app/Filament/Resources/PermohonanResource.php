@@ -11,8 +11,10 @@ use App\Models\Village;
 use Filament\Forms;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Group;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -1306,6 +1308,108 @@ class PermohonanResource extends Resource
                         ])->relationship('sarana'),
                     ]),
 
+                    Step::make('Lampiran')
+                    ->schema([
+                        Grid::make(2)
+                        ->schema(
+                            collect([
+                                'ktp_ketua' => 'KTP Ketua Yayasan/Kepsek PAUD/Kursus',
+                                'struktur_yayasan' => 'Struktur Lembaga Kursus/PAUD',
+                                'ijasah_penyelenggara' => 'Ijasah Penyelenggara/Ketua Yayasan',
+                                'ijasah_kepsek' => 'Ijasah Kepsek/Pengelola PAUD/Kursus',
+                                'ijasah_pendidik' => 'Ijasah Pendidik/Guru/Instruktur LKP',
+                                'sarana_prasarana' => 'Daftar Sarana dan Prasarana Lembaga',
+                                'kurikulum' => 'Kurikulum Kursus/PAUD',
+                                'tata_tertib' => 'Tata Tertib Kursus/PAUD',
+                                'peta_lokasi' => 'Peta Lokasi Kursus/PAUD',
+                                'daftar_peserta' => 'Daftar Peserta Didik Kursus/PAUD',
+                                'daftar_guru' => 'Daftar Guru/Pendidik',
+                                'akte_notaris' => 'Akte Notaris Yayasan dan Kemenhumham',
+                                'rek_ke_lurah' => 'Surat Permohonan Rekomendasi Ijin Operasional ke Lurah (Diketahui Kepala Lingkungan Setempat)',
+                                'rek_dari_lurah' => 'Surat Rekomendasi dari Lurah/Kepala Desa Menunjuk Permohonan Rekomendasi dari Lembaga',
+                                'rek_ke_korwil' => 'Surat Permohonan Rekomendasi Ijin Operasional ke Korwil Disdikpora Setempat',
+                                'rek_dari_korwil' => 'Surat Rekomendasi dari Korwil Disdikpora Setempat Menunjuk Permohonan Rekomendasi dari Lembaga',
+                                'rip' => '(RIP) Rencana Induk Pengembangan',
+                                'imb' => '(IMB) Ijin Mendirikan Bangunan',
+                                'perjanjian_sewa' => 'Perjanjian Sewa Menyewa',
+                                'nib' => '(NIB) No Induk Berusaha'
+                            ])
+                            ->chunk(2) // Membagi array menjadi kelompok berisi 2 item
+                            ->map(fn ($pair) => Group::make(
+                                collect($pair)->map(fn ($label, $field) => [
+                                    Placeholder::make("preview_{$field}")
+                                        ->label($label)
+                                        ->content(function ($record) use ($field) {
+                                            // Cek jika record ada dan dalam mode update/view
+                                            if ($record && $record->lampiran) {
+                                                $lampiran = $record->lampiran->where('lampiran_type', $field)->first();
+
+                                                if ($lampiran && $lampiran->lampiran_path) {
+                                                    $fileUrl = asset('storage/' . $lampiran->lampiran_path);
+                                                    $fileName = basename($lampiran->lampiran_path);
+
+                                                    return new HtmlString(<<<HTML
+                                                        <div class="text-gray-500">
+                                                            <a href="{$fileUrl}" target="_blank" class="text-sm font-semibold">{$fileName}</a>
+                                                        </div>
+                                                    HTML);
+                                                } else {
+                                                    return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
+                                                }
+                                            } else {
+                                                return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
+                                            }
+                                        }),
+
+                                    FileUpload::make($field)
+                                        ->label('')
+                                        ->directory('lampiran')
+                                        ->disk('public')
+                                        ->acceptedFileTypes(['application/pdf'])
+                                        ->maxSize(2048)
+                                        ->required()
+                                        ->helperText('Unggah file PDF maks. 2MB'),
+                                ])->flatten(1)->toArray()
+                            ))->toArray()
+                        ),
+
+                        Group::make([
+                            Placeholder::make('preview_pdf')
+                            ->label('Surat Permohonan ijin operasional Kursus/PAUD Ditujukan Kepada Kepala Dinas Pendidikan, Kepemudaan dan Olah Raga Kabupaten Badung')
+                            ->content(function ($record) {
+                                // Cek jika record ada dan dalam mode update/view
+                                if ($record && $record->lampiran) {
+                                    $lampiran = $record->lampiran->where('lampiran_type', 'permohonan_izin')->first();
+
+                                    if ($lampiran && $lampiran->lampiran_path) {
+                                        $fileUrl = asset('storage/' . $lampiran->lampiran_path);
+                                        $fileName = basename($lampiran->lampiran_path);
+
+                                        return new HtmlString(<<<HTML
+                                            <div class="text-gray-500">
+                                                <a href="{$fileUrl}" target="_blank" class="text-sm font-semibold">{$fileName}</a>
+                                            </div>
+                                        HTML);
+                                    } else {
+                                        return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
+                                    }
+                                } else {
+                                    return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
+                                }
+                            }),
+
+                            FileUpload::make('permohonan_izin')
+                                ->label('')
+                                ->directory('lampiran')
+                                ->disk('public')
+                                ->acceptedFileTypes(['application/pdf'])
+                                ->maxSize(2048)
+                                ->required()
+                                ->previewable(true)
+                                ->helperText('Unggah file PDF maks. 2MB'),
+                        ])
+
+                    ])
 
                 ])
                 ->submitAction(new HtmlString(Blade::render(<<<BLADE
