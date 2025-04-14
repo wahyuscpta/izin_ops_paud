@@ -380,6 +380,129 @@ class PermohonanResource extends Resource
                         ])->relationship('pengelola')
                     ]),
 
+                    Step::make('Peserta Didik')
+                    ->schema([
+                        Group::make([
+
+                            Section::make('Warga Belajar')
+                                ->columns(2)
+                                ->schema([
+
+                                    Select::make('jalur_penerimaan_tes')
+                                        ->label('Penerimaan Melalui Test')
+                                        ->options([
+                                            'ya' => 'Ya',
+                                            'tidak' => 'Tidak',
+                                        ])
+                                        ->required(),
+
+                                    Select::make('tata_usaha_penerimaan')
+                                        ->label('Tata Usaha Penerimaan')
+                                        ->options([
+                                            'ada' => 'Ada',
+                                            'tidak' => 'Tidak',
+                                        ])
+                                        ->required(),
+
+                                    TextInput::make('jumlah_tiap_angkatan')
+                                        ->label('Jumlah Setiap Kelompok/Angkatan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->prefix('Rata - Rata')
+                                        ->suffix('orang'),
+
+                                    TextInput::make('jumlah_menyelesaikan')
+                                        ->label('Yang Menyelesaikan Program Pendidikan Sampai Akhir')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->maxValue(100)
+                                        ->required()
+                                        ->prefix('Rata - Rata')
+                                        ->suffix('%'),
+
+                                ]),
+
+                            Section::make('Keadaan Peserta Belajar Sekarang')
+                                ->columns(3)
+                                ->schema([
+
+                                    TextInput::make('jumlah_sekarang_lk')
+                                        ->label('Laki - Laki')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $pr = (int) $get('jumlah_sekarang_pr');
+                                            $set('jumlah_sekarang_total', $state + $pr);
+                                        }),
+
+                                    TextInput::make('jumlah_sekarang_pr')
+                                        ->label('Perempuan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $lk = (int) $get('jumlah_sekarang_lk');
+                                            $set('jumlah_sekarang_total', $state + $lk);
+                                        }),
+
+                                    TextInput::make('jumlah_sekarang_total')
+                                        ->label('Jumlah')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->disabled()
+                                        ->dehydrated(),
+
+                                ]),
+
+                            Section::make('Keadaan Peserta Didik Yang Telah Tamat')
+                                ->columns(3)
+                                ->schema([
+
+                                    TextInput::make('jumlah_tamat_lk')
+                                        ->label('Laki - Laki')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $pr = (int) $get('jumlah_tamat_pr');
+                                            $set('jumlah_tamat_total', $state + $pr);
+                                        }),
+
+
+                                    TextInput::make('jumlah_tamat_pr')
+                                        ->label('Perempuan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $lk = (int) $get('jumlah_tamat_lk');
+                                            $set('jumlah_tamat_total', $state + $lk);
+                                        }),
+
+                                    TextInput::make('jumlah_tamat_total')
+                                        ->label('Jumlah')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->disabled()
+                                        ->dehydrated()
+                                        ->suffix('orang'),
+                                ]),
+
+                        ])->relationship('peserta_didik')
+                    ]),
+
                 ])
                 ->submitAction(new HtmlString(Blade::render(<<<BLADE
                 <x-filament::button
