@@ -17,14 +17,14 @@ return new class extends Migration
             $table->foreign('permohonan_id')->references('id')->on('permohonans')->cascadeOnDelete();
             $table->enum('jalur_penerimaan_tes', ['ya', 'tidak'])->nullable();
             $table->enum('tata_usaha_penerimaan', ['ada', 'tidak'])->nullable();
-            $table->string('jumlah_tiap_angkatan')->nullable();
-            $table->string('jumlah_menyelesaikan')->nullable();
-            $table->string('jumlah_sekarang_lk')->nullable();
-            $table->string('jumlah_sekarang_pr')->nullable();
-            $table->string('jumlah_sekarang_total')->nullable();
-            $table->string('jumlah_tamat_lk')->nullable();
-            $table->string('jumlah_tamat_pr')->nullable();
-            $table->string('jumlah_tamat_total')->nullable();
+            $table->unsignedInteger('jumlah_tiap_angkatan')->default(0);
+            $table->unsignedInteger('jumlah_menyelesaikan')->default(0);
+            $table->unsignedInteger('jumlah_sekarang_lk')->default(0);
+            $table->unsignedInteger('jumlah_sekarang_pr')->default(0);
+            $table->unsignedInteger('jumlah_sekarang_total')->default(0);
+            $table->unsignedInteger('jumlah_tamat_lk')->default(0);
+            $table->unsignedInteger('jumlah_tamat_pr')->default(0);
+            $table->unsignedInteger('jumlah_tamat_total')->default(0);
             $table->timestamps();
         });
     }

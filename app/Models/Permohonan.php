@@ -55,10 +55,10 @@ class Permohonan extends Model
         return $this->hasOne(PesertaDidik::class);
     }
 
-    // public function personalia(): HasOne
-    // {
-    //     return $this->hasOne(Personalia::class);
-    // }
+    public function personalia(): HasOne
+    {
+        return $this->hasOne(Personalia::class);
+    }
 
     // public function program_pendidikan(): HasOne
     // {

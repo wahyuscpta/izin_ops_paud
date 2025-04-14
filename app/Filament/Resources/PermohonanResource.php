@@ -503,6 +503,307 @@ class PermohonanResource extends Resource
                         ])->relationship('peserta_didik')
                     ]),
 
+                    Step::make('Personalia')
+                    ->schema([
+                        Group::make([
+                            Section::make('Warga Negara Indonesia')
+                                ->columns(3)
+                                ->schema([
+                                    TextInput::make('guru_wni_lk')
+                                        ->label('Guru/Pengasuh (Laki-Laki)')
+                                        ->prefix('Laki-Laki')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $guru_pr = (int) $get('guru_wni_pr');
+                                            $set('guru_wni_jumlah', (int)$state + $guru_pr);
+                                        }),
+
+                                    TextInput::make('guru_wni_pr')
+                                        ->label('Guru/Pengasuh (Perempuan)')
+                                        ->prefix('Perempuan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $guru_lk = (int) $get('guru_wni_lk');
+                                            $set('guru_wni_jumlah', (int)$state + $guru_lk);
+                                        }),
+
+                                    TextInput::make('guru_wni_jumlah')
+                                        ->label('Total Guru/Pengasuh (WNI)')
+                                        ->prefix('Jumlah')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->disabled()
+                                        ->dehydrated()
+                                        ->suffix('orang'),
+
+                                    TextInput::make('asisten_wni_lk')
+                                        ->label('Asisten Guru/Pengasuh (Laki-Laki)')
+                                        ->prefix('Laki-Laki')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $asisten_pr = (int) $get('asisten_wni_pr');
+                                            $set('asisten_wni_jumlah', (int)$state + $asisten_pr);
+                                        }),
+
+                                    TextInput::make('asisten_wni_pr')
+                                        ->label('Asisten Guru/Pengasuh (Perempuan)')
+                                        ->prefix('Perempuan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $asisten_lk = (int) $get('asisten_wni_lk');
+                                            $set('asisten_wni_jumlah', (int)$state + $asisten_lk);
+                                        }),
+
+                                    TextInput::make('asisten_wni_jumlah')
+                                        ->label('Total Asisten Guru/Pengasuh (WNI)')
+                                        ->prefix('Jumlah')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->disabled()
+                                        ->dehydrated()
+                                        ->suffix('orang'),
+
+                                    TextInput::make('tata_usaha_wni_lk')
+                                        ->label('Tata Usaha (Laki-Laki)')
+                                        ->prefix('Laki-Laki')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $tu_pr = (int) $get('tata_usaha_wni_pr');
+                                            $set('tata_usaha_wni_jumlah', (int)$state + $tu_pr);
+                                        }),
+
+                                    TextInput::make('tata_usaha_wni_pr')
+                                        ->label('Tata Usaha (Perempuan)')
+                                        ->prefix('Perempuan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $tu_lk = (int) $get('tata_usaha_wni_lk');
+                                            $set('tata_usaha_wni_jumlah', (int)$state + $tu_lk);
+                                        }),
+                                    
+                                    TextInput::make('tata_usaha_wni_jumlah')
+                                        ->label('Total Tata Usaha (WNI)')
+                                        ->prefix('Jumlah')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->disabled()
+                                        ->dehydrated()
+                                        ->suffix('orang'),
+
+                                    TextInput::make('pesuruh_wni_lk')
+                                        ->label('Pesuruh (Laki-Laki)')
+                                        ->prefix('Laki-Laki')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $pesuruh_pr = (int) $get('pesuruh_wni_pr');
+                                            $set('pesuruh_wni_jumlah', (int)$state + $pesuruh_pr);
+                                        }),                                                                
+
+                                    TextInput::make('pesuruh_wni_pr')
+                                        ->label('Pesuruh (Perempuan)')
+                                        ->prefix('Perempuan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $pesuruh_lk = (int) $get('pesuruh_wni_lk');
+                                            $set('pesuruh_wni_jumlah', (int)$state + $pesuruh_lk);
+                                        }),                                    
+
+                                    TextInput::make('pesuruh_wni_jumlah')
+                                        ->label('Total Pesuruh (WNI)')
+                                        ->prefix('Jumlah')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->disabled()
+                                        ->dehydrated()
+                                        ->suffix('orang'),
+                                ]),
+
+                            Section::make('Warga Negara Asing')
+                                ->columns(3)
+                                ->schema([
+                                    TextInput::make('guru_wna_lk')
+                                        ->label('Guru/Pengasuh (Laki-Laki)')
+                                        ->prefix('Laki-Laki')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $guru_pr = (int) $get('guru_wna_pr');
+                                            $set('guru_wna_jumlah', (int)$state + $guru_pr);
+                                        }),
+
+                                    TextInput::make('guru_wna_pr')
+                                        ->label('Guru/Pengasuh (Perempuan)')
+                                        ->prefix('Perempuan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $guru_lk = (int) $get('guru_wna_lk');
+                                            $set('guru_wna_jumlah', (int)$state + $guru_lk);
+                                        }),
+
+                                    TextInput::make('guru_wna_jumlah')
+                                        ->label('Total Guru/Pengasuh (WNA)')
+                                        ->prefix('Jumlah')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->disabled()
+                                        ->dehydrated()
+                                        ->suffix('orang'),
+
+                                    TextInput::make('asisten_wna_lk')
+                                        ->label('Asisten Guru/Pengasuh (Laki-Laki)')
+                                        ->prefix('Laki-Laki')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $asisten_pr = (int) $get('asisten_wna_pr');
+                                            $set('asisten_wna_jumlah', (int)$state + $asisten_pr);
+                                        }),
+
+                                    TextInput::make('asisten_wna_pr')
+                                        ->label('Asisten Guru/Pengasuh (Perempuan)')
+                                        ->prefix('Perempuan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $asisten_lk = (int) $get('asisten_wna_lk');
+                                            $set('asisten_wna_jumlah', (int)$state + $asisten_lk);
+                                        }),
+
+                                    TextInput::make('asisten_wna_jumlah')
+                                        ->label('Total Asisten Guru//Pengasuh (WNA)')
+                                        ->prefix('Jumlah')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->disabled()
+                                        ->dehydrated()
+                                        ->suffix('orang'),
+
+                                    TextInput::make('tata_usaha_wna_lk')
+                                        ->label('Tata Usaha (Laki-Laki)')
+                                        ->prefix('Laki-Laki')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $tu_pr = (int) $get('tata_usaha_wna_pr');
+                                            $set('tata_usaha_wna_jumlah', (int)$state + $tu_pr);
+                                        }),
+
+                                    TextInput::make('tata_usaha_wna_pr')
+                                        ->label('Tata Usaha (Perempuan)')
+                                        ->prefix('Perempuan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $tu_lk = (int) $get('tata_usaha_wna_lk');
+                                            $set('tata_usaha_wna_jumlah', (int)$state + $tu_lk);
+                                        }),
+                                    
+                                    TextInput::make('tata_usaha_wna_jumlah')
+                                        ->label('Total Tata Usaha (WNA)')
+                                        ->prefix('Jumlah')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->disabled()
+                                        ->dehydrated()
+                                        ->suffix('orang'),
+
+                                    TextInput::make('pesuruh_wna_lk')
+                                        ->label('Pesuruh (Laki-Laki)')
+                                        ->prefix('Laki-Laki')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $pesuruh_pr = (int) $get('pesuruh_wna_pr');
+                                            $set('pesuruh_wna_jumlah', (int)$state + $pesuruh_pr);
+                                        }),                                                                
+
+                                    TextInput::make('pesuruh_wna_pr')
+                                        ->label('Pesuruh (Perempuan)')
+                                        ->prefix('Perempuan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('orang')
+                                        ->reactive()
+                                        ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                            $pesuruh_lk = (int) $get('pesuruh_wna_lk');
+                                            $set('pesuruh_wna_jumlah', (int)$state + $pesuruh_lk);
+                                        }),                                    
+
+                                    TextInput::make('pesuruh_wna_jumlah')
+                                        ->label('Total Pesuruh (WNI)')
+                                        ->prefix('Jumlah')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->disabled()
+                                        ->dehydrated()
+                                        ->suffix('orang'),
+                                ]),
+                        ])->relationship('personalia')
+                    ]),
+
                 ])
                 ->submitAction(new HtmlString(Blade::render(<<<BLADE
                 <x-filament::button

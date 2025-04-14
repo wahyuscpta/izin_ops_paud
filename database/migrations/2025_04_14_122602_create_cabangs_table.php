@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('identitas_id');
             $table->foreign('identitas_id')->references('id')->on('identitas')->cascadeOnDelete();
             $table->string('nama_lembaga_cabang')->nullable();
-            $table->string('alamat_lembaga_cabang')->nullable();
+            $table->text('alamat_lembaga_cabang')->nullable();
             $table->timestamps();
         });
     }

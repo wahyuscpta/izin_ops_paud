@@ -32,7 +32,7 @@ return new class extends Migration
             $table->enum('jenis_pendidikan', ['tk', 'kb', 'tpa', 'sps', 'kursus'])->default('tk')->nullable();
             $table->enum('jenis_lembaga', ['induk', 'cabang'])->default('induk')->nullable();
             $table->boolean('has_cabang')->default(0)->nullable();
-            $table->string('jumlah_cabang')->nullable()->nullable();
+            $table->unsignedInteger('jumlah_cabang')->default(0);
             $table->string('nama_lembaga_induk')->nullable();
             $table->text('alamat_lembaga_induk')->nullable();
             $table->timestamps();
