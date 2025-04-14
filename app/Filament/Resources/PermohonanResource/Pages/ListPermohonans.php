@@ -13,10 +13,7 @@ class ListPermohonans extends ListRecords
 
     protected static ?string $title = 'Permohonan';
 
-    public function getBreadcrumb(): string
-    {
-        return 'Daftar Permohonan';
-    }
+    protected static ?string $breadcrumb = 'Daftar Permohonan';
 
     protected function getHeaderActions(): array
     {

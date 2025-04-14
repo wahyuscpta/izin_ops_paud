@@ -10,6 +10,10 @@ class EditPermohonan extends EditRecord
 {
     protected static string $resource = PermohonanResource::class;
 
+    protected static ?string $breadcrumb = 'Edit Permohonan';
+
+    protected static ?string $title = 'Perbarui Data Permohonan';
+
     protected function getHeaderActions(): array
     {
         return [
