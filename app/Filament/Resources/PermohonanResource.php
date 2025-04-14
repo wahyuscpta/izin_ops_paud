@@ -847,6 +847,383 @@ class PermohonanResource extends Resource
                         ])->relationship('program_pendidikan')
                     ]),
 
+                    Step::make('Prasarana')
+                    ->schema([
+                        Group::make([
+                            Section::make('Ruang Belajar')
+                                ->columns(3)
+                                ->schema([
+                                    TextInput::make('ruang_belajar.milik_sendiri')
+                                        ->label('Milik Sendiri')
+                                        ->numeric()
+                                        ->minValue(0)
+                                    
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_belajar.kontrak')
+                                        ->label('Kontrak')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_belajar.sewa')
+                                        ->label('Sewa')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_belajar.pinjam')
+                                        ->label('Pinjam')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_belajar.beli_sewa')
+                                        ->label('Beli - Sewa')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_belajar.jumlah_luas')
+                                        ->label('Jumlah Luas Ruangan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('m²'),
+                                ]),
+
+                            Section::make('Ruang Bermain')
+                                ->columns(3)
+                                ->schema([
+                                    TextInput::make('ruang_bermain.milik_sendiri')
+                                        ->label('Milik Sendiri')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_bermain.kontrak')
+                                        ->label('Kontrak')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_bermain.sewa')
+                                        ->label('Sewa')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_bermain.pinjam')
+                                        ->label('Pinjam')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_bermain.beli_sewa')
+                                        ->label('Beli - Sewa')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_bermain.jumlah_luas')
+                                        ->label('Jumlah Luas Ruangan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('m²'),
+                                ]),
+
+                            Section::make('Ruang Pimpinan')
+                                ->columns(3)
+                                ->schema([
+                                    TextInput::make('ruang_pimpinan.milik_sendiri')
+                                        ->label('Milik Sendiri')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_pimpinan.kontrak')
+                                        ->label('Kontrak')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_pimpinan.sewa')
+                                        ->label('Sewa')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_pimpinan.pinjam')
+                                        ->label('Pinjam')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_pimpinan.beli_sewa')
+                                        ->label('Beli - Sewa')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_pimpinan.jumlah_luas')
+                                        ->label('Jumlah Luas Ruangan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('m²'),
+                                ]),
+
+                            Section::make('Ruang Sumber Belajar')
+                                ->columns(3)
+                                ->schema([
+                                    TextInput::make('ruang_sumber_belajar.milik_sendiri')
+                                        ->label('Milik Sendiri')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_sumber_belajar.kontrak')
+                                        ->label('Kontrak')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_sumber_belajar.sewa')
+                                        ->label('Sewa')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_sumber_belajar.pinjam')
+                                        ->label('Pinjam')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_sumber_belajar.beli_sewa')
+                                        ->label('Beli - Sewa')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_sumber_belajar.jumlah_luas')
+                                        ->label('Jumlah Luas Ruangan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('m²'),
+                                ]),
+
+                            Section::make('Ruang Guru')
+                                ->columns(3)
+                                ->schema([
+                                    TextInput::make('ruang_guru.milik_sendiri')
+                                        ->label('Milik Sendiri')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_guru.kontrak')
+                                        ->label('Kontrak')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_guru.sewa')
+                                        ->label('Sewa')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_guru.pinjam')
+                                        ->label('Pinjam')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_guru.beli_sewa')
+                                        ->label('Beli - Sewa')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_guru.jumlah_luas')
+                                        ->label('Jumlah Luas Ruangan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('m²'),
+                                ]),
+
+                            Section::make('Ruang Tata Usaha')
+                                ->columns(3)
+                                ->schema([
+                                    TextInput::make('ruang_tata_usaha.milik_sendiri')
+                                        ->label('Milik Sendiri')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_tata_usaha.kontrak')
+                                        ->label('Kontrak')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_tata_usaha.sewa')
+                                        ->label('Sewa')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_tata_usaha.pinjam')
+                                        ->label('Pinjam')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_tata_usaha.beli_sewa')
+                                        ->label('Beli - Sewa')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('ruang_tata_usaha.jumlah_luas')
+                                        ->label('Jumlah Luas Ruangan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('m²'),
+                                ]),
+
+                            Section::make('Kamar Mandi')
+                                ->columns(3)
+                                ->schema([
+                                    TextInput::make('kamar_mandi.milik_sendiri')
+                                        ->label('Milik Sendiri')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('kamar_mandi.kontrak')
+                                        ->label('Kontrak')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('kamar_mandi.sewa')
+                                        ->label('Sewa')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('kamar_mandi.pinjam')
+                                        ->label('Pinjam')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('kamar_mandi.beli_sewa')
+                                        ->label('Beli - Sewa')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('kamar_mandi.jumlah_luas')
+                                        ->label('Jumlah Luas Ruangan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('m²'),
+                                ]),
+
+                            Section::make('Kamar Kecil')
+                                ->columns(3)
+                                ->schema([
+                                    TextInput::make('kamar_kecil.milik_sendiri')
+                                        ->label('Milik Sendiri')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('kamar_kecil.kontrak')
+                                        ->label('Kontrak')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('kamar_kecil.sewa')
+                                        ->label('Sewa')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('kamar_kecil.pinjam')
+                                        ->label('Pinjam')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('kamar_kecil.beli_sewa')
+                                        ->label('Beli - Sewa')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('buah'),
+
+                                    TextInput::make('kamar_kecil.jumlah_luas')
+                                        ->label('Jumlah Luas Ruangan')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->required()
+                                        ->suffix('m²'),
+                                ]),
+                        ])->relationship('prasarana'),
+                    ]),
+
+                    
+
+
                 ])
                 ->submitAction(new HtmlString(Blade::render(<<<BLADE
                 <x-filament::button

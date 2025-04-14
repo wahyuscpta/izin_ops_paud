@@ -65,10 +65,10 @@ class Permohonan extends Model
         return $this->hasOne(ProgramPendidikan::class);
     }
 
-    // public function prasarana(): HasOne
-    // {
-    //     return $this->hasOne(Prasarana::class);
-    // }
+    public function prasarana(): HasOne
+    {
+        return $this->hasOne(Prasarana::class);
+    }
 
     // public function sarana(): HasOne
     // {
