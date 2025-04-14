@@ -40,10 +40,10 @@ class Permohonan extends Model
         return $this->hasOne(Identitas::class);
     }
 
-    // public function penyelenggara(): HasOne
-    // {
-    //     return $this->hasOne(Penyelenggara::class);
-    // }
+    public function penyelenggara(): HasOne
+    {
+        return $this->hasOne(Penyelenggara::class);
+    }
 
     // public function pengelola(): HasOne
     // {

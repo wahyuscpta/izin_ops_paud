@@ -13,6 +13,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -190,7 +191,128 @@ class PermohonanResource extends Resource
                                 ->relationship('cabangs')                                
                         ])
                         ->relationship('identitas')
-                    ])
+                    ]),
+
+                    Step::make('Penyelenggara')
+                    ->schema([
+                        Group::make([
+                            Section::make('Perorangan')
+                                ->columns(2)
+                                ->schema([
+                                    TextInput::make('nama_perorangan')
+                                        ->label('Nama Lengkap')
+                                        ->required()
+                                        ->maxLength(255),
+
+                                    Select::make('agama_perorangan')
+                                        ->label('Agama')
+                                        ->options([
+                                            'hindu' => 'Hindu',
+                                            'islam' => 'Islam',
+                                            'katolik' => 'Katolik',
+                                            'kristen' => 'Kristen',
+                                            'budha' => 'Budha',
+                                            'konghuchu' => 'Kong Hu Chu',
+                                        ])
+                                        ->required(),
+
+                                    TextInput::make('kewarganegaraan_perorangan')
+                                        ->label('Kewarganegaraan')
+                                        ->required()
+                                        ->maxLength(255),
+
+                                    TextInput::make('ktp_perorangan')
+                                        ->label('No KTP')
+                                        ->numeric()
+                                        ->required()
+                                        ->minLength(16)
+                                        ->maxLength(16),
+
+                                    DatePicker::make('tanggal_perorangan')
+                                        ->label('Tanggal')
+                                        ->required()
+                                        ->rule('before_or_equal:today'),
+
+                                    TextInput::make('alamat_perorangan')
+                                        ->label('Alamat Lengkap Jalan')
+                                        ->required()
+                                        ->maxLength(500),
+
+                                    TextInput::make('telepon_perorangan')
+                                        ->label('Telepon')
+                                        ->numeric()
+                                        ->required()
+                                        ->rule('regex:/^08[0-9]{8,11}$/')
+                                        ->maxLength(13),
+
+                                    Select::make('kabupaten_perorangan')
+                                        ->label('Kabupaten/Kota')
+                                        ->live()
+                                        ->options(Regency::where('province_id', 51)->pluck('name', 'id'))
+                                        ->required(),
+                                ]),
+
+                            Section::make('Badan Hukum')
+                                ->columns(2)
+                                ->schema([
+                                    TextInput::make('nama_badan')
+                                        ->label('Nama Lengkap')
+                                        ->required()
+                                        ->maxLength(255),
+
+                                    Select::make('agama_badan')
+                                        ->label('Agama')
+                                        ->options([
+                                            'hindu' => 'Hindu',
+                                            'islam' => 'Islam',
+                                            'katolik' => 'Katolik',
+                                            'kristen' => 'Kristen',
+                                            'budha' => 'Budha',
+                                            'konghuchu' => 'Kong Hu Chu',
+                                        ])
+                                        ->required(),
+
+                                    TextInput::make('akte_badan')
+                                        ->label('Akte')
+                                        ->numeric()
+                                        ->required()
+                                        ->maxLength(50),
+
+                                    TextInput::make('nomor_badan')
+                                        ->label('Nomor')
+                                        ->numeric()
+                                        ->required()
+                                        ->maxLength(50),
+
+                                    DatePicker::make('tanggal_badan')
+                                        ->label('Tanggal')
+                                        ->required()
+                                        ->rule('before_or_equal:today'),
+
+                                    TextInput::make('alamat_badan')
+                                        ->label('Alamat Lengkap Jalan')
+                                        ->required()
+                                        ->maxLength(500),
+
+                                    TextInput::make('telepon_badan')
+                                        ->label('Telepon')
+                                        ->numeric()
+                                        ->required()
+                                        ->rule('regex:/^08[0-9]{8,11}$/')
+                                        ->maxLength(13),
+
+                                    Select::make('kabupaten_badan')
+                                        ->label('Kabupaten/Kota')
+                                        ->live()
+                                        ->options(Regency::where('province_id', 51)->pluck('name', 'id'))
+                                        ->required(),
+                                ]),
+                        ])
+                        ->columns(2)
+                        ->relationship('penyelenggara')
+                    ]),
+
+                    
 
                 ])
                 ->submitAction(new HtmlString(Blade::render(<<<BLADE
@@ -204,6 +326,7 @@ class PermohonanResource extends Resource
                 BLADE)))
                 ->columnSpanFull()
                 ->columns(1)
+                ->skippable()
 
             ]);
     }
