@@ -312,7 +312,73 @@ class PermohonanResource extends Resource
                         ->relationship('penyelenggara')
                     ]),
 
-                    
+                    Step::make('Pengelola')
+                    ->schema([
+                        Group::make([
+                            Grid::make(2)
+                                ->schema([
+                                    TextInput::make('nama_pengelola')
+                                        ->label('Nama Lengkap')
+                                        ->required()
+                                        ->maxLength(255),
+
+                                    Select::make('agama_pengelola')
+                                        ->label('Agama')
+                                        ->options([
+                                            'hindu' => 'Hindu',
+                                            'islam' => 'Islam',
+                                            'katolik' => 'Katolik',
+                                            'kristen' => 'Kristen',
+                                            'budha' => 'Budha',
+                                            'konghuchu' => 'Kong Hu Chu',
+                                        ])
+                                        ->required(),
+
+                                    Select::make('jenis_kelamin_pengelola')
+                                        ->label('Jenis Kelamin')
+                                        ->options([
+                                            'l' => 'Laki - Laki',
+                                            'p' => 'Perempuan',
+                                        ])
+                                        ->required(),
+
+                                    TextInput::make('kewarganegaraan_pengelola')
+                                        ->label('Kewarganegaraan')
+                                        ->required()
+                                        ->maxLength(100),
+
+                                    TextInput::make('ktp_pengelola')
+                                        ->label('Nomor KTP')
+                                        ->numeric()
+                                        ->required()
+                                        ->minLength(16)
+                                        ->maxLength(16),
+
+                                    DatePicker::make('tanggal_pengelola')
+                                        ->label('Tanggal')
+                                        ->required()
+                                        ->rule('before_or_equal:today'),
+
+                                    TextInput::make('telepon_pengelola')
+                                        ->label('Telepon')
+                                        ->numeric()
+                                        ->required()
+                                        ->rule('regex:/^08[0-9]{8,11}$/')
+                                        ->maxLength(13),
+
+                                    Select::make('kabupaten_pengelola')
+                                        ->label('Kabupaten/Kota')
+                                        ->live()
+                                        ->options(Regency::where('province_id', 51)->pluck('name', 'id'))
+                                        ->required(),
+                                ]),
+
+                            Textarea::make('alamat_pengelola')
+                                ->label('Alamat Lengkap')
+                                ->required()
+                                ->maxLength(500),
+                        ])->relationship('pengelola')
+                    ]),
 
                 ])
                 ->submitAction(new HtmlString(Blade::render(<<<BLADE
