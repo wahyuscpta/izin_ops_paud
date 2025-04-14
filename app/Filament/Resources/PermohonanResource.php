@@ -9,6 +9,7 @@ use App\Models\Permohonan;
 use App\Models\Regency;
 use App\Models\Village;
 use Filament\Forms;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Group;
@@ -802,6 +803,48 @@ class PermohonanResource extends Resource
                                         ->suffix('orang'),
                                 ]),
                         ])->relationship('personalia')
+                    ]),
+
+                    Step::make('Program Pendidikan')
+                    ->schema([
+                        Group::make([
+                            Grid::make(2)
+                                ->schema([
+
+                                    Section::make('Bahan Pembelajaran Berdasarkan Program')
+                                        ->schema([
+
+                                            CheckboxList::make('bahan_pembelajaran')
+                                                ->label('')
+                                                ->options([
+                                                    'depikbud' => 'Depikbud',
+                                                    'instansi_lain' => 'Instansi Lain',
+                                                    'lembaga_sendiri' => 'Lembaga Sendiri',
+                                                    'lembaga_lain' => 'Lembaga Lain',
+                                                ])
+                                                ->columns(2)
+                                                ->required()
+                                                ->rules(['array', 'min:1'])
+
+                                        ]),
+
+                                    Section::make('Cara Penyampaian/Penyajian Pelajaran')
+                                        ->schema([
+
+                                            CheckboxList::make('cara_penyampaian')
+                                                ->label('')
+                                                ->options([
+                                                    'secara_langsung' => 'Secara Langsung (Dengan Sumber Belajar Guru)',
+                                                    'korespondensi' => 'Korespondensi (Tertulis)',
+                                                ])
+                                                ->columns(2)
+                                                ->required()
+                                                ->rules(['array', 'min:1'])
+
+                                        ])
+
+                                ])
+                        ])->relationship('program_pendidikan')
                     ]),
 
                 ])
