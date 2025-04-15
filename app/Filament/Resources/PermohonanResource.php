@@ -1459,6 +1459,21 @@ class PermohonanResource extends Resource implements HasShieldPermissions
             ]);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $user = Filament::auth()->user();
+
+        if ($user->hasRole('admin')) {
+            return parent::getEloquentQuery();
+        }
+
+        if ($user->hasRole('kepala_dinas')) {
+            return parent::getEloquentQuery()->whereIn('status_permohonan', ['proses_penerbitan_izin', 'izin_diterbitkan']);
+        }
+
+        return parent::getEloquentQuery()->where('user_id', $user->id);
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -1472,7 +1487,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                 TextColumn::make('user.name')
                 ->label('Nama Pemohon')
                 ->sortable()
-            //  ->visible(fn () => Filament::auth()->user()->hasRole('admin'))
+                ->visible(fn () => Filament::auth()->user()->hasRole('admin'))
                 ->searchable(),
 
                 TextColumn::make('identitas.nama_lembaga')
@@ -1539,6 +1554,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
         return [
             'index' => Pages\ListPermohonans::route('/'),
             'create' => Pages\CreatePermohonan::route('/create'),
+            'view' => Pages\ViewPermohonan::route('/{record}'),
             'edit' => Pages\EditPermohonan::route('/{record}/edit'),
         ];
     }
