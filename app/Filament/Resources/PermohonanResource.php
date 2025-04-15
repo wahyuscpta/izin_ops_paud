@@ -8,6 +8,10 @@ use App\Models\District;
 use App\Models\Permohonan;
 use App\Models\Regency;
 use App\Models\Village;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
@@ -26,14 +30,19 @@ use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 
-class PermohonanResource extends Resource
+class PermohonanResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Permohonan::class;
 
@@ -42,6 +51,28 @@ class PermohonanResource extends Resource
     protected static ?string $navigationLabel = 'Permohonan';
 
     protected static ?string $breadcrumb = 'Permohonan';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+            'force_delete',
+            'force_delete_any',
+            'verifikasi',
+            'validasi',
+            'proses_izin'
+        ];
+    }
 
     public static function form(Form $form): Form
     {
@@ -1334,7 +1365,7 @@ class PermohonanResource extends Resource
                                 'perjanjian_sewa' => 'Perjanjian Sewa Menyewa',
                                 'nib' => '(NIB) No Induk Berusaha'
                             ])
-                            ->chunk(2) // Membagi array menjadi kelompok berisi 2 item
+                            ->chunk(2)
                             ->map(fn ($pair) => Group::make(
                                 collect($pair)->map(fn ($label, $field) => [
                                     Placeholder::make("preview_{$field}")
@@ -1367,7 +1398,7 @@ class PermohonanResource extends Resource
                                         ->disk('public')
                                         ->acceptedFileTypes(['application/pdf'])
                                         ->maxSize(2048)
-                                        ->required()
+                                        //->required()
                                         ->helperText('Unggah file PDF maks. 2MB'),
                                 ])->flatten(1)->toArray()
                             ))->toArray()
@@ -1404,7 +1435,7 @@ class PermohonanResource extends Resource
                                 ->disk('public')
                                 ->acceptedFileTypes(['application/pdf'])
                                 ->maxSize(2048)
-                                ->required()
+                                //->required()
                                 ->previewable(true)
                                 ->helperText('Unggah file PDF maks. 2MB'),
                         ])
@@ -1433,18 +1464,66 @@ class PermohonanResource extends Resource
         return $table
             ->emptyStateHeading('Belum ada permohonan')
             ->columns([
-                //
+                TextColumn::make('no_permohonan')
+                ->label('No Permohonan')
+                ->sortable()
+                ->searchable(),
+                
+                TextColumn::make('user.name')
+                ->label('Nama Pemohon')
+                ->sortable()
+            //  ->visible(fn () => Filament::auth()->user()->hasRole('admin'))
+                ->searchable(),
+
+                TextColumn::make('identitas.nama_lembaga')
+                ->label('Nama Lembaga')
+                ->sortable()
+                ->searchable(),
+
+                TextColumn::make('tgl_permohonan')
+                ->label('Tanggal Diajukan')
+                ->date()
+                ->sortable(),
+
+                TextColumn::make('tgl_status_terakhir')
+                ->label('Tanggal Status Terakhir')
+                ->date()
+                ->sortable(),
+
+                TextColumn::make('status_permohonan')
+                ->label('Status Permohonan')
+                ->badge()
+                ->formatStateUsing(fn ($state) => ucfirst($state))
+                ->formatStateUsing(fn ($state) => ucwords(str_replace('_', ' ', $state)))
+                ->color(fn (string $state): string => match ($state) {
+                    'draft' => 'gray',
+                    'menunggu_verifikasi' => 'warning',
+                    'menunggu_validasi_lapangan' => 'success',
+                    'proses_penerbitan_izin' => 'success',
+                    'izin_diterbitkan' => 'primary',
+                    'permohonan_ditolak' => 'danger',
+                })
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                EditAction::make()
+                ->visible(fn (Model $record) => in_array($record->status_permohonan, ['draft', 'ditolak'])),
+
+                DeleteAction::make()
+                ->visible(fn (Model $record) => in_array($record->status_permohonan, ['draft', 'ditolak']))
+                ->after(function (Model $record) {
+                    foreach ($record->lampiran as $lampiran) {
+                        Storage::disk('public')->delete($lampiran->lampiran_path);
+                    }
+                    $record->lampiran()->delete();
+                }),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ])
             ]);
     }
 
