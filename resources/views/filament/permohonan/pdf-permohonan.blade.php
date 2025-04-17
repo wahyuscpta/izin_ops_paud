@@ -5,30 +5,74 @@
     <title>Formulir Permohonan Izin Operasional</title>
     <style>
         @page {
-            margin: 2cm 2cm 2cm 2.5cm;
+            margin: 1.5cm;
+            font-size: 10pt;
+            line-height: 1.4;
         }
 
-        body {
-            font-family: 'Times New Roman', serif;
-            font-size: 12pt;
-            color: #000;
-            line-height: 2;
+        .title-page{
+            text-align: center; 
+            font-weight: bold; 
+            font-size: 12pt; 
+            margin-bottom: 20px;
+            text-transform: uppercase;
         }
 
-        table {
+        tr {
+            page-break-inside: avoid;
+        }
+        
+        .form-header-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 1cm;
+            margin-bottom: 20px;
         }
-
-        td {
-            vertical-align: top;
-            padding: 0px 4px;
+        
+        .form-header-table td {
+            border: .5px solid black;
+            vertical-align: middle;
+            padding: 7px 5px;
         }
 
         .title-table{
+            border: none !important;
+            padding: 10px 0;
             font-weight: bold;
-            padding-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .left-section {
+            width: 50%;
+        }
+        
+        .right-section {
+            width: 50%;
+        }
+        
+        .inner-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .inner-table td {
+            border: none;
+            vertical-align: middle;
+        }
+                
+        .label-column {           
+            background-color: #ececec;
+        }
+        
+        .separator-column {
+            width: 15px;
+        }
+        
+        .content-column {
+            text-transform: capitalize !important;
+        }   
+
+        .page-break {
+            page-break-after: always;
         }
     </style>
 </head>
@@ -43,250 +87,291 @@
         $programPendidikan = $permohonan->program_pendidikan;
         $prasarana = $permohonan->prasarana;
         $sarana = $permohonan->sarana;
+
+        function formatValue($value) {
+            if ($value instanceof \Carbon\Carbon || \Carbon\Carbon::hasFormat($value, 'Y-m-d')) {
+                return \Carbon\Carbon::parse($value)->translatedFormat('d F Y');
+            } elseif (is_string($value)) {
+                return ucwords(strtolower($value));
+            }
+            return $value;
+        }
     @endphp
 
-    <table width="100%" style="margin-bottom: 30px;">
+    <p class="title-page">Formulir Permohonan</p>
+
+    <table class="form-header-table">
         <tr>
-            <!-- Kolom kiri -->
-            <td style="vertical-align: top; width: 60%; padding: 0px">
-                <table>
+            <td class="left-section" style="width: 70%; padding-right: 70px; border: none;">
+                <table class="inner-table">
                     <tr>
-                        <td style="width: 80px; padding: 0px">Nomor</td>
-                        <td style="width: 10px; padding: 0px">:</td>
-                        <td style="padding: 0px">{{ $permohonan->no_permohonan ?? '...' }}</td>
+                        <td style="background-color: transparent; width: 60px; vertical-align: top" class="label-column">Nomor</td>
+                        <td class="separator-column" style="vertical-align: top">:</td>
+                        <td style="font-weight: normal; text-transform: unset; vertical-align: top" class="content-column">{{ $permohonan->no_permohonan }}</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Perihal</td>
-                        <td style="padding: 0px">:</td>
-                        <td style="padding: 0px">Permohonan Ijin Operasional PAUD & PNF</td>
+                        <td style="background-color: transparent; width: 60px; vertical-align: top" class="label-column">Perihal</td>
+                        <td class="separator-column" style="vertical-align: top">:</td>
+                        <td style="font-weight: normal; text-transform: unset; vertical-align: top;" class="content-column">Permohonan Ijin Operasional PAUD & PNF</td>
                     </tr>
                 </table>
             </td>
-
-            <!-- Kolom kanan -->
-            <td style="vertical-align: top;line-height: 1.8; padding: 0px">
-                Kepada Yth.<br>
-                Kepala Dinas Pendidikan, Kepemudaan dan Olahraga
-                Kabupaten Badung
+            
+            <td class="right-section" style="padding-left: 20px; border: none;">
+                <table class="inner-table">
+                    <tr>
+                        <td style="vertical-align: top">Kepada Yth.</td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align: top">Kepala Dinas Pendidikan, Kepemudaan dan Olah Raga Kabupaten</td>
+                    </tr>
+                </table>
             </td>
         </tr>
     </table>
 
     <!-- IDENTITAS -->
-
-    <table>
+    <table class="form-header-table">
         <tr>
-            <td class="title-table">A. IDENTITAS</td>
+            <td colspan="4" class="title-table">A. <span style="margin-left: 10px">IDENTITAS</span></td>
         </tr>
-        
-        @foreach ([
-            'Nama Lembaga' => $identitas->nama_lembaga,
-            'Alamat Jalan' => $identitas->alamat_identitas,
-            'Telepon' => $identitas->no_telepon_identitas,
-            'Desa/Kelurahan' => $identitas->village->name,
-            'Kecamatan' => $identitas->village->district->name,
-            'Kabupaten' => $identitas->village->district->regency->name,
-            'Didirikan Pada Tanggal' => $identitas->tgl_didirikan,
-            'Penyelenggaraan Terdaftar Sejak' => $identitas->tgl_terdaftar,
-            'Nomor Registrasi' => $identitas->no_registrasi,
-            'Nomor Surat Keputusan' => $identitas->no_surat_keputusan,
-        ] as $label => $value)
-            @php
-                if ($value instanceof \Carbon\Carbon || \Carbon\Carbon::hasFormat($value, 'Y-m-d')) {
-                    $value = \Carbon\Carbon::parse($value)->translatedFormat('d F Y');
-                } elseif (is_string($value)) {
-                    $value = ucwords(strtolower($value));
-                }
-            @endphp
+
+        <tr>
+            <td class="label-column" style="width: 10%;">Nama Lembaga</td>
+            <td class="content-column" style="width: 30%;">{{ $identitas->nama_lembaga }}</td>
+            <td class="label-column" style="width: 15%;">Rumpun Pendidikan</td>
+            <td class="content-column" style="width: 30%;">{{ $identitas->rumpun_pendidikan }}</td>
+        </tr>
+
+        <tr>
+            <td class="label-column">Alamat Jalan</td>
+            <td class="content-column">{{ $identitas->alamat_identitas }}</td>
+            <td class="label-column">Jenis Pendidikan</td>
+            <td class="content-column">{{ $identitas->jenis_pendidikan }}</td>
+        </tr>
+
+        <tr>
+            <td class="label-column">Telepon</td>
+            <td class="content-column">{{ $identitas->no_telepon_identitas }}</td>
+            <td class="label-column">Jenis Lembaga</td>
+            <td class="content-column">{{ $identitas->jenis_lembaga }}</td>
+        </tr>
+
+        <tr>
+            <td class="label-column">Desa/Kel</td>
+            <td class="content-column">{{ ucwords(strtolower($identitas->village->name)) }}</td>
+            <td class="label-column">Punya Cabang</td>
+            <td class="content-column">{{ $identitas->has_cabang ? 'Ya' : 'Tidak' }}</td>
+        </tr>
+
+        <tr>
+            <td class="label-column">Kecamatan</td>
+            <td class="content-column">{{ ucwords(strtolower($identitas->district->name)) }}</td>
+            <td class="label-column">Jumlah Cabang</td>
+            <td class="content-column">{{ $identitas->jumlah_cabang }}</td>
+        </tr>
+
+        <tr>
+            <td class="label-column">Kab/Kota</td>
+            <td class="content-column">{{ ucwords(strtolower($identitas->regency->name)) }}</td>
+            <td class="label-column" colspan="2">Nama dan Alamat Cabang</td>
+        </tr>
+
+        <tr>
+            <td class="label-column">Didirikan Pada Tanggal</td>
+            <td class="content-column">{{ formatValue($identitas->tgl_didirikan) }}</td>
+            <td class="content-column" colspan="2">
+                <table class="inner-table">
+    @if ($identitas->cabangs->isNotEmpty())
+        @foreach ($identitas->cabangs as $index => $cabang)
             <tr>
-                <td style="width: 30%;">{{ $label }}</td>
-                <td style="width: 5%;">:</td>
-                <td style="width: 65%;">{{ $value }}</td>
+                <td>{{ $index + 1 }}.</td>
+                <td style="padding: 0">{{ $cabang->nama_lembaga_cabang ?? '-' }}</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td style="padding: 0">{{ ucwords(strtolower($cabang->alamat_lembaga_cabang ?? '-')) }}</td>
             </tr>
         @endforeach
-
+    @else
         <tr>
-            <td>Rumpun Pendidikan</td>
-            <td>:</td>
-            <td>{{ $identitas->rumpun_pendidikan }}</td>
+            <td>-</td>
+            <td style="padding: 0">-</td>
         </tr>
-        <tr>
-            <td>Jenis Pendidikan</td>
-            <td>:</td>
-            <td>{{ ucwords(strtolower($identitas->jenis_pendidikan)) }}</td>
-        </tr>
-        <tr>
-            <td>Lembaga Ini Merupakan</td>
-            <td>:</td>
-            <td>{{ $identitas->jenis_lembaga === 'induk' ? 'Induk' : 'Cabang' }}</td>
+    @endif
+                </table>
+            </td>
         </tr>
 
-        @if ($identitas->jenis_lembaga === 'induk')
-            <tr>
-                <td>Mempunyai Cabang</td>
-                <td>:</td>
-                <td>{{ $identitas->has_cabang ? 'Ya' : 'Tidak' }}</td>
-            </tr>
+        <tr>
+            <td class="label-column">Penyelenggaraan Sejak Tanggal</td>
+            <td class="content-column">{{ formatValue($identitas->tgl_terdaftar) }}</td>
+            <td class="label-column">Lembaga Induk</td>
+            <td class="content-column">{{ $identitas->nama_lembaga_induk ?? '-'}}</td>            
+        </tr>
 
-            @if ($identitas->has_cabang)
-                <tr>
-                    <td>Jumlah Cabang</td>
-                    <td>:</td>
-                    <td>{{ $identitas->jumlah_cabang }} lembaga</td>
-                </tr>
-                <tr>
-                    <td colspan="3" style="padding-top: 10px">
-                        Daftar Nama dan Alamat Cabang :
-                        <table class="sub-table">
-                            @foreach ($identitas->cabangs as $index => $cabang)
-                                <tr>
-                                    <td style="width: 5%;">{{ $index + 1 }}.</td>
-                                    <td>{{ $cabang->nama_lembaga_cabang }}</td>
-                                </tr>
-                                <tr>
-                                    <td></td>
-                                    <td>{{ $cabang->alamat_lembaga_cabang }}</td>
-                                </tr>
-                            @endforeach
-                        </table>
-                    </td>
-                </tr>
-            @endif
+        <tr>
+            <td class="label-column">Nomor Registrasi</td>
+            <td class="content-column">{{ $identitas->no_registrasi }}</td>
+            <td class="label-column">Alamat Lembaga Induk</td>
+            <td class="content-column">{{ $identitas->alamat_lembaga_induk ?? '-'}}</td> 
+        </tr>
 
-        @else
-            <tr>
-                <td>Nama Lembaga Induk</td>
-                <td>:</td>
-                <td>{{ $identitas->nama_lembaga_induk }}</td>
-            </tr>
-            <tr>
-                <td>Alamat Lembaga Induk</td>
-                <td>:</td>
-                <td>{{ $identitas->alamat_lembaga_induk }}</td>
-            </tr>
-        @endif
+        <tr>
+            <td class="label-column">Nomor Surat Keputusan</td>
+            <td class="content-column">{{ $identitas->no_surat_keputusan }}</td>
+            <td class="label-column" colspan="2"></td>
+        </tr>
+
     </table>
 
     <!-- PENYELENGGARA -->
-
-    <table>
+    <table class="form-header-table">
         <tr>
-            <td class="title-table" colspan="3">B. PENYELENGGARA/YAYASAN</td>
+            <td colspan="4" class="title-table">B. <span style="margin-left: 10px">PENYELENGGARA/YAYASAN</span></td>
         </tr>
 
-        <tr>            
-            <td><strong>Perorangan</strong></td>
+        <tr>
+            <td colspan="2" style="text-align: center; background-color: #ececec" class="content-column">PERORANGAN</td>
+            <td colspan="2" style="text-align: center; background-color: #ececec" class="content-column">BADAN HUKUM</td>
         </tr>
 
-        @foreach ([
-            'Nama Lengkap' => $penyelenggara->nama_perorangan,
-            'Agama' => $penyelenggara->agama_perorangan,
-            'Kewarganegraan' => $penyelenggara->kewarganegaraan_perorangan,
-            'No KTP' => $penyelenggara->ktp_perorangan,
-            'Tanggal' => $penyelenggara->tanggal_perorangan,
-            'Alamat Lengkap' => $penyelenggara->alamat_perorangan,
-            'Telepon' => $penyelenggara->telepon_perorangan,
-            'Kabupaten/Kota' => $penyelenggara->regencyPerorangan->name,
-        ] as $label => $value)
-            <tr>
-                <td style="width: 30%;">{{ $label }}</td>
-                <td style="width: 5%;">:</td>
-                <td style="width: 65%;">{{ ucwords(strtolower($value)) }}</td>
-            </tr>
-        @endforeach
-
-        <tr>            
-            <td style="padding-top: 20px"><strong>Badan Hukum</strong></td>
+        <tr>
+            <td class="label-column" style="width: 15%;">Nama Lengkap</td>
+            <td class="content-column" style="width: 35%;">{{ $penyelenggara->nama_perorangan }}</td>
+            <td class="label-column" style="width: 15%;">Nama Lengkap</td>
+            <td class="content-column" style="width: 30%;">{{ $penyelenggara->nama_badan }}</td>
         </tr>
 
-        @foreach ([
-            'Nama Lengkap' => $penyelenggara->nama_badan,
-            'Agama' => $penyelenggara->agama_badan,
-            'Akte' => $penyelenggara->akte_badan,
-            'Nomor' => $penyelenggara->nomor_badan,
-            'Tanggal' => $penyelenggara->tanggal_badan,
-            'Alamat Lengkap' => $penyelenggara->alamat_badan,
-            'Telepon' => $penyelenggara->telepon_badan,
-            'Kabupaten/Kota' => $penyelenggara->regencyBadan->name,
-        ] as $label => $value)
-            <tr>
-                <td style="width: 30%;">{{ $label }}</td>
-                <td style="width: 5%;">:</td>
-                <td style="width: 65%;">{{ ucwords(strtolower($value)) }}</td>
-            </tr>
-        @endforeach
+        <tr>
+            <td class="label-column" style="width: 15%;">Agama</td>
+            <td class="content-column" style="width: 35%;">{{ $penyelenggara->agama_perorangan }}</td>
+            <td class="label-column" style="width: 15%;">Agama</td>
+            <td class="content-column" style="width: 30%;">{{ $penyelenggara->agama_badan }}</td>
+        </tr>
+
+        <tr>
+            <td class="label-column" style="width: 15%;">Kewarganegaraan</td>
+            <td class="content-column" style="width: 35%;">{{ $penyelenggara->kewarganegaraan_perorangan }}</td>
+            <td class="label-column" style="width: 15%;">Akte</td>
+            <td class="content-column" style="width: 30%;">{{ $penyelenggara->akte_badan }}</td>
+        </tr>
+
+        <tr>
+            <td class="label-column" style="width: 15%;">No KTP</td>
+            <td class="content-column" style="width: 35%;">{{ $penyelenggara->ktp_perorangan }}</td>
+            <td class="label-column" style="width: 15%;">Nomor</td>
+            <td class="content-column" style="width: 30%;">{{ $penyelenggara->nomor_badan }}</td>
+        </tr>
+
+        <tr>
+            <td class="label-column" style="width: 15%;">Tanggal</td>
+            <td class="content-column" style="width: 35%;">{{ formatValue($penyelenggara->tanggal_perorangan ) }}</td>
+            <td class="label-column" style="width: 15%;">Tanggal</td>
+            <td class="content-column" style="width: 30%;">{{ formatValue($penyelenggara->tanggal_badan) }}</td>
+        </tr>
+
+        <tr>
+            <td class="label-column" style="width: 15%;">Alamat Jalan</td>
+            <td class="content-column" style="width: 35%;">{{ $penyelenggara->alamat_perorangan }}</td>
+            <td class="label-column" style="width: 15%;">Alamat Jalan</td>
+            <td class="content-column" style="width: 30%;">{{ $penyelenggara->alamat_badan }}</td>
+        </tr>
+
+        <tr>
+            <td class="label-column" style="width: 15%;">Telepon</td>
+            <td class="content-column" style="width: 35%;">{{ $penyelenggara->telepon_perorangan }}</td>
+            <td class="label-column" style="width: 15%;">Telepon</td>
+            <td class="content-column" style="width: 30%;">{{ $penyelenggara->telepon_badan }}</td>
+        </tr>
+
+        <tr>
+            <td class="label-column" style="width: 15%;">Kab/Kota</td>
+            <td class="content-column" style="width: 35%;">{{ $penyelenggara->regencyPerorangan->name }}</td>
+            <td class="label-column" style="width: 15%;">Kab/Kota</td>
+            <td class="content-column" style="width: 30%;">{{ $penyelenggara->regencyBadan->name }}</td>
+        </tr>
     </table>
 
     <!-- PENGELOLA -->
-
-    <table>
+    <table class="form-header-table">
         <tr>
-            <td class="title-table" colspan="3">C. PENGELOLA/PENANGGUNG JAWAB TEKNIS EDUKATIF</td>
+            <td colspan="4" class="title-table">C. <span style="margin-left: 10px">Pengelola/Penanggung Jawab Teknis Edukatif</span></td>
         </tr>
 
-        @foreach ([
-            'Nama Lengkap' => $pengelola->nama_pengelola,
-            'Agama' => $pengelola->agama_pengelola,
-            'Jenis Kelamin' => $pengelola->jenis_kelamin_pengelola,
-            'Kewarganegraan' => $pengelola->kewarganegaraan_pengelola,
-            'No KTP' => $pengelola->ktp_pengelola,
-            'Tanggal' => $pengelola->tanggal_pengelola,
-            'Alamat Lengkap' => $pengelola->alamat_pengelola,
-            'Telepon' => $pengelola->telepon_pengelola,
-            'Kabupaten/Kota' => $pengelola->regency->name,
-        ] as $label => $value)
-            <tr>
-                <td style="width: 30%;">{{ $label }}</td>
-                <td style="width: 5%;">:</td>
-                <td style="width: 65%;">{{ ucwords(strtolower($value)) }}</td>
-            </tr>
-        @endforeach
+        <tr>
+            <td class="label-column" style="width: 15%;">Nama Lengkap</td>
+            <td class="content-column" style="width: 35%;">{{ $pengelola->nama_pengelola }}</td>
+            <td class="label-column" style="width: 15%;">No KTP</td>
+            <td class="content-column" style="width: 30%;">{{ $pengelola->ktp_pengelola }}</td>
+        </tr>
+
+        <tr>
+            <td class="label-column">Agama</td>
+            <td class="content-column">{{ $pengelola->agama_pengelola }}</td>
+            <td class="label-column">Tanggal</td>
+            <td class="content-column">{{ $pengelola->tanggal_pengelola }}</td>
+        </tr>
+
+        <tr>
+            <td class="label-column">Jenis Kelamin</td>
+            <td class="content-column">{{ $pengelola->jenis_kelamin_pengelola == 'l' ? 'Laki-Laki' : 'Perempuan' }}</td>
+            <td class="label-column">Alamat Jalan</td>
+            <td class="content-column">{{ $pengelola->alamat_pengelola }}</td>
+        </tr>
+
+        <tr>
+            <td class="label-column">Kewarganegaraan</td>
+            <td class="content-column">{{ $pengelola->kewarganegaraan_pengelola }}</td>
+            <td class="label-column">Kab/Kota</td>
+            <td class="content-column">{{ $pengelola->regency->name }}</td>
+        </tr>
+
+        <tr>
+            <td class="label-column">Telepon</td>
+            <td class="content-column">{{ $pengelola->telepon_pengelola }}</td>
+            <td class="label-column" colspan="2"></td>
+        </tr>
     </table>
 
     <!-- PESERTA DIDIK -->
-    
-    <table>
+    <table class="form-header-table">
         <tr>
-            <td class="title-table" colspan="4">D. WARGA BELAJAR/PESERTA DIDIK</></td>
+            <td colspan="7" class="title-table">D. <span style="margin-left: 10px">WARGA BELAJAR/PESERTA DIDIK</span></td>
         </tr>
-        <tr>
-            <td style="width: 65%;">Penerimaan melalui tes</td>
-            <td style="width: 5%;">:</td>
-            <td style="width: 30%;">{{ ucfirst($pesertaDidik->jalur_penerimaan_tes) }}</td>
-        </tr>
-        <tr>                    
-            <td style="width: 65%;">Tata Usaha Penerimaan</td>
-            <td style="width: 5%;">:</td>
-            <td style="width: 30%;">{{ ucfirst($pesertaDidik->tata_usaha_penerimaan) }}</td>
-        </tr>
-        <tr>
-            <td style="width: 65%;">Jumlah Setiap Kelompok/Angkatan</td>
-            <td style="width: 5%;">:</td>
-            <td style="width: 30%;">Rata-Rata {{ $pesertaDidik->jumlah_tiap_angkatan }}&nbsp;Orang</td>
-        </tr>
-        <tr>
-            <td style="width: 65%;">Yang menyelesaikan Program Pendidikan sampai akhir</td> 
-            <td style="width: 5%;">:</td>
-            <td style="width: 30%;">Rata-Rata {{ $pesertaDidik->jumlah_menyelesaikan }}&nbsp;%</td>
-        </tr>
-    </table>
 
-    <table border="1">
         <tr>
-            <td rowspan="2" align="center">Tingkat</td>
-            <td colspan="3" align="center">Keadaan Sekarang</td>
-            <td colspan="3" align="center">Yang Telah Tamat</td>
+            <td class="label-column">Penerimaan Melalui Test </td>
+            <td colspan="2" class="content-column" style="width: 25%;">{{ $pesertaDidik->jalur_penerimaan_tes }}</td>
+            <td colspan="2" class="label-column">Tata Usaha Penerimaan</td>
+            <td colspan="2" class="content-column" style="width: 25%;">{{ $pesertaDidik->tata_usaha_penerimaan = 'ada' ? 'Ada' : 'Tidak Ada' }}</td>
+        </tr>
+
+        <tr>
+            <td class="label-column">Jumlah Setiap Kelompok/Angkatan </td>
+            <td colspan="2" class="content-column" style="width: 25%;  text-transform: unset">Rata-rata {{ $pesertaDidik->jumlah_tiap_angkatan }} Orang</td>
+            <td colspan="2" class="label-column">Yang Menyelesaikan Program Pendidikan Sampai Akhir</td>
+            <td colspan="2" class="content-column" style="width: 25%; text-transform: unset">Rata-rata {{ $pesertaDidik->jumlah_menyelesaikan }} %</td>
         </tr>
         <tr>
-            <td align="center">Laki-laki</td>
-            <td align="center">Perempuan</td>
-            <td align="center">Jumlah</td>
-            <td align="center">Laki-laki</td>
-            <td align="center">Perempuan</td>
-            <td align="center">Jumlah</td>
+            <td colspan="7" style="text-align: center" class="label-column">KEADAAN WARGA BELAJAR / PESERTA DIDIK</td>
+        </tr>
+
+        <tr>
+            <td rowspan="2" align="center" class="label-column">Tingkat</td>
+            <td colspan="3" align="center" class="label-column">Keadaan Sekarang</td>
+            <td colspan="3" align="center" class="label-column">Yang Telah Tamat</td>
         </tr>
         <tr>
-            <td align="center">Jumlah Seluruhnya</td>
+            <td style="width: 15%" align="center">Laki-laki</td>
+            <td style="width: 15%" align="center">Perempuan</td>
+            <td style="width: 10%" align="center">Jumlah</td>
+            <td style="width: 20%" align="center">Laki-laki</td>
+            <td style="width: 20%" align="center">Perempuan</td>
+            <td style="width: 30%" align="center">Jumlah</td>
+        </tr>
+        <tr>
+            <td align="center" class="label-column">Jumlah Seluruhnya</td>
             <td align="center">{{ $pesertaDidik->jumlah_sekarang_lk }}</td>
             <td align="center">{{ $pesertaDidik->jumlah_sekarang_pr }}</td>
             <td align="center">{{ $pesertaDidik->jumlah_sekarang_total }}</td>
@@ -297,207 +382,200 @@
     </table>
 
     <!-- PERSONALIA -->
-
-    <table style="margin-bottom: 20px">
+    <table class="form-header-table">
         <tr>
-            <th colspan="4" style="text-align: left;">
-                <h4 style="margin: 0;">E. PERSONALIA (PERINCIAN TERLAMPIR)</h4>
-            </th>
+            <td colspan="4" class="title-table">E. <span style="margin-left: 10px">PERSONALIA (PERINCIAN TERLAMPIR)</span></td>
         </tr>
-    </table>
-
-    <table border="1" style="margin-bottom: 20px">
+        
         <tr>
-            <td colspan="4" style="padding: 10px; line-height: 1">A. Warga Negara Indonesia</td>
+            <td colspan="4" class="label-column">a. <span style="margin-left: 10px">Warga Negara Indonesia</span></td>
         </tr>
 
         <tr>
-            <td align="center" style="padding: 10px; line-height: 1; width: 25%; font-size: 12px; font-weight: normal">Sumber Belajar/Guru/Pengasuh</td>
-            <td align="center" style="padding: 10px; line-height: 1; width: 25%; font-size: 12px; font-weight: normal">Asisten Sumber Belajar/Guru</td>
-            <td align="center" style="padding: 10px; line-height: 1; width: 25%; font-size: 12px; font-weight: normal">Pegawai Tata Usaha</td>
-            <td align="center" style="padding: 10px; line-height: 1; width: 25%; font-size: 12px; font-weight: normal">Pesuruh</td>
+            <td style="width: 25%; font-size: 8pt; text-align: center" class="label-column">Sumber Belajar/Guru/Pengasuh</td>
+            <td style="width: 25%; font-size: 8pt; text-align: center" class="label-column">Asisten Sumber Belajar/Guru</td>
+            <td style="width: 25%; font-size: 8pt; text-align: center" class="label-column">Pegawai Tata Usaha</td>
+            <td style="width: 25%; font-size: 8pt; text-align: center" class="label-column">Pesuruh</td>
         </tr>
 
-        <tr>
+        <tr style="font-size: 9pt">
             {{-- GURU --}}
-            <td style="vertical-align: top; padding: 10px">
-                <table border="0" style="font-size: 12px; margin: 0;">
+            <td>
+                <table class="inner-table" style="page">
                     <tr>
-                        <td style="padding: 0px">Laki-Laki</td>
-                        <td style="padding: 0px">{{ $personalia->guru_wni_lk }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Laki-Laki</td>
+                        <td>{{ $personalia->guru_wni_lk }}</td>
+                        <td>Orang</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Perempuan</td>
-                        <td style="padding: 0px">{{ $personalia->guru_wni_pr }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Perempuan</td>
+                        <td>{{ $personalia->guru_wni_pr }}</td>
+                        <td>Orang</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Jumlah</td>
-                        <td style="padding: 0px">{{ $personalia->guru_wni_jumlah }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Jumlah</td>
+                        <td>{{ $personalia->guru_wni_jumlah }}</td>
+                        <td>Orang</td>
                     </tr>
                 </table>
             </td>
 
             {{-- ASISTEN --}}
-            <td style="vertical-align: top; padding: 10px">
-                <table border="0" style="font-size: 12px; margin: 0;">
+            <td style="font-size: 9pt">
+                <table class="inner-table">
                     <tr>
-                        <td style="padding: 0px">Laki-Laki</td>
-                        <td style="padding: 0px">{{ $personalia->asisten_wni_lk }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Laki-Laki</td>
+                        <td>{{ $personalia->asisten_wni_lk }}</td>
+                        <td>Orang</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Perempuan</td>
-                        <td style="padding: 0px">{{ $personalia->asisten_wni_pr }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Perempuan</td>
+                        <td>{{ $personalia->asisten_wni_pr }}</td>
+                        <td>Orang</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Jumlah</td>
-                        <td style="padding: 0px">{{ $personalia->asisten_wni_jumlah }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Jumlah</td>
+                        <td>{{ $personalia->asisten_wni_jumlah }}</td>
+                        <td>Orang</td>
                     </tr>
                 </table>
             </td>
 
             {{-- TATA USAHA --}}
-            <td style="vertical-align: top; padding: 10px">
-                <table border="0" style="font-size: 12px; margin: 0;">
+            <td style="font-size: 9pt">
+                <table class="inner-table">
                     <tr>
-                        <td style="padding: 0px">Laki-Laki</td>
-                        <td style="padding: 0px">{{ $personalia->tata_usaha_wni_lk }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Laki-Laki</td>
+                        <td>{{ $personalia->tata_usaha_wni_lk }}</td>
+                        <td>Orang</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Perempuan</td>
-                        <td style="padding: 0px">{{ $personalia->tata_usaha_wni_pr }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Perempuan</td>
+                        <td>{{ $personalia->tata_usaha_wni_pr }}</td>
+                        <td>Orang</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Jumlah</td>
-                        <td style="padding: 0px">{{ $personalia->tata_usaha_wni_jumlah }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Jumlah</td>
+                        <td>{{ $personalia->tata_usaha_wni_jumlah }}</td>
+                        <td>Orang</td>
                     </tr>
                 </table>
             </td>
 
             {{-- PESURUH --}}
-            <td style="vertical-align: top; padding: 10px">
-                <table border="0" style="font-size: 12px; margin: 0;">
+            <td style="font-size: 9pt">
+                <table class="inner-table">
                     <tr>
-                        <td style="padding: 0px">Laki-Laki</td>
-                        <td style="padding: 0px">{{ $personalia->pesuruh_wni_lk }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Laki-Laki</td>
+                        <td>{{ $personalia->pesuruh_wni_lk }}</td>
+                        <td>Orang</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Perempuan</td>
-                        <td style="padding: 0px">{{ $personalia->pesuruh_wni_pr }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Perempuan</td>
+                        <td>{{ $personalia->pesuruh_wni_pr }}</td>
+                        <td>Orang</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Jumlah</td>
-                        <td style="padding: 0px">{{ $personalia->pesuruh_wni_jumlah }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Jumlah</td>
+                        <td>{{ $personalia->pesuruh_wni_jumlah }}</td>
+                        <td>Orang</td>
                     </tr>
                 </table>
             </td>
         </tr>
-    </table>
 
-    <table border="1">
         <tr>
-            <td colspan="4" style="padding: 10px; line-height: 1">B. Warga Negara Asing</td>
+            <td colspan="4" class="label-column">b. <span style="margin-left: 10px">Warga Negara Asing</span></td>
         </tr>
 
         <tr>
-            <td align="center" style="padding: 10px; line-height: 1; width: 25%; font-size: 12px; font-weight: normal">Sumber Belajar/Guru/Pengasuh</td>
-            <td align="center" style="padding: 10px; line-height: 1; width: 25%; font-size: 12px; font-weight: normal">Asisten Sumber Belajar/Guru</td>
-            <td align="center" style="padding: 10px; line-height: 1; width: 25%; font-size: 12px; font-weight: normal">Pegawai Tata Usaha</td>
-            <td align="center" style="padding: 10px; line-height: 1; width: 25%; font-size: 12px; font-weight: normal">Pesuruh</td>
+            <td style="width: 25%; font-size: 8pt; text-align: center" class="label-column">Sumber Belajar/Guru/Pengasuh</td>
+            <td style="width: 25%; font-size: 8pt; text-align: center" class="label-column">Asisten Sumber Belajar/Guru</td>
+            <td style="width: 25%; font-size: 8pt; text-align: center" class="label-column">Pegawai Tata Usaha</td>
+            <td style="width: 25%; font-size: 8pt; text-align: center" class="label-column">Pesuruh</td>
         </tr>
 
-        <tr>
+        <tr style="font-size: 9pt">
             {{-- GURU --}}
-            <td style="vertical-align: top; padding: 10px">
-                <table border="0" style="font-size: 12px; margin: 0;">
+            <td>
+                <table class="inner-table">
                     <tr>
-                        <td style="padding: 0px">Laki-Laki</td>
-                        <td style="padding: 0px">{{ $personalia->guru_wna_lk }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Laki-Laki</td>
+                        <td>{{ $personalia->guru_wna_lk }}</td>
+                        <td>Orang</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Perempuan</td>
-                        <td style="padding: 0px">{{ $personalia->guru_wna_pr }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Perempuan</td>
+                        <td>{{ $personalia->guru_wna_pr }}</td>
+                        <td>Orang</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Jumlah</td>
-                        <td style="padding: 0px">{{ $personalia->guru_wna_jumlah }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Jumlah</td>
+                        <td>{{ $personalia->guru_wna_jumlah }}</td>
+                        <td>Orang</td>
                     </tr>
                 </table>
             </td>
 
             {{-- ASISTEN --}}
-            <td style="vertical-align: top; padding: 10px">
-                <table border="0" style="font-size: 12px; margin: 0;">
+            <td style="font-size: 9pt">
+                <table class="inner-table">
                     <tr>
-                        <td style="padding: 0px">Laki-Laki</td>
-                        <td style="padding: 0px">{{ $personalia->asisten_wna_lk }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Laki-Laki</td>
+                        <td>{{ $personalia->asisten_wna_lk }}</td>
+                        <td>Orang</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Perempuan</td>
-                        <td style="padding: 0px">{{ $personalia->asisten_wna_pr }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Perempuan</td>
+                        <td>{{ $personalia->asisten_wna_pr }}</td>
+                        <td>Orang</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Jumlah</td>
-                        <td style="padding: 0px">{{ $personalia->asisten_wna_jumlah }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Jumlah</td>
+                        <td>{{ $personalia->asisten_wna_jumlah }}</td>
+                        <td>Orang</td>
                     </tr>
                 </table>
             </td>
 
             {{-- TATA USAHA --}}
-            <td style="vertical-align: top; padding: 10px">
-                <table border="0" style="font-size: 12px; margin: 0;">
+            <td style="font-size: 9pt">
+                <table class="inner-table">
                     <tr>
-                        <td style="padding: 0px">Laki-Laki</td>
-                        <td style="padding: 0px">{{ $personalia->tata_usaha_wna_lk }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Laki-Laki</td>
+                        <td>{{ $personalia->tata_usaha_wna_lk }}</td>
+                        <td>Orang</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Perempuan</td>
-                        <td style="padding: 0px">{{ $personalia->tata_usaha_wna_pr }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Perempuan</td>
+                        <td>{{ $personalia->tata_usaha_wna_pr }}</td>
+                        <td>Orang</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Jumlah</td>
-                        <td style="padding: 0px">{{ $personalia->tata_usaha_wna_jumlah }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Jumlah</td>
+                        <td>{{ $personalia->tata_usaha_wna_jumlah }}</td>
+                        <td>Orang</td>
                     </tr>
                 </table>
             </td>
 
             {{-- PESURUH --}}
-            <td style="vertical-align: top; padding: 10px">
-                <table border="0" style="font-size: 12px; margin: 0;">
+            <td style="font-size: 9pt">
+                <table class="inner-table">
                     <tr>
-                        <td style="padding: 0px">Laki-Laki</td>
-                        <td style="padding: 0px">{{ $personalia->pesuruh_wna_lk }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Laki-Laki</td>
+                        <td>{{ $personalia->pesuruh_wna_lk }}</td>
+                        <td>Orang</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Perempuan</td>
-                        <td style="padding: 0px">{{ $personalia->pesuruh_wna_pr }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Perempuan</td>
+                        <td>{{ $personalia->pesuruh_wna_pr }}</td>
+                        <td>Orang</td>
                     </tr>
                     <tr>
-                        <td style="padding: 0px">Jumlah</td>
-                        <td style="padding: 0px">{{ $personalia->pesuruh_wna_jumlah }}</td>
-                        <td style="padding: 0px">Orang</td>
+                        <td>Jumlah</td>
+                        <td>{{ $personalia->pesuruh_wna_jumlah }}</td>
+                        <td>Orang</td>
                     </tr>
                 </table>
             </td>
@@ -505,44 +583,57 @@
     </table>
 
     <!-- PROGRAM PENDIDIKAN -->
-
-    <table width="100%" style="margin-top: 20px; border-collapse: collapse;">
+    <table class="form-header-table" style="page-break-inside: avoid">
         <tr>
-            <th colspan="4" style="text-align: left;">
-                <h4 style="margin: 0;">F. PROGRAM PENDIDIKAN</h4>
-            </th>
+            <td colspan="2" class="title-table">E. <span style="margin-left: 10px">PROGRAM PENDIDIKAN</span></td>
         </tr>
-    </table>
 
-    <table border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
         <tr>
-            <td style="padding: 5px 10px">Bahan Pembelajaran Berdasarkan Program</td>
-            <td>Cara Penyampaian/Penyajian Pelajaran</td>
+            <td style="width: 50%; text-align: center" class="label-column">Bahan Pembelajaran Berdasarkan Program</td>
+            <td style="width: 50%; text-align: center" class="label-column">Cara Penyampaian Pelajaran</td>
         </tr>
+
+        @php
+            $bahan = $programPendidikan->bahan_pembelajaran ?? [];
+            $cara = $programPendidikan->cara_penyampaian ?? [];
+        @endphp
 
         <tr>
             <td>
-                <ul style="margin: 0; padding-left: 10px;">
-                    @foreach ($programPendidikan->bahan_pembelajaran as $item)
-                        <li style="list-style-type: none">{{ ucwords(str_replace('_', ' ', $item)) }}</li>
-                    @endforeach
-                </ul>
+                <table class="inner-table">
+                    <tr>
+                        <td class="content-column">Depdikbud</td>
+                        <td><input type="checkbox" {{ in_array('depdikbud', $bahan) ? 'checked' : '' }} disabled></td>
+                        <td><input type="checkbox" {{ in_array('lembaga_sendiri', $bahan) ? 'checked' : '' }} disabled></td>
+                        <td class="content-column">Lembaga Sendiri</td>
+                    </tr>
+
+                    <tr>
+                        <td class="content-column">Instansi Lain</td>
+                        <td><input type="checkbox" {{ in_array('instansi_lain', $bahan) ? 'checked' : '' }} disabled></td>
+                        <td><input type="checkbox" {{ in_array('lembaga_lain', $bahan) ? 'checked' : '' }} disabled></td>
+                        <td class="content-column">Lembaga Lain</td>
+                    </tr>
+                </table>
             </td>
 
             <td>
-                <ul style="margin: 0; padding-left: 0px">
-                    @foreach ($programPendidikan->cara_penyampaian as $item)
-                        <li style="list-style-type: none">{{ ucwords(str_replace('_', ' ', $item)) }}</li>
-                    @endforeach
-                </ul>
-            </td>
-        </tr>
-    </table>
+                <table class="inner-table">
+                    <tr>
+                        <td class="content-column">Secara Langsung (Dengan Sumber Belajar/Guru)</td>
+                        <td><input type="checkbox" {{ in_array('secara_langsung', $cara) ? 'checked' : '' }} disabled></td>
+                    </tr>
 
-    <div class="page-break"></div>
+                    <tr>
+                        <td class="content-column">Korespondensi (Tertulis)</td>
+                        <td><input type="checkbox" {{ in_array('korespondensi', $cara) ? 'checked' : '' }} disabled></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>  
+    </table>
 
     <!-- SARANA -->
-
     @php
         function renderRuang($data) {
             return [
@@ -556,23 +647,19 @@
         }
     @endphp
 
-    <table width="100%" style="margin-top: 20px; border-collapse: collapse;">
+    <table class="form-header-table sarpras">
         <tr>
-            <th colspan="4" style="text-align: left;">
-                <h4 style="margin: 0;">F. SARANA BELAJAR</h4>
-            </th>
+            <td colspan="7" class="title-table">G. <span style="margin-left: 10px">PRASARANA BELAJAR</span></td>
         </tr>
-    </table>
 
-    <table border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
         <tr>
-            <td style="padding: 5px 10px">A. Prasarana</td>
-            <td align="center">Milik Sendiri</td>
-            <td align="center">Kontrak</td>
-            <td align="center">Sewa</td>
-            <td align="center">Pinjam</td>
-            <td align="center">Beli - Sewa</td>
-            <td align="center">Jumlah Luas Ruangan</td>
+            <td style="padding: 5px 10px" class="label-column">a. <span style="margin-left: 10px">Prasarana</span</td>
+            <td style="text-align: center" class="label-column">Milik Sendiri</td>
+            <td style="text-align: center" class="label-column">Kontrak</td>
+            <td style="text-align: center" class="label-column">Sewa</td>
+            <td style="text-align: center" class="label-column">Pinjam</td>
+            <td style="text-align: center" class="label-column">Beli - Sewa</td>
+            <td style="text-align: center" class="label-column">Jumlah Luas Ruangan</td>
         </tr>
 
         <tbody>
@@ -590,57 +677,69 @@
             @foreach ($ruangs as $label => $item)
                 @php $data = renderRuang($item); @endphp
                 <tr>
-                    <td style="padding: 5px 10px">{{ $label }}</td>
-                    <td align="center">{{ $data['milik_sendiri'] }}</td>
-                    <td align="center">{{ $data['kontrak'] }}</td>
-                    <td align="center">{{ $data['sewa'] }}</td>
-                    <td align="center">{{ $data['pinjam'] }}</td>
-                    <td align="center">{{ $data['beli_sewa'] }}</td>
-                    <td align="center">{{ $data['jumlah_luas'] }}&nbsp;m<sup>2</sup></td>
+                    <td style="padding: 5px 10px; width: 21%" class="label-column">{{ $label }}</td>
+                    <td style="text-align: center; width: 12%">{{ $data['milik_sendiri'] }}</td>
+                    <td style="text-align: center; width: 13%">{{ $data['kontrak'] }}</td>
+                    <td style="text-align: center; width: 13%">{{ $data['sewa'] }}</td>
+                    <td style="text-align: center; width: 13%">{{ $data['pinjam'] }}</td>
+                    <td style="text-align: center; width: 13%">{{ $data['beli_sewa'] }}</td>
+                    <td style="text-align: center; width: 15%">{{ $data['jumlah_luas'] }}&nbsp;m<sup style="font-size: 7pt">2</sup></td>
                 </tr>
             @endforeach
         </tbody>
+        
+        <tr>
+            <td colspan="2" style="padding: 5px 10px" class="label-column">b. <span style="margin-left: 10px">Sarana</span</td>
+            <td style="text-align: center" class="label-column">Lebih Dari Cukup</td>
+            <td style="text-align: center" class="label-column">Cukup</td>
+            <td style="text-align: center" class="label-column">Sedang</td>
+            <td style="text-align: center" class="label-column">Kurang</td>
+            <td style="text-align: center" class="label-column">Tidak Ada</td>
+        </tr>
+
+        @php
+            $opsi = ['lebih_dari_cukup', 'cukup', 'sedang', 'kurang', 'tidak_ada'];
+            $fields = [
+                'buku_pelajaran' => 'Buku Pelajaran/Sesuai Kurikulum',
+                'alat_permainan_edukatif' => 'Alat Permainan Edukatif',
+                'meja_kursi' => 'Meja+Kursi/Bangku untuk Belajar',
+                'papan_tulis' => 'Papan Tulis',
+                'alat_tata_usaha' => 'Alat Perlengkapan Tata Usaha',
+                'listrik' => 'Listrik',
+                'air_bersih' => 'Air Bersih',
+            ];
+        @endphp
+
+        @foreach ($fields as $key => $label)
+            @if (!empty($sarana->$key))
+                <tr>
+                    <td colspan="2" class="label-column">{{ $label }}</td>
+                    @foreach ($opsi as $option)
+                        <td style="text-align: center">
+                            @if ($sarana->$key === $option)
+                                <input class="checkbox-no-border" type="checkbox" checked disabled>
+                            @endif
+                        </td>
+                    @endforeach
+                </tr>
+            @endif
+        @endforeach
     </table>
 
-    <table border="1" cellpadding="4" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-        <thead>
-            <tr>
-                <td style="padding: 5px 10px; width: 50%">B. Sarana</td>
-                <td align="center">Keterangan</td>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td style="padding: 5px 10px">Buku Pelajaran/Sesuai Kurikulum</td>
-                <td>{{ ucfirst(str_replace('_', ' ', $sarana->buku_pelajaran)) }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 5px 10px">Alat Permainan Edukatif</td>
-                <td>{{ ucfirst(str_replace('_', ' ', $sarana->alat_permainan_edukatif)) }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 5px 10px">Meja+Kursi/Bangku Untuk Belajar</td>
-                <td>{{ ucfirst(str_replace('_', ' ', $sarana->meja_kursi)) }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 5px 10px">Papan Tulis</td>
-                <td>{{ ucfirst(str_replace('_', ' ', $sarana->papan_tulis)) }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 5px 10px">Alat Perlengkapan Tata Usaha</td>
-                <td>{{ ucfirst(str_replace('_', ' ', $sarana->alat_tata_usaha)) }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 5px 10px">Listrik</td>
-                <td>{{ ucfirst(str_replace('_', ' ', $sarana->listrik)) }}</td>
-            </tr>
-            <tr>
-                <td style="padding: 5px 10px">Air Bersih</td>
-                <td>{{ ucfirst(str_replace('_', ' ', $sarana->air_bersih)) }}</td>
-            </tr>
-        </tbody>
-
-    </table>
+    {{-- TTD --}}
+    {{-- <div style="margin-top: 100px; float: right; text-transform: uppercase">
+        <div style="width: 100%; text-align: left;">
+            <div>
+                Badung, {{ formatValue($permohonan->tgl_permohonan) }}
+            </div>
+            <div>
+                YAYASAN/PENGELOLA
+            </div>
+            <div style="margin-top: 80px; font-weight: bold;">
+                {{ $permohonan->user->name }}
+            </div>
+        </div>
+    </div> --}}
 
 </body>
 </html>

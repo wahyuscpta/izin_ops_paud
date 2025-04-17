@@ -10,13 +10,12 @@
                         <span class="text-gray-700 font-medium">{{ $record->no_permohonan }}.pdf</span>
                         <div class="flex space-x-2">
                             <!-- Tombol View (open in tab) -->
-                            <a href="{{ route('permohonan.export.pdf', $record->id) }}"
-                            target="_blank" class="px-3 py-1 bg-primary text-white rounded-lg flex items-center gap-1 hover:bg-blue-600">
+                            <a href="{{ route('permohonan.export.pdf', $record->id) }}" target="_blank" class="px-3 py-1 bg-primary text-white rounded-lg flex items-center gap-1">
                                 <x-filament::icon icon="heroicon-o-eye"/>
                                 <span>Lihat</span>
                             </a>
                             <!-- Tombol Download -->
-                            <a href="{{ route('permohonan.export.pdf', ['id' => $record->id, 'download' => true]) }}" class="px-3 py-1 bg-green-500 text-white rounded-lg flex items-center gap-1 hover:bg-green-600">
+                            <a href="{{ route('permohonan.export.pdf', ['id' => $record->id, 'download' => true]) }}" class="px-3 py-1 text-white rounded-lg flex items-center gap-1">
                                 <x-filament::icon icon="heroicon-o-arrow-down-tray"/>
                                 <span>Download</span>
                             </a>
@@ -48,22 +47,22 @@
                             'imb' => '(IMB) Ijin Mendirikan Bangunan',
                             'perjanjian_sewa' => 'Perjanjian Sewa Menyewa',
                             'nib' => '(NIB) No Induk Berusaha',
+                            'file_validasi_lapangan' => 'Dokumen Validasi Lapangan',
                         ]);
                     @endphp
 
                     @foreach ($record->lampiran as $lampiran)
-                        <x-filament::fieldset :label="$labels->get($lampiran->lampiran_type, 'Lampiran tidak dikenal')" class="space-y-0">
+                        <x-filament::fieldset :label="$labels->get($lampiran->lampiran_type, 'Lampiran tidak dikenal')"  class="space-y-0 mt-4 mb-4">
                             <div class="flex justify-between items-center py-2">
                                 <span class="text-gray-700 font-medium">{{ basename($lampiran->lampiran_path) }}</span>
                                 <div class="flex space-x-2">
                                     <!-- Tombol Lihat -->
-                                    <a href="{{ asset('storage/' . $lampiran->lampiran_path) }}" target="_blank"
-                                       class="px-3 py-1 bg-blue-500 text-white rounded-lg flex items-center gap-1 hover:bg-blue-600">
+                                    <a href="{{ asset('storage/' . $lampiran->lampiran_path) }}" target="_blank" class="px-3 py-1 text-white rounded-lg flex items-center gap-1 hover:bg-blue-600">
                                         <x-filament::icon icon="heroicon-o-eye"/>
                                         <span>Lihat</span>
                                     </a>
                                     <!-- Tombol Download -->
-                                    <a href="#" class="px-3 py-1 bg-green-500 text-white rounded-lg flex items-center gap-1 hover:bg-green-600">
+                                    <a href="#" class="px-3 py-1 text-white rounded-lg flex items-center gap-1">
                                         <x-filament::icon icon="heroicon-o-arrow-down-tray"/>
                                         <span>Download</span>
                                     </a>

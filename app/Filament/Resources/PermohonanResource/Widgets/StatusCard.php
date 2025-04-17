@@ -60,16 +60,19 @@ class StatusCard extends Widget implements HasForms
     {
         $data = $this->form->getState();
 
-        $filePath = data_get($this->data, $data['file_validasi_lapangan']);
-
         if (!empty($data['file_validasi_lapangan'])) {
+            $filePath = is_array($data['file_validasi_lapangan'])
+                ? reset($data['file_validasi_lapangan'])
+                : $data['file_validasi_lapangan'];
+
             $this->record->lampiran()->create([
                 'lampiran_type' => 'file_validasi_lapangan',
-                'lampiran_path' => is_array($filePath) ? reset($filePath) : $filePath
+                'lampiran_path' => $filePath,
             ]);
         }
 
         $this->record->update(['status_permohonan' => 'proses_penerbitan_izin']);
+        
         return redirect()->to('permohonans');
     }
 
