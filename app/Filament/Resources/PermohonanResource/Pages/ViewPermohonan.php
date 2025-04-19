@@ -4,6 +4,7 @@ namespace App\Filament\Resources\PermohonanResource\Pages;
 
 use App\Filament\Resources\PermohonanResource;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewPermohonan extends ViewRecord implements HasForms

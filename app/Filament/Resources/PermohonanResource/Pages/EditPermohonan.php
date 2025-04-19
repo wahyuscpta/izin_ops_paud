@@ -3,10 +3,14 @@
 namespace App\Filament\Resources\PermohonanResource\Pages;
 
 use App\Filament\Resources\PermohonanResource;
-use Filament\Actions;
 use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
+use League\Flysystem\FilesystemException;
 
 class EditPermohonan extends EditRecord
 {
@@ -21,6 +25,7 @@ class EditPermohonan extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            //
         ];
     }
 
@@ -29,47 +34,55 @@ class EditPermohonan extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    /**
+     * Prepare record before data saving
+     */
     protected function mutateFormDataBeforeSave(array $data): array
     {
-
-        $data['tgl_status_terakhir'] = now();
-
+        $data['tgl_status_terakhir'] = now();        
+        $data['status_permohonan'] = $this->isKirimPermohonan ? 'menunggu_verifikasi' : 'draft';    
         if ($this->isKirimPermohonan) {
-            $data['status_permohonan'] = 'menunggu_verifikasi';
             $data['tgl_permohonan'] = now();
-        } else {
-            $data['status_permohonan'] = 'draft';
-        }        
+        }
 
         return $data;
     }
 
+    /**
+     * Handle additional processing after save
+     */
     protected function afterSave(): void
     {
-        $permohonan = $this->record;
+        DB::beginTransaction();
+        
+        try {
+            $this->updateLampiran($this->record);
+            DB::commit();
+        } catch (QueryException $e) {
+            DB::rollBack();
+            report($e);
+            $this->showErrorNotification('Terjadi kesalahan pada database. Silakan coba lagi nanti.');
+        } catch (FilesystemException $e) {
+            DB::rollBack();
+            report($e);
+            $this->showErrorNotification('Terjadi kesalahan saat menyimpan berkas. Pastikan berkas memiliki format yang benar.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            report($e);
+            $this->showErrorNotification('Terjadi kesalahan saat memperbarui permohonan. Silakan periksa data Anda dan coba lagi.');
+        }
+    }
 
+    /**
+     * Update attachment records for the application
+     */
+    protected function updateLampiran($permohonan): void
+    {
         $requiredFields = [
-            'ktp_ketua',
-            'struktur_yayasan',
-            'ijasah_penyelenggara',
-            'ijasah_kepsek',
-            'ijasah_pendidik',
-            'sarana_prasarana',
-            'kurikulum',
-            'tata_tertib',
-            'peta_lokasi',
-            'daftar_peserta',
-            'daftar_guru',
-            'akte_notaris',
-            'rek_ke_lurah',
-            'rek_dari_lurah',
-            'rek_ke_korwil',
-            'rek_dari_korwil',
-            'permohonan_izin',
-            'rip',
-            'imb',
-            'perjanjian_sewa',
-            'nib',
+            'ktp_ketua', 'struktur_yayasan', 'ijasah_penyelenggara', 'ijasah_kepsek', 'ijasah_pendidik',
+            'sarana_prasarana', 'kurikulum', 'tata_tertib', 'peta_lokasi', 'daftar_peserta', 'daftar_guru',
+            'akte_notaris', 'rek_ke_lurah', 'rek_dari_lurah', 'rek_ke_korwil', 'rek_dari_korwil',
+            'permohonan_izin', 'rip', 'imb', 'perjanjian_sewa', 'nib',
         ];
 
         $lampiranData = [];
@@ -102,6 +115,57 @@ class EditPermohonan extends EditRecord
         }
     }
 
+    /**
+     * Customize notification message based on submission type
+     */
+    protected function getSavedNotificationMessage(): ?string
+    {
+        return $this->isKirimPermohonan
+            ? 'Permohonan berhasil diperbarui dan dikirim untuk verifikasi.'
+            : 'Permohonan berhasil diperbarui dan disimpan sebagai draft.';
+    }
+    
+    /**
+     * Add additional notification customization if needed
+     */
+    protected function getSavedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->success()
+            ->title('Berhasil Diperbarui!')
+            ->body($this->getSavedNotificationMessage())
+            ->duration(5000);
+    }
+    
+    /**
+     * Handle validation errors
+     */
+    protected function onValidationError(ValidationException $exception): void
+    {
+        Notification::make()
+            ->title('Data Tidak Valid')
+            ->body('Harap periksa kembali data yang Anda masukkan.')
+            ->danger()
+            ->duration(8000)
+            ->send();
+            
+        parent::onValidationError($exception);
+    }
+
+    /**
+     * Display error notification with actions
+     */
+    protected function showErrorNotification(string $message): void
+    {
+        Notification::make()
+            ->title('Gagal Diperbarui!')
+            ->body($message)
+            ->danger()
+            ->duration(8000)
+            ->persistent()
+            ->send();
+    }
+
     protected function getFormActions(): array
     {
         return [
@@ -117,7 +181,7 @@ class EditPermohonan extends EditRecord
             ->color('gray')
             ->action(function () {
                 $this->isKirimPermohonan = false;
-                $this->save(); // Memastikan bahwa data disimpan setelah tombol ditekan
+                $this->save();
             });
     }
 }

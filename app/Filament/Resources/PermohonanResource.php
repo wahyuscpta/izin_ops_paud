@@ -14,10 +14,12 @@ use Filament\Tables\Actions\EditAction;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Component;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Group;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
@@ -28,6 +30,8 @@ use Filament\Forms\Components\Wizard;
 use Filament\Forms\Components\Wizard\Step;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\BulkActionGroup;
@@ -78,6 +82,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
     {
         return $form
             ->schema([
+                Hidden::make('wizard_step')->dehydrated(false),
                 
                 Wizard::make()
                 ->steps([                
@@ -225,126 +230,154 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                 ->relationship('cabangs')                                
                         ])
                         ->relationship('identitas')
-                    ]),
+                    ])
+                    ->beforeValidation(function (string $context, Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set('wizard_step', $wizard->getCurrentStepIndex());
+                    })
+                    ->afterValidation(function (Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set('wizard_step', $wizard->getCurrentStepIndex()+1);
+                    }),
 
                     Step::make('Penyelenggara')
                     ->schema([
                         Group::make([
+
                             Section::make('Perorangan')
-                                ->columns(2)
-                                ->schema([
-                                    TextInput::make('nama_perorangan')
-                                        ->label('Nama Lengkap')
-                                        ->required()
-                                        ->maxLength(255),
+                            ->columns(2)
+                            ->schema([
+                                TextInput::make('nama_perorangan')
+                                    ->label('Nama Lengkap')
+                                    ->required()
+                                    ->maxLength(255),
 
-                                    Select::make('agama_perorangan')
-                                        ->label('Agama')
-                                        ->options([
-                                            'hindu' => 'Hindu',
-                                            'islam' => 'Islam',
-                                            'katolik' => 'Katolik',
-                                            'kristen' => 'Kristen',
-                                            'budha' => 'Budha',
-                                            'konghuchu' => 'Kong Hu Chu',
-                                        ])
-                                        ->required(),
+                                Select::make('agama_perorangan')
+                                    ->label('Agama')
+                                    ->options([
+                                        'hindu' => 'Hindu',
+                                        'islam' => 'Islam',
+                                        'katolik' => 'Katolik',
+                                        'kristen' => 'Kristen',
+                                        'budha' => 'Budha',
+                                        'konghuchu' => 'Kong Hu Chu',
+                                    ])
+                                    ->required(),
 
-                                    TextInput::make('kewarganegaraan_perorangan')
-                                        ->label('Kewarganegaraan')
-                                        ->required()
-                                        ->maxLength(255),
+                                TextInput::make('kewarganegaraan_perorangan')
+                                    ->label('Kewarganegaraan')
+                                    ->required()
+                                    ->maxLength(255),
 
-                                    TextInput::make('ktp_perorangan')
-                                        ->label('No KTP')
-                                        ->numeric()
-                                        ->required()
-                                        ->minLength(16)
-                                        ->maxLength(16),
+                                TextInput::make('ktp_perorangan')
+                                    ->label('No KTP')
+                                    ->numeric()
+                                    ->required()
+                                    ->minLength(16)
+                                    ->maxLength(16),
 
-                                    DatePicker::make('tanggal_perorangan')
-                                        ->label('Tanggal')
-                                        ->required()
-                                        ->rule('before_or_equal:today'),
+                                DatePicker::make('tanggal_perorangan')
+                                    ->label('Tanggal')
+                                    ->required()
+                                    ->rule('before_or_equal:today'),
 
-                                    TextInput::make('alamat_perorangan')
-                                        ->label('Alamat Lengkap Jalan')
-                                        ->required()
-                                        ->maxLength(500),
+                                TextInput::make('alamat_perorangan')
+                                    ->label('Alamat Lengkap Jalan')
+                                    ->required()
+                                    ->maxLength(500),
 
-                                    TextInput::make('telepon_perorangan')
-                                        ->label('Telepon')
-                                        ->numeric()
-                                        ->required()
-                                        ->rule('regex:/^08[0-9]{8,11}$/')
-                                        ->maxLength(13),
+                                TextInput::make('telepon_perorangan')
+                                    ->label('Telepon')
+                                    ->numeric()
+                                    ->required()
+                                    ->rule('regex:/^08[0-9]{8,11}$/')
+                                    ->maxLength(13),
 
-                                    Select::make('kabupaten_perorangan')
-                                        ->label('Kabupaten/Kota')
-                                        ->live()
-                                        ->options(Regency::where('province_id', 51)->pluck('name', 'id'))
-                                        ->required(),
-                                ]),
+                                Select::make('kabupaten_perorangan')
+                                    ->label('Kabupaten/Kota')
+                                    ->live()
+                                    ->options(Regency::where('province_id', 51)->pluck('name', 'id'))
+                                    ->required(),
+                            ]),
 
                             Section::make('Badan Hukum')
-                                ->columns(2)
-                                ->schema([
-                                    TextInput::make('nama_badan')
-                                        ->label('Nama Lengkap')
-                                        ->required()
-                                        ->maxLength(255),
+                            ->columns(2)
+                            ->schema([
+                                TextInput::make('nama_badan')
+                                    ->label('Nama Lengkap')
+                                    ->required()
+                                    ->maxLength(255),
 
-                                    Select::make('agama_badan')
-                                        ->label('Agama')
-                                        ->options([
-                                            'hindu' => 'Hindu',
-                                            'islam' => 'Islam',
-                                            'katolik' => 'Katolik',
-                                            'kristen' => 'Kristen',
-                                            'budha' => 'Budha',
-                                            'konghuchu' => 'Kong Hu Chu',
-                                        ])
-                                        ->required(),
+                                Select::make('agama_badan')
+                                    ->label('Agama')
+                                    ->options([
+                                        'hindu' => 'Hindu',
+                                        'islam' => 'Islam',
+                                        'katolik' => 'Katolik',
+                                        'kristen' => 'Kristen',
+                                        'budha' => 'Budha',
+                                        'konghuchu' => 'Kong Hu Chu',
+                                    ])
+                                    ->required(),
 
-                                    TextInput::make('akte_badan')
-                                        ->label('Akte')
-                                        ->numeric()
-                                        ->required()
-                                        ->maxLength(50),
+                                TextInput::make('akte_badan')
+                                    ->label('Akte')
+                                    ->numeric()
+                                    ->required()
+                                    ->maxLength(50),
 
-                                    TextInput::make('nomor_badan')
-                                        ->label('Nomor')
-                                        ->numeric()
-                                        ->required()
-                                        ->maxLength(50),
+                                TextInput::make('nomor_badan')
+                                    ->label('Nomor')
+                                    ->numeric()
+                                    ->required()
+                                    ->maxLength(50),
 
-                                    DatePicker::make('tanggal_badan')
-                                        ->label('Tanggal')
-                                        ->required()
-                                        ->rule('before_or_equal:today'),
+                                DatePicker::make('tanggal_badan')
+                                    ->label('Tanggal')
+                                    ->required()
+                                    ->rule('before_or_equal:today'),
 
-                                    TextInput::make('alamat_badan')
-                                        ->label('Alamat Lengkap Jalan')
-                                        ->required()
-                                        ->maxLength(500),
+                                TextInput::make('alamat_badan')
+                                    ->label('Alamat Lengkap Jalan')
+                                    ->required()
+                                    ->maxLength(500),
 
-                                    TextInput::make('telepon_badan')
-                                        ->label('Telepon')
-                                        ->numeric()
-                                        ->required()
-                                        ->rule('regex:/^08[0-9]{8,11}$/')
-                                        ->maxLength(13),
+                                TextInput::make('telepon_badan')
+                                    ->label('Telepon')
+                                    ->numeric()
+                                    ->required()
+                                    ->rule('regex:/^08[0-9]{8,11}$/')
+                                    ->maxLength(13),
 
-                                    Select::make('kabupaten_badan')
-                                        ->label('Kabupaten/Kota')
-                                        ->live()
-                                        ->options(Regency::where('province_id', 51)->pluck('name', 'id'))
-                                        ->required(),
-                                ]),
+                                Select::make('kabupaten_badan')
+                                    ->label('Kabupaten/Kota')
+                                    ->live()
+                                    ->options(Regency::where('province_id', 51)->pluck('name', 'id'))
+                                    ->required(),
+                            ])
+
                         ])
-                        ->columns(2)
+                        ->hidden(function (Get $get): bool {
+                            return $get("wizard_step") < 1;
+                        })                        
                         ->relationship('penyelenggara')
-                    ]),
+                    ])
+                    ->beforeValidation(function (string $context, Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set("wizard_step", $wizard->getCurrentStepIndex());
+                    })
+                    ->afterValidation(function (Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set("wizard_step", $wizard->getCurrentStepIndex()+1);
+                    }),
 
                     Step::make('Pengelola')
                     ->schema([
@@ -411,8 +444,24 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                 ->label('Alamat Lengkap')
                                 ->required()
                                 ->maxLength(500),
-                        ])->relationship('pengelola')
-                    ]),
+                        ])
+                        ->hidden(function (Get $get): bool {
+                            return $get("wizard_step") < 2;
+                        })
+                        ->relationship('pengelola')
+                    ])
+                    ->beforeValidation(function (string $context, Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set("wizard_step", $wizard->getCurrentStepIndex());
+                    })
+                    ->afterValidation(function (Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set("wizard_step", $wizard->getCurrentStepIndex()+1);
+                    }),
 
                     Step::make('Peserta Didik')
                     ->schema([
@@ -534,8 +583,24 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->suffix('orang'),
                                 ]),
 
-                        ])->relationship('peserta_didik')
-                    ]),
+                        ])
+                        ->hidden(function (Get $get): bool {
+                            return $get("wizard_step") < 3;
+                        })
+                        ->relationship('peserta_didik')
+                    ])
+                    ->beforeValidation(function (string $context, Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set("wizard_step", $wizard->getCurrentStepIndex());
+                    })
+                    ->afterValidation(function (Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set("wizard_step", $wizard->getCurrentStepIndex()+1);
+                    }),
 
                     Step::make('Personalia')
                     ->schema([
@@ -835,8 +900,24 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->dehydrated()
                                         ->suffix('orang'),
                                 ]),
-                        ])->relationship('personalia')
-                    ]),
+                        ])
+                        ->hidden(function (Get $get): bool {
+                            return $get("wizard_step") < 4;
+                        })
+                        ->relationship('personalia')
+                    ])
+                    ->beforeValidation(function (string $context, Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set("wizard_step", $wizard->getCurrentStepIndex());
+                    })
+                    ->afterValidation(function (Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set("wizard_step", $wizard->getCurrentStepIndex()+1);
+                    }),
 
                     Step::make('Program Pendidikan')
                     ->schema([
@@ -877,8 +958,24 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ])
 
                                 ])
-                        ])->relationship('program_pendidikan')
-                    ]),
+                        ])
+                        ->hidden(function (Get $get): bool {
+                            return $get("wizard_step") < 5;
+                        })
+                        ->relationship('program_pendidikan')
+                    ])
+                    ->beforeValidation(function (string $context, Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set("wizard_step", $wizard->getCurrentStepIndex());
+                    })
+                    ->afterValidation(function (Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set("wizard_step", $wizard->getCurrentStepIndex()+1);
+                    }),
 
                     Step::make('Prasarana')
                     ->schema([
@@ -1251,8 +1348,24 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->required()
                                         ->suffix('m²'),
                                 ]),
-                        ])->relationship('prasarana'),
-                    ]),
+                        ])
+                        ->hidden(function (Get $get): bool {
+                            return $get("wizard_step") < 6;
+                        })
+                        ->relationship('prasarana'),
+                    ])
+                    ->beforeValidation(function (string $context, Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set("wizard_step", $wizard->getCurrentStepIndex());
+                    })
+                    ->afterValidation(function (Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set("wizard_step", $wizard->getCurrentStepIndex()+1);
+                    }),
 
                     Step::make('Sarana')
                     ->schema([
@@ -1336,8 +1449,24 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     'tidak_ada' => 'Tidak Ada',
                                 ])
                                 ->required(),
-                        ])->relationship('sarana'),
-                    ]),
+                        ])
+                        ->hidden(function (Get $get): bool {
+                            return $get("wizard_step") < 7;
+                        })
+                        ->relationship('sarana'),
+                    ])
+                    ->beforeValidation(function (string $context, Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set("wizard_step", $wizard->getCurrentStepIndex());
+                    })
+                    ->afterValidation(function (Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set("wizard_step", $wizard->getCurrentStepIndex()+1);
+                    }),
 
                     Step::make('Lampiran')
                     ->schema([
@@ -1454,8 +1583,6 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                 BLADE)))
                 ->columnSpanFull()
                 ->columns(1)
-                ->skippable()
-
             ]);
     }
 
@@ -1522,6 +1649,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
             ->filters([
                 //
             ])
+            ->defaultSort('created_at', 'desc')
             ->actions([
                 EditAction::make()
                 ->visible(fn (Model $record) => in_array($record->status_permohonan, ['draft', 'ditolak'])),
@@ -1533,11 +1661,35 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                         Storage::disk('public')->delete($lampiran->lampiran_path);
                     }
                     $record->lampiran()->delete();
-                }),
+                })
+                ->successNotification(
+                    Notification::make()
+                    ->title('Berhasil Dihapus')
+                    ->body('Data permohonan telah dihapus dari sistem')
+                    ->success()
+                )
+                ->failureNotification(
+                    Notification::make()
+                    ->title('Gagal Dihapus')
+                    ->body('Data gagal dihapus. Silakan coba lagi.')
+                    ->danger()
+                ),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                    ->successNotification(
+                        Notification::make()
+                            ->title('Berhasil Dihapus')
+                            ->body('Semua data permohonan terpilih telah dihapus')
+                            ->success()
+                    )
+                    ->failureNotification(
+                        Notification::make()
+                            ->title('Gagal Dihapus')
+                            ->body('Beberapa data permohonan gagal dihapus')
+                            ->danger()
+                    )
                 ])
             ]);
     }
