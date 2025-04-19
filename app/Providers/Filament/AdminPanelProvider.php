@@ -2,10 +2,9 @@
 
 namespace App\Providers\Filament;
 
-use App\Livewire\CustomProfile;
+use App\Filament\Pages\Auth\Register;
 use App\Livewire\MyPersonalInfo;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
-use Filament\Forms\Components\FileUpload;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -33,7 +32,8 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('')
             ->login()
-            ->registration()
+            ->registration(Register::class)
+            ->emailVerification()
             ->profile()
             ->colors([
                 'danger' => Color::Rose,
