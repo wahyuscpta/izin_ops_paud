@@ -35,7 +35,7 @@ class AppServiceProvider extends ServiceProvider
             Filament::registerNavigationItems([
                 NavigationItem::make('Logout')
                     ->icon('heroicon-o-arrow-left-start-on-rectangle')
-                    ->group('Pengaturan')
+                    ->group('Pengaturan Akun')
                     ->url(route('logout'))
                     ->sort(2)
             ]);

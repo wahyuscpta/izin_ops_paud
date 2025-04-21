@@ -54,6 +54,8 @@ class PermohonanResource extends Resource implements HasShieldPermissions
 
     protected static ?string $navigationLabel = 'Permohonan';
 
+    protected static ?string $navigationGroup = 'Manajemen Sistem';
+
     protected static ?string $breadcrumb = 'Permohonan';
 
     public static function getNavigationBadge(): ?string

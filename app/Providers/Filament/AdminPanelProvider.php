@@ -28,7 +28,7 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-        return $panel
+        return $panel            
             ->default()
             ->id('admin')
             ->path('')
@@ -71,7 +71,7 @@ class AdminPanelProvider extends PanelProvider
                     ->myProfile(
                         shouldRegisterUserMenu: false,
                         shouldRegisterNavigation: true,
-                        navigationGroup: 'Pengaturan',
+                        navigationGroup: 'Pengaturan Akun',
                         hasAvatars: true,
                         slug: 'my-profile',
                     )
@@ -86,6 +86,13 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->navigationGroups([
+                'Manajemen Sistem',
+                'Hak Akses Pengguna',
+                'Pengaturan Akun',
+            ])
+            ->spa()
+            ->unsavedChangesAlerts();
     }
 }
