@@ -32,7 +32,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
         'email',
         'password',
         'avatar_url',
-        'no_telepon'
+        'no_telepon',
+        'email_verified_at'
     ];
 
     /**
@@ -83,5 +84,15 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, MustVerif
     public function sendEmailVerificationNotification()
     {
         $this->notify(new CustomVerifyEmail());
+    }
+
+    public function canImpersonate()
+    {
+        return true;
+    }
+
+    public function canBeImpersonated()
+    {
+        return !$this->hasRole('super_admin');
     }
 }
