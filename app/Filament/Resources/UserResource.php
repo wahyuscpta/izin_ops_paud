@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
+use App\Notifications\CustomVerifyEmail;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -29,6 +30,11 @@ class UserResource extends Resource implements HasShieldPermissions
     protected static ?string $navigationLabel = 'Pengguna';
 
     protected static ?string $breadcrumb = 'Pengguna';
+
+    public static function getVerificationEmailNotification()
+    {
+        return CustomVerifyEmail::class;
+    }
 
     public static function getNavigationBadge(): ?string
     {
