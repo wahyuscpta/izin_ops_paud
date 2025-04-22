@@ -35,7 +35,7 @@ class UserResource extends Resource implements HasShieldPermissions
 
     protected static ?string $navigationLabel = 'Pengguna';
 
-    protected static ?string $navigationGroup = 'Manajemen Sistem';
+    protected static ?string $navigationGroup = 'Manajemen';
 
     protected static ?string $breadcrumb = 'Pengguna';
 

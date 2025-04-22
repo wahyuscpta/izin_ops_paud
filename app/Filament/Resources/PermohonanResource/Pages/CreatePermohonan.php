@@ -38,17 +38,21 @@ class CreatePermohonan extends CreateRecord
      */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Authorize user to create this resource
         Gate::authorize('create', static::getModel());
         
         $data['status_permohonan'] = $this->isKirimPermohonan ? 'menunggu_verifikasi' : 'draft';
-        $data['no_permohonan'] = 'IZIN-' . now()->format('YmdHis') . '-' . rand(1000, 9999);
         $data['user_id'] = Auth::id();
-        $data['tgl_permohonan'] = now();
         $data['tgl_status_terakhir'] = now();
+        $data['no_permohonan'] = 'IZIN-' . now()->format('YmdHis') . '-' . rand(1000, 9999);
+        
+        if ($this->isKirimPermohonan) {
+            $data['tgl_permohonan'] = now();
+        } else {
+            $data['tgl_permohonan'] = null;
+        }
 
         return $data;
-    }  
+    }
 
     /**
      * Handle additional processing after create

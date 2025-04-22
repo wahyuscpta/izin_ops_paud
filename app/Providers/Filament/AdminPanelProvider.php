@@ -36,6 +36,8 @@ class AdminPanelProvider extends PanelProvider
             ->registration(Register::class)
             ->emailVerification()
             ->profile()
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('5s')
             ->colors([
                 'danger' => Color::Rose,
                 'info' => Color::Blue,
@@ -88,7 +90,7 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->navigationGroups([
-                'Manajemen Sistem',
+                'Manajemen',
                 'Hak Akses Pengguna',
                 'Pengaturan Akun',
             ])        

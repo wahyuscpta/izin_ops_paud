@@ -54,7 +54,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
 
     protected static ?string $navigationLabel = 'Permohonan';
 
-    protected static ?string $navigationGroup = 'Manajemen Sistem';
+    protected static ?string $navigationGroup = 'Manajemen';
 
     protected static ?string $breadcrumb = 'Permohonan';
 
@@ -1476,24 +1476,24 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                         ->schema(
                             collect([
                                 'ktp_ketua' => 'KTP Ketua Yayasan/Kepsek PAUD/Kursus',
-                                'struktur_yayasan' => 'Struktur Lembaga Kursus/PAUD',
                                 'ijasah_penyelenggara' => 'Ijasah Penyelenggara/Ketua Yayasan',
+                                'struktur_yayasan' => 'Struktur Lembaga Kursus/PAUD',
                                 'ijasah_kepsek' => 'Ijasah Kepsek/Pengelola PAUD/Kursus',
                                 'ijasah_pendidik' => 'Ijasah Pendidik/Guru/Instruktur LKP',
-                                'sarana_prasarana' => 'Daftar Sarana dan Prasarana Lembaga',
                                 'kurikulum' => 'Kurikulum Kursus/PAUD',
+                                'sarana_prasarana' => 'Daftar Sarana dan Prasarana Lembaga',
                                 'tata_tertib' => 'Tata Tertib Kursus/PAUD',
                                 'peta_lokasi' => 'Peta Lokasi Kursus/PAUD',
-                                'daftar_peserta' => 'Daftar Peserta Didik Kursus/PAUD',
                                 'daftar_guru' => 'Daftar Guru/Pendidik',
+                                'daftar_peserta' => 'Daftar Peserta Didik Kursus/PAUD',
                                 'akte_notaris' => 'Akte Notaris Yayasan dan Kemenhumham',
                                 'rek_ke_lurah' => 'Surat Permohonan Rekomendasi Ijin Operasional ke Lurah (Diketahui Kepala Lingkungan Setempat)',
-                                'rek_dari_lurah' => 'Surat Rekomendasi dari Lurah/Kepala Desa Menunjuk Permohonan Rekomendasi dari Lembaga',
                                 'rek_ke_korwil' => 'Surat Permohonan Rekomendasi Ijin Operasional ke Korwil Disdikpora Setempat',
-                                'rek_dari_korwil' => 'Surat Rekomendasi dari Korwil Disdikpora Setempat Menunjuk Permohonan Rekomendasi dari Lembaga',
+                                'rek_dari_lurah' => 'Surat Rekomendasi dari Lurah/Kepala Desa Menunjuk Permohonan Rekomendasi dari Lembaga',
+                                'rek_dari_korwil' => 'Surat Rekomendasi dari Korwil Disdikpora Setempat',
                                 'rip' => '(RIP) Rencana Induk Pengembangan',
-                                'imb' => '(IMB) Ijin Mendirikan Bangunan',
                                 'perjanjian_sewa' => 'Perjanjian Sewa Menyewa',
+                                'imb' => '(IMB) Ijin Mendirikan Bangunan',
                                 'nib' => '(NIB) No Induk Berusaha'
                             ])
                             ->chunk(2)
@@ -1592,8 +1592,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
     {
         $user = Filament::auth()->user();
 
-        if ($user->hasRole('admin')) {
+         if ($user->hasRole('super_admin')) {
             return parent::getEloquentQuery();
+        }
+
+        if ($user->hasRole('admin')) {
+            return parent::getEloquentQuery()->whereIn('status_permohonan', ['menunggu_verifikasi', 'menunggu_validasi_lapangan', 'proses_penerbitan_izin', 'izin_diterbitkan', 'ditolak']);
         }
 
         if ($user->hasRole('kepala_dinas')) {

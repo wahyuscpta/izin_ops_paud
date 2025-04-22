@@ -46,26 +46,31 @@ class ListPermohonans extends ListRecords
                 ->badge(function () {
                     return $this->getTotalPermohonanCount();
                 }),
+
             'Menunggu Verifikasi' => Tab::make('Menunggu Verifikasi')
                 ->badge(function () {
                     return $this->getTotalPermohonanCount('menunggu_verifikasi');
                 })
                 ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'menunggu_verifikasi')),
+
             'Proses Validasi Lapangan' => Tab::make('Validasi Lapangan')
                 ->badge(function () {
-                    return $this->getTotalPermohonanCount('validasi_lapangan');
+                    return $this->getTotalPermohonanCount('menunggu_validasi_lapangan');
                 })
-                ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'validasi_lapangan')),
+                ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'menunggu_validasi_lapangan')),
+
             'Proses Penerbitan Izin' => Tab::make('Penerbitan Izin')
                 ->badge(function () {
                     return $this->getTotalPermohonanCount('proses_penerbitan_izin');
                 })
                 ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'proses_penerbitan_izin')),
+
             'Izin Diterbitkan' => Tab::make('Izin Diterbitkan')
                 ->badge(function () {
                     return $this->getTotalPermohonanCount('izin_diterbitkan');
                 })
                 ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'izin_diterbitkan')),
+                
             'Permohonan Ditolak' => Tab::make('Permohonan Ditolak')
                 ->badge(function () {
                     return $this->getTotalPermohonanCount('permohonan_ditolak');
