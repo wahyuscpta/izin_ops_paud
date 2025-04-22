@@ -91,7 +91,7 @@ class AdminPanelProvider extends PanelProvider
                 'Manajemen Sistem',
                 'Hak Akses Pengguna',
                 'Pengaturan Akun',
-            ])
+            ])        
             ->spa()
             ->unsavedChangesAlerts();
     }
