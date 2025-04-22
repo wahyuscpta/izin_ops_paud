@@ -7,7 +7,7 @@ use App\Models\Permohonan;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Components\Tab;
 use Filament\Resources\Pages\ListRecords;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class ListPermohonans extends ListRecords
 {
@@ -16,19 +16,6 @@ class ListPermohonans extends ListRecords
     protected static ?string $title = 'Permohonan';
 
     protected static ?string $breadcrumb = 'Daftar Permohonan';
-
-    public Collection $orderbyStatuses;
-
-    public function getTotalPermohonanCount($status = null)
-    {
-        $query = Permohonan::query();
-        
-        if ($status) {
-            $query->where('status_permohonan', $status);
-        }
-
-        return $query->count();
-    }
 
     protected function getHeaderActions(): array
     {
@@ -39,8 +26,57 @@ class ListPermohonans extends ListRecords
         ];
     }
 
+    public function getTotalPermohonanCount($status = null)
+    {
+        $query = Permohonan::query();
+
+        if (is_array($status)) {
+            $query->whereIn('status_permohonan', $status);
+        } elseif ($status) {
+            $query->where('status_permohonan', $status);
+        }
+
+        return $query->count();
+    }
+
     public function getTabs(): array
     {
+        if (!Auth::user()->hasRole('admin') && !Auth::user()->hasRole('kepala_dinas')) {
+            return [];
+        }
+
+        // Tabs untuk Kepala Dinas
+        if (Auth::user()->hasRole('kepala_dinas')) {
+            return [
+                'Semua' => Tab::make('Semua')
+                    ->badge(function () {
+                        return $this->getTotalPermohonanCount([
+                            'proses_penerbitan_izin',
+                            'izin_diterbitkan',
+                        ]);
+                    })
+                    ->modifyQueryUsing(fn ($query) =>
+                        $query->whereIn('status_permohonan', [
+                            'proses_penerbitan_izin',
+                            'izin_diterbitkan',
+                        ])
+                    ),
+
+                'Proses Penerbitan Izin' => Tab::make('Menunggu Penerbitan Izin')
+                    ->badge(function () {
+                        return $this->getTotalPermohonanCount('proses_penerbitan_izin');
+                    })
+                    ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'proses_penerbitan_izin')),
+
+                'Izin Diterbitkan' => Tab::make('Izin Diterbitkan')
+                    ->badge(function () {
+                        return $this->getTotalPermohonanCount('izin_diterbitkan');
+                    })
+                    ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'izin_diterbitkan')),
+            ];
+        }
+
+        // Tabs untuk Admin
         return [
             'Semua' => Tab::make('Semua')
                 ->badge(function () {
@@ -70,7 +106,7 @@ class ListPermohonans extends ListRecords
                     return $this->getTotalPermohonanCount('izin_diterbitkan');
                 })
                 ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'izin_diterbitkan')),
-                
+
             'Permohonan Ditolak' => Tab::make('Permohonan Ditolak')
                 ->badge(function () {
                     return $this->getTotalPermohonanCount('permohonan_ditolak');

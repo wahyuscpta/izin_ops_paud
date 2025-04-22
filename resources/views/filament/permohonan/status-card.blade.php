@@ -81,7 +81,7 @@
                     <x-filament::button color="gray" class="w-full p-2" wire:click="openModalTolak">
                         Tolak
                     </x-filament::button>
-                    <x-filament::button color="primary" type="submit" class="w-full p-2">
+                    <x-filament::button color="primary" class="w-full p-2" wire:click="save">
                         Validasi
                     </x-filament::button>
                 </div>
@@ -89,7 +89,7 @@
         </div>
     @endif
 
-    @if (auth()->user()->hasRole('kepala dinas'))
+    @if (auth()->user()->hasRole('kepala_dinas'))
         <div class="flex md:flex-row justify-between gap-4 pt-6">
             <x-filament::button color="gray" class="w-full p-2" wire:click="openModalTolak">
                 Tolak
@@ -102,6 +102,7 @@
 
     <x-filament::modal id="catatan-tolak" width="2xl">
         <x-slot name="heading">Tolak Permohonan</x-slot>
+        <x-slot name="description">Berikan catatan atau alasan penolakan atas permohonan ini.</x-slot>
 
         {{ $this->form }}
 
