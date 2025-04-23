@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Permohonan;
 use App\Models\User;
+use App\Notifications\EmailStatusNotification;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 
@@ -32,6 +33,21 @@ class PermohonanObserver
                             ->markAsRead(),
                     ])
                     ->sendToDatabase($admin);
+
+                // Notifikasi Email untuk Admin
+                $admin->notify(new EmailStatusNotification(
+                    $permohonan, 
+                    'new_submission', 
+                    'admin', 
+                    // route('admin.permohonan.verify', $permohonan->id)
+                ));
+
+                $pemohon->notify(new EmailStatusNotification(
+                    $permohonan, 
+                    'new_submission', 
+                    'pemohon', 
+                    // route('permohonan.detail', $permohonan->id)
+                ));
             }
         }
     }
@@ -46,6 +62,7 @@ class PermohonanObserver
             $pemohon = $permohonan->user;
             $admins = User::role('admin')->get();
             $kepalaDinas = User::role('kepala_dinas')->get();
+            $permohonan->previous_status = $permohonan->getOriginal('status_permohonan');
 
             if ($status === 'permohonan_ditolak') {
                 Notification::make()
@@ -54,6 +71,13 @@ class PermohonanObserver
                     ->iconColor('danger')
                     ->body('Permohonan Anda Ditolak karena ' . $permohonan->catatan)
                     ->sendToDatabase($pemohon);
+
+                $pemohon->notify(new EmailStatusNotification(
+                    $permohonan, 
+                    'status_update', 
+                    'pemohon', 
+                    // route('permohonan.detail', $permohonan->id)
+                ));
             }
 
             if ($status === 'menunggu_validasi_lapangan') {
@@ -64,6 +88,13 @@ class PermohonanObserver
                     ->iconColor('primary')
                     ->body('Permohonan Anda telah diverifikasi dan masuk tahap validasi lapangan.')
                     ->sendToDatabase($pemohon);
+
+                $pemohon->notify(new EmailStatusNotification(
+                    $permohonan, 
+                    'status_update', 
+                    'pemohon', 
+                    // route('permohonan.detail', $permohonan->id)
+                ));
             }
 
             if ($status === 'proses_penerbitan_izin') {
@@ -74,12 +105,27 @@ class PermohonanObserver
                     ->body('Permohonan Anda sedang diproses untuk penerbitan izin.')
                     ->sendToDatabase($pemohon);
 
+                $pemohon->notify(new EmailStatusNotification(
+                    $permohonan, 
+                    'status_update', 
+                    'pemohon', 
+                    // route('permohonan.detail', $permohonan->id)
+                ));
+
                 Notification::make()
                     ->title('Permohonan Siap Diterbitkan')
                     ->icon('heroicon-o-information-circle')
                     ->iconColor('primary')
                     ->body('Permohonan dari ' . $pemohon->name . ' menunggu proses penerbitan izin.')
                     ->sendToDatabase($kepalaDinas);
+
+                $kepalaDinas->notify(new EmailStatusNotification(
+                    $permohonan, 
+                    'status_update', 
+                    'kepala_dinas', 
+                    // route('permohonan.detail', $permohonan->id)
+                ));
+
             }
 
             if ($status === 'izin_diterbitkan') {
@@ -94,6 +140,13 @@ class PermohonanObserver
                             ->markAsRead(),
                     ])
                     ->sendToDatabase($pemohon);
+
+                $pemohon->notify(new EmailStatusNotification(
+                    $permohonan, 
+                    'status_update', 
+                    'pemohon', 
+                    // route('permohonan.detail', $permohonan->id)
+                ));
 
                 foreach ($admins as $admin) {
                     Notification::make()

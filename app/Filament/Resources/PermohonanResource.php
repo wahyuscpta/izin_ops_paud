@@ -1583,6 +1583,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                         Kirim Permohonan
                 </x-filament::button>
                 BLADE)))
+                ->skippable()
                 ->columnSpanFull()
                 ->columns(1)
             ]);

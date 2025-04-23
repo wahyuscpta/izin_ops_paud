@@ -21,4 +21,15 @@
         box-shadow: none !important;    
         
     } */
+
+    .fi-tabs {
+        justify-content: flex-start !important;
+        padding-left: 0px !important; 
+        width: 100% !important;
+        background-color: transparent !important;
+        outline: none !important;
+        border: 1px solid transparent !important;
+        box-shadow: none;
+    }
+
 </style>
