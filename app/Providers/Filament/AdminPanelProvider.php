@@ -101,7 +101,8 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->navigationGroups([
-                'Manajemen',
+                'Manajemen Data',
+                'Permohonan Saya',
                 'Hak Akses Pengguna',
                 'Pengaturan Akun',
             ])        

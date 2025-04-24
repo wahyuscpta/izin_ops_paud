@@ -42,6 +42,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
@@ -54,7 +55,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
 
     protected static ?string $navigationLabel = 'Permohonan';
 
-    protected static ?string $navigationGroup = 'Manajemen';
+    public static function getNavigationGroup(): ?string
+    {
+        return Auth::user()?->hasRole('pemohon')
+            ? 'Permohonan Saya'
+            : 'Manajemen Data';
+    }
 
     protected static ?string $breadcrumb = 'Permohonan';
 
