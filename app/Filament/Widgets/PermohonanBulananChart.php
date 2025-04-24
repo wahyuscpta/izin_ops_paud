@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 class PermohonanBulananChart extends ChartWidget
 {
     protected static ?string $heading = 'Tren Permohonan Bulanan';
+    protected static ?string $description = 'Jumlah permohonan izin operasional setiap bulan';
     protected static ?int $sort = 2;
 
     protected static ?string $maxHeight = '300px';
@@ -21,16 +22,31 @@ class PermohonanBulananChart extends ChartWidget
         return Auth::user()->hasRole(['admin', 'kepala_dinas', 'super_admin']);
     }
 
+    protected function getFilters(): ?array
+    {
+        return [
+            '3_bulan' => '3 Bulan Terakhir',
+            '6_bulan' => '6 Bulan Terakhir',
+            '1_tahun' => '1 Tahun Terakhir',
+        ];
+    }
+
     protected function getData(): array
     {
+        $startDate = match ($this->filter) {
+            '3_bulan' => now()->subMonths(3),
+            '1_tahun' => now()->subYear(),
+            default => now()->subMonths(6),
+        };
+
         $data = Trend::model(Permohonan::class)
             ->between(
-                start: now()->subMonths(6),
+                start: $startDate,
                 end: now(),
             )
             ->perMonth()
             ->count();
-            
+
         return [
             'datasets' => [
                 [

@@ -44,7 +44,7 @@
             <div class="flex justify-between mt-6 gap-3">
                 <x-filament::button
                     tag="a"
-                    {{-- href="{{ route('filament.resources.permohonans.create') }}" --}}
+                    href="{{ route('filament.admin.resources.permohonans.create') }}"
                     class="w-full cursor-pointer"
                     color="gray"
                 >
@@ -53,7 +53,7 @@
 
                 <x-filament::button
                     tag="a"
-                    {{-- href="{{ route('filament.resources.permohonans.create') }}" --}}
+                    href="{{ route('filament.admin.resources.permohonans.view', $permohonan->id) }}"
                     class="w-full cursor-pointer"
                     color="primary"
                 >

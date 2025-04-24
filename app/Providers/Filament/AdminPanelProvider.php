@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\Register;
+use App\Filament\Widgets\PermohonanBaruWidget;
 use App\Filament\Widgets\PermohonanBulananChart;
 use App\Filament\Widgets\StatsOverview;
 use App\Filament\Widgets\StatusPermohonanChart;
@@ -61,7 +62,6 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 StatsOverview::class,
                 PermohonanBulananChart::class,
-                StatusPermohonanChart::class,
                 StatusTimelineWidget::class,
                 SyaratPengajuanWidget::class,
                 // Widgets\AccountWidget::class,
