@@ -25,8 +25,7 @@ class AppServiceProvider extends ServiceProvider
      * Bootstrap any application services.
      */
     public function boot(): void
-    {   
-        // Mengganti notifikasi verifikasi email default dengan yang kustom
+    {           
         VerifyEmail::toMailUsing(function ($notifiable, $url) {
             $customEmail = new CustomVerifyEmail();
             $customEmail->url = $url;
