@@ -119,12 +119,14 @@ class PermohonanObserver
                     ->body('Permohonan dari ' . $pemohon->name . ' menunggu proses penerbitan izin.')
                     ->sendToDatabase($kepalaDinas);
 
-                $kepalaDinas->notify(new EmailStatusNotification(
-                    $permohonan, 
-                    'status_update', 
-                    'kepala_dinas', 
-                    // route('permohonan.detail', $permohonan->id)
-                ));
+                foreach ($kepalaDinas as $kepala) {
+                    $kepala->notify(new EmailStatusNotification(
+                        $permohonan,
+                        'status_update',
+                        'kepala_dinas',
+                        // route('permohonan.detail', $permohonan->id)
+                    ));
+                }
 
             }
 

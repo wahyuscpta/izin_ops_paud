@@ -159,14 +159,14 @@
             <td>Menimbang</td>
             <td style="padding: 0 15px 0 10px; text-align: center;">:</td>
             <td style="padding: 0 5px">a.</td>
-            <td>bahwa sesuai dengan surat permohonan Izin Operasional/Penyelenggaraan Pendidikan Anak Usia Dini (PAUD) dari {{ $penyelenggara->nama_perorangan }}/Ketua {{ $penyelenggara->nama_badan }}, Nomor {{ $permohonan->no_permohonan }}, tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_permohonan)->format('d M Y') }} dan berdasarkan Surat Rekomendasi dari UPT.Dinas Pendidikan, Kepemudaan dan Olah Raga Kecamatan Kuta Utara Nomor 421.11/117/VI/UPT. Kuta Utara/2022, tanggal 24 Juni 2022, beserta lampiran-lampirannya;</td>
+            <td>bahwa sesuai dengan surat permohonan Izin Operasional/Penyelenggaraan Pendidikan Anak Usia Dini (PAUD) dari {{ $penyelenggara->nama_perorangan }}/Ketua {{ $penyelenggara->nama_badan }}, Nomor {{ $permohonan->no_permohonan }}, tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_permohonan)->locale('id')->translatedFormat('d F Y') }} dan berdasarkan Surat Rekomendasi dari {{ $permohonan->pemberi_rekomendasi }} Nomor {{ $permohonan->no_surat_rekomendasi }}, tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_surat_rekomendais)->locale('id')->translatedFormat('d F Y') }}, beserta lampiran-lampirannya;</td>
         </tr>
 
         <tr>
             <td style="padding-top: 15px"></td>
             <td style="padding-top: 15px"></td>
             <td style="padding: 15px 5px 0px 5px">b.</td>
-            <td style="padding-top: 15px">bahwa berdasarkan laporan hasil Verifikasi Tim Survei Nomor 50/PAUD-PNF/XI/2022, hari Kamis, tanggal 17 November 2022 terhadap Operasioanal/Penyelenggaraan Pendidikan Anak Usia Dini (PAUD) tersebut dapat diberikan izin penyelenggaraan pendidikan;</td>
+            <td style="padding-top: 15px">bahwa berdasarkan laporan hasil Verifikasi Tim Survei Nomor {{ $permohonan->no_verifikasi }}, hari {{ \Carbon\Carbon::parse($permohonan->tgl_verifikasi)->locale('id')->translatedFormat('l') }}, tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_verifikasi)->locale('id')->translatedFormat('d F Y') }} terhadap Operasioanal/Penyelenggaraan Pendidikan Anak Usia Dini (PAUD) tersebut dapat diberikan izin penyelenggaraan pendidikan;</td>
         </tr>
 
         <tr>

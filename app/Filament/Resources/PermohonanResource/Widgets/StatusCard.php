@@ -3,8 +3,11 @@
 namespace App\Filament\Resources\PermohonanResource\Widgets;
 
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Widgets\Widget;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -19,6 +22,10 @@ class StatusCard extends Widget implements HasForms
     public $record;
 
     public $showModalTolak = false;
+
+    public $showModalVerifikasi = false;
+
+    public $showModalValidasi = false;
 
     public $formData = [];
 
@@ -40,6 +47,53 @@ class StatusCard extends Widget implements HasForms
                 ->rows(4)
                 ->visible(fn () => $this->showModalTolak),
 
+            Grid::make(2)
+                ->schema([
+                    TextInput::make('no_surat_rekomendasi')
+                        ->label('Nomor Surat Rekomendasi')
+                        ->required()
+                        ->maxLength(255)
+                        ->rules([
+                            'string', 
+                            'max:255', 
+                            'regex:/^[A-Za-z0-9\/\.\- ]+$/'
+                        ])
+                        ->visible(fn () => $this->showModalVerifikasi),
+
+                    DatePicker::make('tgl_surat_rekomendasi')
+                        ->label('Tanggal Surat Rekomendasi')
+                        ->required()
+                        ->rules(['date'])
+                        ->visible(fn () => $this->showModalVerifikasi),
+
+                    TextInput::make('no_verifikasi')
+                        ->label('Nomor Berkas Verifikasi')
+                        ->required()
+                        ->maxLength(255)
+                        ->rules([
+                            'string',
+                            'max:255',
+                            'regex:/^[A-Za-z0-9\/\.\- ]+$/'
+                        ])
+                        ->visible(fn () => $this->showModalValidasi),
+
+                    DatePicker::make('tgl_verifikasi')
+                        ->label('Tanggal Verifikasi')
+                        ->required()
+                        ->rules(['date'])
+                        ->visible(fn () => $this->showModalValidasi),
+                ]),
+
+            TextInput::make('pemberi_rekomendasi')
+                ->label('Pemberi Rekomendasi')
+                ->required()
+                ->maxLength(255)
+                ->rules([
+                    'string', 
+                    'max:255',
+                ])
+                ->visible(fn () => $this->showModalVerifikasi),
+
             FileUpload::make('file_validasi_lapangan')
                 ->label('Upload Berkas Validasi Lapangan')
                 ->directory('lampiran')
@@ -47,13 +101,21 @@ class StatusCard extends Widget implements HasForms
                 ->acceptedFileTypes(['application/pdf'])
                 ->maxSize(2048)
                 ->required()
-                ->visible(fn () => !$this->showModalTolak),
+                ->visible(fn () => $this->showModalValidasi),
+
         ];
     }
 
-    public function confirmVerification()
+    public function submitVerifikasi()
     {
-        $this->record->update(['status_permohonan' => 'menunggu_validasi_lapangan']);
+        $data = $this->form->getState();
+
+        $this->record->update([
+                'status_permohonan' => 'menunggu_validasi_lapangan',
+                'no_surat_rekomendasi' => $data['no_surat_rekomendasi'],
+                'tgl_surat_rekomendasi' => $data['tgl_surat_rekomendasi'],
+                'pemberi_rekomendasi' => $data['pemberi_rekomendasi'],
+            ]);
         
         Notification::make()
             ->success()
@@ -80,7 +142,12 @@ class StatusCard extends Widget implements HasForms
                 ]);
             }
 
-            $this->record->update(['status_permohonan' => 'proses_penerbitan_izin']);
+            $this->record->update([
+                'status_permohonan' => 'proses_penerbitan_izin',
+                'no_verifikasi' => $data['no_verifikasi'],
+                'tgl_verifikasi' => $data['tgl_verifikasi'],
+            ]);
+
             
             Notification::make()
                 ->success()
@@ -113,24 +180,6 @@ class StatusCard extends Widget implements HasForms
         return redirect()->to('permohonans');
     }
 
-    public function openModalTolak()
-    {
-        $this->showModalTolak = true;
-
-        $this->dispatch('open-modal', id: 'catatan-tolak');
-    }
-
-    public function closeModalTolak()
-    {
-        $this->showModalTolak = false;
-
-        $this->dispatch('close-modal', id: 'catatan-tolak');
-
-        $this->form->fill([
-            'catatan' => '',
-        ]);
-    }
-
     public function submitPenolakan()
     {
         $data = $this->form->getState();
@@ -150,4 +199,51 @@ class StatusCard extends Widget implements HasForms
 
         return redirect()->to('permohonans');
     }
+
+    public function openModalTolak()
+    {
+        $this->showModalTolak = true;
+
+        $this->dispatch('open-modal', id: 'catatan-tolak');
+    }
+
+    public function closeModalTolak()
+    {
+        $this->showModalTolak = false;
+
+        $this->dispatch('close-modal', id: 'catatan-tolak');
+
+        $this->form->fill([
+            'catatan' => '',
+        ]);
+    }
+
+    public function openModalVerifikasi()
+    {
+        $this->showModalVerifikasi = true;
+
+        $this->dispatch('open-modal', id: 'verifikasi-administrasi');
+    }
+
+    public function closeModalVerifikasi()
+    {
+        $this->showModalVerifikasi = false;
+
+        $this->dispatch('close-modal', id: 'verifikasi-administrasi');
+    }
+
+    public function openModalValidasi()
+    {
+        $this->showModalValidasi = true;
+
+        $this->dispatch('open-modal', id: 'validasi-lapangan');
+    }
+
+    public function closeModalValidasi()
+    {
+        $this->showModalValidasi = false;
+
+        $this->dispatch('close-modal', id: 'validasi-lapangan');
+    }
+
 }

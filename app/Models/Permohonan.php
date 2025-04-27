@@ -19,7 +19,12 @@ class Permohonan extends Model
         'tgl_permohonan',
         'tgl_status_terakhir',
         'catatan',
-        'status_permohonan'
+        'status_permohonan',
+        'no_surat_rekomendasi',
+        'tgl_surat_rekomendasi',
+        'pemberi_rekomendasi',
+        'no_verifikasi',
+        'tgl_verifikasi',
     ];
     
     protected $guarded = ['id'];

@@ -23,7 +23,12 @@
         <div class="space-y-4 pt-2">
             <div>
                 <p class="mt-2 text-sm font-semibold">Nama Pemohon</p>
-                <p class="text-gray-400">{{ $record->user->name }}</p>
+                <p class="text-gray-400">{{ $record->penyelenggara->nama_perorangan }}</p>
+            </div>
+
+            <div>
+                <p class="mt-2 text-sm font-semibold">Nama Lembaga</p>
+                <p class="text-gray-400">{{ $record->identitas->nama_lembaga }}</p>
             </div>
 
             <div>
@@ -73,26 +78,20 @@
             <x-filament::button color="gray" class="w-full p-2" wire:click="openModalTolak">
                 Tolak
             </x-filament::button>
-            <x-filament::button color="primary" class="w-full p-2" wire:click="confirmVerification">
+            <x-filament::button color="primary" class="w-full p-2" wire:click="openModalVerifikasi">
                 Verifikasi
             </x-filament::button>
         </div>
     @endif
 
     @if (auth()->user()->hasRole('admin') && $record->status_permohonan === 'menunggu_validasi_lapangan')
-        <div class="space-y-4 mt-4 pt-2">
-            <form wire:submit.prevent="save" class="mt-3">
-                {{ $this->form }}
-
-                <div class="flex md:flex-row justify-between gap-4 pt-6">
-                    <x-filament::button color="gray" class="w-full p-2" wire:click="openModalTolak">
-                        Tolak
-                    </x-filament::button>
-                    <x-filament::button color="primary" class="w-full p-2" wire:click="save">
-                        Validasi
-                    </x-filament::button>
-                </div>
-            </form>
+        <div class="flex md:flex-row justify-between gap-4 pt-6">
+            <x-filament::button color="gray" class="w-full p-2" wire:click="openModalTolak">
+                Tolak
+            </x-filament::button>
+            <x-filament::button color="primary" class="w-full p-2" wire:click="openModalValidasi">
+                Validasi
+            </x-filament::button>
         </div>
     @endif
 
@@ -115,12 +114,50 @@
 
         <x-slot name="footer">
             <div class="flex md:flex-row justify-end gap-4">
-                <x-filament::button color="danger" wire:click="submitPenolakan">
-                    Tolak Permohonan
-                </x-filament::button>
                 <x-filament::button color="gray" wire:click="closeModalTolak">
                     Batal
                 </x-filament::button>
+                <x-filament::button color="danger" wire:click="submitPenolakan">
+                    Tolak Permohonan
+                </x-filament::button>
+            </div>
+        </x-slot>
+    </x-filament::modal>
+
+    <x-filament::modal id="verifikasi-administrasi" width="2xl">
+        <x-slot name="heading">Verifikasi Administrasi</x-slot>
+        <x-slot name="description">Masukkan informasi terkait surat rekomendasi yang diterima untuk permohonan ini.</x-slot>
+
+        {{ $this->form }}
+
+        <x-slot name="footer">
+            <div class="flex md:flex-row justify-end gap-4">
+                <x-filament::button color="gray" wire:click="closeModalVerifikasi">
+                    Batal
+                </x-filament::button>
+
+                <x-filament::button color="primary" wire:click="submitVerifikasi">
+                    Verifikasi
+                </x-filament::button>            
+            </div>
+        </x-slot>
+    </x-filament::modal>
+
+    <x-filament::modal id="validasi-lapangan" width="2xl">
+        <x-slot name="heading">Validasi Lapangan</x-slot>
+        <x-slot name="description">Upload berkas hasil validasi lapangan dan informasi verifikasi untuk permohonan ini.</x-slot>
+
+        {{ $this->form }}
+
+        <x-slot name="footer">
+            <div class="flex md:flex-row justify-end gap-4">
+                <x-filament::button color="gray" wire:click="closeModalValidasi">
+                    Batal
+                </x-filament::button>
+
+                <x-filament::button color="primary" wire:click="save">
+                    Validasi
+                </x-filament::button>            
             </div>
         </x-slot>
     </x-filament::modal>
