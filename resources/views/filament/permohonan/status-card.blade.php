@@ -95,7 +95,7 @@
         </div>
     @endif
 
-    @if (auth()->user()->hasRole('kepala_dinas'))
+    @if (auth()->user()->hasRole('kepala_dinas') && $record->status_permohonan === 'proses_penerbitan_izin')
         <div class="flex md:flex-row justify-between gap-4 pt-6">
             <x-filament::button color="gray" class="w-full p-2" wire:click="openModalTolak">
                 Tolak
