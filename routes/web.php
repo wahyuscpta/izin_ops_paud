@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PermohonanExportController;
+use App\Http\Controllers\SKIzinController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -9,6 +10,8 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::get('/permohonan/{id}/export-pdf', [PermohonanExportController::class, 'export'])->name('permohonan.export.pdf');
+Route::get('/sk-izin/generate-pdf/{id}', [SKIzinController::class, 'generatePDF'])->name('sk-izin.generate-pdf');
+
 Route::get('/logout', function () {
     Auth::logout();
     session()->invalidate();

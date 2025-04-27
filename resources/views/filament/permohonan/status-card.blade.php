@@ -38,13 +38,20 @@
 
             <div>
                 <p class="text-sm font-semibold">Catatan</p>
-                <p class="text-gray-400">{{ $record->catatan }}</p>
+                <p class="text-gray-400">{{ $record->catatan  ?? '-'}}</p>
             </div>
 
             @if ($record->status_permohonan === 'izin_diterbitkan')
                 <div>
                     <p class="text-sm font-semibold">SK Izin Operasional</p>
-                    <x-filament::button color="primary" class="w-full p-2 mt-2">
+                    <x-filament::button
+                        tag="a"
+                        href="{{ route('sk-izin.generate-pdf', $record->id) }}"
+                        target="_blank"
+                        icon="heroicon-m-arrow-down-tray"
+                        color="primary"
+                        class="w-full p-2 mt-2"
+                    >
                         Unduh SK
                     </x-filament::button>
                 </div>

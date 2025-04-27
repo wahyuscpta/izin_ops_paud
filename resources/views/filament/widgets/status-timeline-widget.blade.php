@@ -78,7 +78,7 @@
             <div class="flex justify-center mt-6">
                 <x-filament::button
                     tag="a"
-                    {{-- href="{{ route('filament.resources.permohonans.create') }}" --}}
+                    href="{{ route('filament.admin.resources.permohonans.create') }}"
                     icon="heroicon-m-arrow-path"
                     color="primary"
                 >
@@ -124,13 +124,13 @@
                         </div>
                         
                         <div class="flex-grow">
-                            <div class="flex items-center justify-between">
+                            <div class="flex items-center">
                                 <h4 class="{{ $isCurrentStatus ? 'font-medium text-primary-600' : 'text-white' }}">
                                     {{ $step['label'] }}
                                 </h4>
                                 
                                 @if(isset($statusDates[$key]))
-                                    <span class="text-xs text-gray-500">
+                                    <span class="text-xs text-gray-500" style="margin-left: 20px">
                                         {{ $statusDates[$key]->format('d M Y') }}
                                     </span>
                                 @endif
