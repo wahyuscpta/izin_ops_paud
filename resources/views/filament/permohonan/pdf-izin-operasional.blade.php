@@ -159,7 +159,7 @@
             <td>Menimbang</td>
             <td style="padding: 0 15px 0 10px; text-align: center;">:</td>
             <td style="padding: 0 5px">a.</td>
-            <td>bahwa sesuai dengan surat permohonan Izin Operasional/Penyelenggaraan Pendidikan Anak Usia Dini (PAUD) dari {{ $penyelenggara->nama_perorangan }}/Ketua {{ $penyelenggara->nama_badan }}, Nomor {{ $permohonan->no_permohonan }}, tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_permohonan)->locale('id')->translatedFormat('d F Y') }} dan berdasarkan Surat Rekomendasi dari {{ $permohonan->pemberi_rekomendasi }} Nomor {{ $permohonan->no_surat_rekomendasi }}, tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_surat_rekomendais)->locale('id')->translatedFormat('d F Y') }}, beserta lampiran-lampirannya;</td>
+            <td>bahwa sesuai dengan surat permohonan Izin Operasional/Penyelenggaraan Pendidikan Anak Usia Dini (PAUD) dari {{ $penyelenggara->nama_perorangan }}/Ketua {{ $penyelenggara->nama_badan }}, Nomor {{ $permohonan->no_permohonan }}, tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_permohonan)->locale('id')->translatedFormat('d F Y') }} dan berdasarkan Surat Rekomendasi dari {{ $permohonan->pemberi_rekomendasi }} Nomor {{ $permohonan->no_surat_rekomendasi }}, tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_surat_rekomendasi)->locale('id')->translatedFormat('d F Y') }}, beserta lampiran-lampirannya;</td>
         </tr>
 
         <tr>
@@ -310,7 +310,7 @@
         <tr>
             <td style="padding-top: 15px">KEDUA</td>
             <td style="padding: 0 15px; padding-top: 15px; text-align: center;">:</td>
-            <td style="padding-top: 15px">Izin penyelenggaraan sebagaimana dimaksud dalam diktum KESATU berlaku mulai tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_permohonan)->format('d M Y') }} sampai dengan adanya pencabutan izin.</td>
+            <td style="padding-top: 15px">Izin penyelenggaraan sebagaimana dimaksud dalam diktum KESATU berlaku mulai tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_permohonan)->locale('id')->translatedFormat('d F Y') }} sampai dengan adanya pencabutan izin.</td>
         </tr>        
 
         <tr>
@@ -355,7 +355,7 @@
     <div style="text-align: right; width: 100%; margin-top: 50px;">
         <div style="display: inline-block; text-align: left; width: 350px;">
             <div>Ditetapkan di Mangupura</div>
-            <div style="margin-bottom: 20px;">Pada tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_status_terakhir)->format('d M Y') }}</div>
+            <div style="margin-bottom: 20px;">Pada tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_status_terakhir)->locale('id')->translatedFormat('d F Y') }}</div>
             
             <div style="margin-bottom: 5px;">
                 KEPALA DINAS PENDIDIKAN, KEPEMUDAAN<br>
@@ -377,27 +377,27 @@
             <td colspan="2"><u>Keputusan ini disampaikan kepada :</u></td>
         </tr>
         <tr>
-            <td style="width: 30px; padding-right: 5px;">1.</td>
+            <td style="width: 10px; padding-right: 5px;">1.</td>
             <td>Dirjen PAUD dan DIKMAS di Jakarta.</td>
         </tr>
         <tr>
-            <td style="width: 30px; padding-right: 5px;">2.</td>
+            <td style="width: 10px; padding-right: 5px;">2.</td>
             <td>Bupati Badung.</td>
         </tr>
         <tr>
-            <td style="width: 30px; padding-right: 5px;">3.</td>
+            <td style="width: 10px; padding-right: 5px;">3.</td>
             <td>Kepala Dinas Pendidikan Propinsi Badung.</td>
         </tr>
         <tr>
-            <td style="width: 30px; padding-right: 5px;">4.</td>
+            <td style="width: 10px; padding-right: 5px;">4.</td>
             <td>Camat Kuta Utara.</td>
         </tr>
         <tr>
-            <td style="width: 30px; padding-right: 5px;">5.</td>
+            <td style="width: 10px; padding-right: 5px;">5.</td>
             <td>Kepala UPT.Dinas Pendidikan, Kepemudaan dan Olah Raga, Kec. Kuta Utara</td>
         </tr>
         <tr>
-            <td style="width: 30px; padding-right: 5px;">6.</td>
+            <td style="width: 10px; padding-right: 5px;">6.</td>
             <td>Yang bersangkutan untuk dilaksanakan sebagaimana mestinya.</td>
         </tr>
     </table>
