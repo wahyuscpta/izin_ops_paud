@@ -7,7 +7,7 @@
 
                 @if ($record->lampiran->isNotEmpty() && $record->status_permohonan !== 'izin_diterbitkan')
                     <div class="mb-6">
-                        <a href="{{ route('permohonan.download-all', $record->id) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-md text-sm" style="margin-bottom: 25px">
+                        <a href="{{ route('permohonan.download-all', $record->id) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-md text-sm" style="margin-bottom: 30px">
                             <x-filament::icon icon="heroicon-o-archive-box-arrow-down" class="h-5 w-5"/>
                             <span>Download Semua Dokumen (.zip)</span>
                         </a>
