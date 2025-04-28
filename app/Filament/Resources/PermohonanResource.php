@@ -97,6 +97,14 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                     
                     Step::make('Identitas')
                     ->schema([
+
+                        TextInput::make('no_permohonan')
+                            ->label('Nomor Surat Permohonan')
+                            ->placeholder('Contoh: 0017/X/YPKB/2022')
+                            ->rule('regex:/^[0-9]{4}\/[A-Z]{1,5}\/[A-Z]{1,10}\/[0-9]{4}$/')
+                            ->required()
+                            ->maxLength(50),
+                            
                         Group::make([
                             Grid::make(2)->schema([
                                 TextInput::make('nama_lembaga')
@@ -107,7 +115,8 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                 TextInput::make('no_telepon_identitas')
                                     ->label('No Telepon')
                                     ->tel()
-                                    ->rule('regex:/^08[0-9]{8,11}$/')
+                                    ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
+                                    ->rule('regex:/^(\+62|62)?[\s-]?(\(0[0-9]{2,3}\)[\s-]?|0[0-9]{2,3}[\s-]?)[0-9]{6,8}$|^(\+62|62|0)8[1-9][0-9]{6,9}$/')
                                     ->required()
                                     ->maxLength(20),
                             ]),
@@ -163,6 +172,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     ->required(),
 
                                 TextInput::make('rumpun_pendidikan')
+                                    ->placeholder('Contoh: Pendidikan Anak Usia Dini (PAUD)')
                                     ->label('Rumpun Pendidikan')
                                     ->required()
                                     ->maxLength(255),
@@ -298,12 +308,13 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     ->required()
                                     ->maxLength(500),
 
-                                TextInput::make('telepon_perorangan')
-                                    ->label('Telepon')
-                                    ->numeric()
+                                TextInput::make('telepon_badan')
+                                    ->label('No Telepon')
+                                    ->tel()
+                                    ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
+                                    ->rule('regex:/^(\+62|62)?[\s-]?(\(0[0-9]{2,3}\)[\s-]?|0[0-9]{2,3}[\s-]?)[0-9]{6,8}$|^(\+62|62|0)8[1-9][0-9]{6,9}$/')
                                     ->required()
-                                    ->rule('regex:/^08[0-9]{8,11}$/')
-                                    ->maxLength(13),
+                                    ->maxLength(20),
 
                                 Select::make('kabupaten_perorangan')
                                     ->label('Kabupaten/Kota')
@@ -334,13 +345,11 @@ class PermohonanResource extends Resource implements HasShieldPermissions
 
                                 TextInput::make('akte_badan')
                                     ->label('Akte')
-                                    ->numeric()
                                     ->required()
                                     ->maxLength(50),
 
                                 TextInput::make('nomor_badan')
                                     ->label('Nomor')
-                                    ->numeric()
                                     ->required()
                                     ->maxLength(50),
 
@@ -354,12 +363,13 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     ->required()
                                     ->maxLength(500),
 
-                                TextInput::make('telepon_badan')
-                                    ->label('Telepon')
-                                    ->numeric()
+                                TextInput::make('telepon_perorangan')
+                                    ->label('No Telepon')
+                                    ->tel()
+                                    ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
+                                    ->rule('regex:/^(\+62|62)?[\s-]?(\(0[0-9]{2,3}\)[\s-]?|0[0-9]{2,3}[\s-]?)[0-9]{6,8}$|^(\+62|62|0)8[1-9][0-9]{6,9}$/')
                                     ->required()
-                                    ->rule('regex:/^08[0-9]{8,11}$/')
-                                    ->maxLength(13),
+                                    ->maxLength(20),
 
                                 Select::make('kabupaten_badan')
                                     ->label('Kabupaten/Kota')
@@ -434,12 +444,13 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->required()
                                         ->rule('before_or_equal:today'),
 
-                                    TextInput::make('telepon_pengelola')
-                                        ->label('Telepon')
-                                        ->numeric()
+                                    TextInput::make('telepon_perorangan')
+                                        ->label('No Telepon')
+                                        ->tel()
+                                        ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
+                                        ->rule('regex:/^(\+62|62)?[\s-]?(\(0[0-9]{2,3}\)[\s-]?|0[0-9]{2,3}[\s-]?)[0-9]{6,8}$|^(\+62|62|0)8[1-9][0-9]{6,9}$/')
                                         ->required()
-                                        ->rule('regex:/^08[0-9]{8,11}$/')
-                                        ->maxLength(13),
+                                        ->maxLength(20),
 
                                     Select::make('kabupaten_pengelola')
                                         ->label('Kabupaten/Kota')

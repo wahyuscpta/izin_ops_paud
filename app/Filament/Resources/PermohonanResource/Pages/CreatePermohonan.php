@@ -43,7 +43,6 @@ class CreatePermohonan extends CreateRecord
         $data['status_permohonan'] = $this->isKirimPermohonan ? 'menunggu_verifikasi' : 'draft';
         $data['user_id'] = Auth::id();
         $data['tgl_status_terakhir'] = now();
-        $data['no_permohonan'] = 'IZIN-' . now()->format('YmdHis') . '-' . rand(1000, 9999);
         
         if ($this->isKirimPermohonan) {
             $data['tgl_permohonan'] = now();
