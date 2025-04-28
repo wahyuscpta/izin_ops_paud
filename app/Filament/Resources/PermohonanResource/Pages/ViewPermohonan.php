@@ -15,7 +15,7 @@ class ViewPermohonan extends ViewRecord implements HasForms
 
     public static string $view = 'filament.permohonan.view-permohonan';
 
-        protected static ?string $breadcrumb = 'Lihat Permohonan';
+    protected static ?string $breadcrumb = 'Lihat Permohonan';
 
     protected static ?string $title = 'Detail Permohonan';
 

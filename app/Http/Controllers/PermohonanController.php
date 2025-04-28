@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Permohonan;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use ZipArchive;
+use Illuminate\Support\Str;
 
 class PermohonanController extends Controller
 {
@@ -46,57 +48,128 @@ class PermohonanController extends Controller
             ? $pdf->download($filename)
             : $pdf->stream($filename);
     }
-
-    public function downloadAllDocuments(Permohonan $permohonan)
+    
+    public function downloadAllDokumen(Permohonan $permohonan)
     {
-        $lampiran = $permohonan->lampiran;
-
-        if ($lampiran->isEmpty()) {
-            session()->flash('error', 'Tidak ada dokumen yang tersedia untuk diunduh.');
-            return redirect()->back();
+        // Validasi permohonan memiliki lampiran
+        if ($permohonan->lampiran->isEmpty()) {
+            return back()->with('error', 'Tidak ada lampiran yang tersedia untuk diunduh.');
         }
 
-        $zipFileName = "Dokumen_Permohonan_{$permohonan->identitas->nama_lembaga}.zip";
-        $tempPath = storage_path('app/temp');
-        $zipFilePath = "{$tempPath}/{$zipFileName}";
-
+        // Buat nama file zip unik
+        $tanggalSekarang = now()->format('Ymd');
+        $zipFileName = 'Dokumen-Permohonan-' . $permohonan->identitas->nama_lembaga . '-' . $tanggalSekarang . '.zip';
+        $tempDir = storage_path('app' . DIRECTORY_SEPARATOR . 'temp');
+        $zipFilePath = $tempDir . DIRECTORY_SEPARATOR . $zipFileName;
+        
         // Pastikan direktori temp ada
-        if (!Storage::exists('temp')) {
-            Storage::makeDirectory('temp');
+        if (!file_exists($tempDir)) {
+            mkdir($tempDir, 0755, true);
         }
 
-        // Hapus file zip yang mungkin sudah ada
-        if (file_exists($zipFilePath)) {
-            unlink($zipFilePath);
-        }
-
+        // Buat file zip baru
         $zip = new ZipArchive();
-        if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            session()->flash('error', 'Gagal membuat file zip.');
-            return redirect()->back();
+        $result = $zip->open($zipFilePath, ZipArchive::CREATE);
+        
+        if ($result !== true) {
+            return back()->with('error', 'Gagal membuat file zip.');
         }
 
-        foreach ($lampiran as $dokumen) {
-            $filePath = storage_path("app/{$dokumen->file_path}");
-            
-            if (file_exists($filePath)) {
-                // Gunakan nama original file untuk nama di dalam zip
-                $fileExtension = pathinfo($dokumen->file_path, PATHINFO_EXTENSION);
-                $namaFile = "{$dokumen->nama}.{$fileExtension}";
-                
-                $zip->addFile($filePath, $namaFile);
-            }
-        }
+        $fileCount = $this->addFilesToZip($zip, $permohonan->lampiran);
 
         $zip->close();
 
-        if (!file_exists($zipFilePath)) {
-            session()->flash('error', 'Gagal membuat file zip.');
-            return redirect()->back();
+        // Jika tidak ada file yang berhasil ditambahkan, hapus zip dan kembalikan error
+        if ($fileCount === 0) {
+            if (file_exists($zipFilePath)) {
+                unlink($zipFilePath);
+            }
+            return back()->with('error', 'Tidak ada file lampiran yang ditemukan untuk diunduh.');
         }
 
+        // Download file
         return response()->download($zipFilePath, $zipFileName, [
             'Content-Type' => 'application/zip',
         ])->deleteFileAfterSend(true);
+    }
+
+    // Menambahkan file-file lampiran ke dalam zip
+    private function addFilesToZip(ZipArchive $zip, $lampirans)
+    {
+        $fileCount = 0;
+
+        foreach ($lampirans as $lampiran) {
+            // Cari file di berbagai kemungkinan lokasi
+            $fileData = $this->findFile($lampiran->lampiran_path);
+            
+            if ($fileData['found'] && $fileData['content']) {
+                try {
+                    $originalFileName = basename($lampiran->lampiran_path);
+                    $displayFileName = $this->generateFileName($lampiran, $originalFileName);
+                    
+                    // Cek jika nama file sudah ada di zip
+                    if ($zip->locateName($displayFileName) !== false) {
+                        $pathInfo = pathinfo($displayFileName);
+                        $displayFileName = $pathInfo['filename'] . '-' . Str::random(4) . '.' . ($pathInfo['extension'] ?? '');
+                    }
+                    
+                    // Tambahkan file ke zip
+                    $zip->addFromString($displayFileName, $fileData['content']);
+                    $fileCount++;
+                } catch (\Exception $e) {
+                    // Gagal menambahkan file - lanjutkan ke file berikutnya
+                    continue;
+                }
+            }
+        }
+
+        return $fileCount;
+    }
+
+    // Mencari file di berbagai kemungkinan lokasi
+    private function findFile($path)
+    {
+        // Coba berbagai kemungkinan lokasi dengan Storage facade
+        $possiblePaths = [
+            $path,
+            'public/' . $path,
+            'public/storage/' . $path,
+        ];
+        
+        foreach ($possiblePaths as $possiblePath) {
+            if (Storage::exists($possiblePath)) {
+                return [
+                    'found' => true,
+                    'content' => Storage::get($possiblePath)
+                ];
+            }
+        }
+        
+        // Coba dengan direct filesystem access
+        $directPaths = [
+            public_path(str_replace('/', DIRECTORY_SEPARATOR, $path)),
+            storage_path('app/' . str_replace('/', DIRECTORY_SEPARATOR, $path)),
+            storage_path('app/public/' . str_replace('/', DIRECTORY_SEPARATOR, $path)),
+            base_path('public/' . str_replace('/', DIRECTORY_SEPARATOR, $path)),
+        ];
+        
+        foreach ($directPaths as $directPath) {
+            if (file_exists($directPath)) {
+                return [
+                    'found' => true,
+                    'content' => file_get_contents($directPath)
+                ];
+            }
+        }
+        
+        return ['found' => false, 'content' => null];
+    }
+
+    // Generate nama file untuk tampilan di zip
+    private function generateFileName($lampiran, $originalFileName)
+    {
+        return $lampiran->lampiran_type 
+            ? Str::slug($lampiran->lampiran_type, '_') . '-' . $originalFileName 
+            : $originalFileName;
     }
 }

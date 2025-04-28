@@ -17,10 +17,10 @@ Route::get('/permohonan/{id}/sk-izin-izin-operasional', [SKIzinController::class
 Route::get('/permohonan/{id}/sertifikat-izin-operasional', [PermohonanController::class, 'generateSertifikat'])
     ->name('sertifikat.pdf');
 
-Route::get('/permohonan/{permohonan}/download-all', [PermohonanController::class, 'downloadAllDocuments'])
+Route::get('/permohonan/{permohonan}/download-all', [PermohonanController::class, 'downloadAllDokumen'])
     ->name('permohonan.download-all')
     ->middleware(['auth']);
-
+    
 Route::get('/logout', function () {
     Auth::logout();
     session()->invalidate();
