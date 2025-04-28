@@ -63,8 +63,14 @@
 
                 <div>
                     <p class="text-sm font-semibold">Sertifikat Izin Operasional:</p>
-                    <x-filament::button color="primary" class="w-full p-2 mt-2">
-                        {{-- <x-filament::icon icon="heroicon-o-arrow-down-tray" class="w-5"/> --}}
+                    <x-filament::button
+                        tag="a"
+                        href="{{ route('sertifikat.pdf', $record->id) }}"
+                        target="_blank"
+                        icon="heroicon-m-arrow-down-tray"
+                        color="primary"
+                        class="w-full p-2 mt-2"
+                    >
                         Unduh Sertifikat
                     </x-filament::button>
                 </div>            

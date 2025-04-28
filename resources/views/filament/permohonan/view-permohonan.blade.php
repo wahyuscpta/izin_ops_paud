@@ -5,7 +5,7 @@
 
             <x-filament::section label="Dokumen Lampiran">
 
-                @if($record->lampiran->isNotEmpty())
+                @if ($record->lampiran->isNotEmpty() && $record->status_permohonan !== 'izin_diterbitkan')
                     <div class="mb-6">
                         <a href="{{ route('permohonan.download-all', $record->id) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-md text-sm" style="margin-bottom: 25px">
                             <x-filament::icon icon="heroicon-o-archive-box-arrow-down" class="h-5 w-5"/>
@@ -70,52 +70,52 @@
                     </div>
                 </div>
 
-                <!-- Dokumen Lampiran -->
-                @if ($record->lampiran->isNotEmpty())
-                    @php
-                        $labels = collect([
-                            'ktp_ketua' => 'KTP Ketua Yayasan/Kepsek PAUD/Kursus',
-                            'struktur_yayasan' => 'Struktur Lembaga Kursus/PAUD',
-                            'ijasah_penyelenggara' => 'Ijasah Penyelenggara/Ketua Yayasan',
-                            'ijasah_kepsek' => 'Ijasah Kepsek/Pengelola PAUD/Kursus',
-                            'ijasah_pendidik' => 'Ijasah Pendidik/Guru/Instruktur LKP',
-                            'sarana_prasarana' => 'Daftar Sarana dan Prasarana Lembaga',
-                            'kurikulum' => 'Kurikulum Kursus/PAUD',
-                            'tata_tertib' => 'Tata Tertib Kursus/PAUD',
-                            'peta_lokasi' => 'Peta Lokasi Kursus/PAUD',
-                            'daftar_peserta' => 'Daftar Peserta Didik Kursus/PAUD',
-                            'daftar_guru' => 'Daftar Guru/Pendidik',
-                            'akte_notaris' => 'Akte Notaris Yayasan dan Kemenhumham',
-                            'rek_ke_lurah' => 'Surat Permohonan Rekomendasi Ijin Operasional ke Lurah',
-                            'rek_dari_lurah' => 'Surat Rekomendasi dari Lurah/Kepala Desa',
-                            'rek_ke_korwil' => 'Surat Permohonan Rekomendasi Ijin Operasional ke Korwil',
-                            'rek_dari_korwil' => 'Surat Rekomendasi dari Korwil Disdikpora',
-                            'permohonan_izin' => 'Surat Permohonan Izin Operasional Kursus/PAUD',
-                            'rip' => '(RIP) Rencana Induk Pengembangan',
-                            'imb' => '(IMB) Ijin Mendirikan Bangunan',
-                            'perjanjian_sewa' => 'Perjanjian Sewa Menyewa',
-                            'nib' => '(NIB) No Induk Berusaha',
-                            'file_validasi_lapangan' => 'Dokumen Validasi Lapangan',
-                        ]);
-                        
-                        $categories = [
-                            'Identitas & Struktur' => ['ktp_ketua', 'struktur_yayasan', 'akte_notaris', 'nib'],
-                            'Dokumen Akademik' => ['ijasah_penyelenggara', 'ijasah_kepsek', 'ijasah_pendidik', 'kurikulum', 'tata_tertib', 'daftar_peserta', 'daftar_guru'],
-                            'Infrastruktur' => ['sarana_prasarana', 'peta_lokasi', 'imb', 'perjanjian_sewa', 'rip'],
-                            'Surat Rekomendasi' => ['rek_ke_lurah', 'rek_dari_lurah', 'rek_ke_korwil', 'rek_dari_korwil', 'permohonan_izin'],
-                        ];
-                        
-                        $categorizedDocs = [];
-                        foreach ($categories as $category => $types) {
-                            $docs = $record->lampiran->filter(function($item) use ($types) {
-                                return in_array($item->lampiran_type, $types);
-                            });
-                            if ($docs->isNotEmpty()) {
-                                $categorizedDocs[$category] = $docs;
-                            }
+                @php
+                    $labels = collect([
+                        'ktp_ketua' => 'KTP Ketua Yayasan/Kepsek PAUD/Kursus',
+                        'struktur_yayasan' => 'Struktur Lembaga Kursus/PAUD',
+                        'ijasah_penyelenggara' => 'Ijasah Penyelenggara/Ketua Yayasan',
+                        'ijasah_kepsek' => 'Ijasah Kepsek/Pengelola PAUD/Kursus',
+                        'ijasah_pendidik' => 'Ijasah Pendidik/Guru/Instruktur LKP',
+                        'sarana_prasarana' => 'Daftar Sarana dan Prasarana Lembaga',
+                        'kurikulum' => 'Kurikulum Kursus/PAUD',
+                        'tata_tertib' => 'Tata Tertib Kursus/PAUD',
+                        'peta_lokasi' => 'Peta Lokasi Kursus/PAUD',
+                        'daftar_peserta' => 'Daftar Peserta Didik Kursus/PAUD',
+                        'daftar_guru' => 'Daftar Guru/Pendidik',
+                        'akte_notaris' => 'Akte Notaris Yayasan dan Kemenhumham',
+                        'rek_ke_lurah' => 'Surat Permohonan Rekomendasi Ijin Operasional ke Lurah',
+                        'rek_dari_lurah' => 'Surat Rekomendasi dari Lurah/Kepala Desa',
+                        'rek_ke_korwil' => 'Surat Permohonan Rekomendasi Ijin Operasional ke Korwil',
+                        'rek_dari_korwil' => 'Surat Rekomendasi dari Korwil Disdikpora',
+                        'permohonan_izin' => 'Surat Permohonan Izin Operasional Kursus/PAUD',
+                        'rip' => '(RIP) Rencana Induk Pengembangan',
+                        'imb' => '(IMB) Ijin Mendirikan Bangunan',
+                        'perjanjian_sewa' => 'Perjanjian Sewa Menyewa',
+                        'nib' => '(NIB) No Induk Berusaha',
+                        'file_validasi_lapangan' => 'Dokumen Validasi Lapangan',
+                    ]);
+                    
+                    $categories = [
+                        'Identitas & Struktur' => ['ktp_ketua', 'struktur_yayasan', 'akte_notaris', 'nib'],
+                        'Dokumen Akademik' => ['ijasah_penyelenggara', 'ijasah_kepsek', 'ijasah_pendidik', 'kurikulum', 'tata_tertib', 'daftar_peserta', 'daftar_guru'],
+                        'Infrastruktur' => ['sarana_prasarana', 'peta_lokasi', 'imb', 'perjanjian_sewa', 'rip'],
+                        'Surat Rekomendasi' => ['rek_ke_lurah', 'rek_dari_lurah', 'rek_ke_korwil', 'rek_dari_korwil', 'permohonan_izin'],
+                    ];
+                    
+                    $categorizedDocs = [];
+                    foreach ($categories as $category => $types) {
+                        $docs = $record->lampiran->filter(function($item) use ($types) {
+                            return in_array($item->lampiran_type, $types);
+                        });
+                        if ($docs->isNotEmpty()) {
+                            $categorizedDocs[$category] = $docs;
                         }
-                    @endphp
+                    }
+                @endphp
 
+                <!-- Dokumen Lampiran -->
+                @if (!empty($categorizedDocs))
                     <div class="space-y-6 mt-4" style="margin-top: 30px">
                         @foreach ($categorizedDocs as $category => $documents)
                             <x-filament::fieldset :label="$category">
@@ -149,7 +149,7 @@
                     </div>
                 @else
                     <div class="flex flex-col items-center justify-center py-12 text-center">
-                        <x-filament::icon icon="heroicon-o-document" class="h-12 w-12 text-gray-400" />
+                        <x-filament::icon icon="heroicon-o-document" class="h-7 w-7 my-4 text-gray-400" />
                         <p class="mt-4 text-gray-500">Tidak ada lampiran yang tersedia.</p>
                     </div>
                 @endif

@@ -10,8 +10,13 @@ use Illuminate\Support\Facades\Route;
 //     return view('welcome');
 // });
 
-Route::get('/permohonan/{id}/export-pdf', [PermohonanExportController::class, 'export'])->name('permohonan.export.pdf');
-Route::get('/sk-izin/generate-pdf/{id}', [SKIzinController::class, 'generatePDF'])->name('sk-izin.generate-pdf');
+Route::get('/permohonan/{id}/export-pdf', [PermohonanExportController::class, 'export'])
+    ->name('permohonan.export.pdf');
+Route::get('/permohonan/{id}/sk-izin-izin-operasional', [SKIzinController::class, 'generatePDF'])
+    ->name('sk-izin.generate-pdf');
+Route::get('/permohonan/{id}/sertifikat-izin-operasional', [PermohonanController::class, 'generateSertifikat'])
+    ->name('sertifikat.pdf');
+
 Route::get('/permohonan/{permohonan}/download-all', [PermohonanController::class, 'downloadAllDocuments'])
     ->name('permohonan.download-all')
     ->middleware(['auth']);

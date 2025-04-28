@@ -3,12 +3,50 @@
 namespace App\Http\Controllers;
 
 use App\Models\Permohonan;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use ZipArchive;
 
 class PermohonanController extends Controller
 {
+    public function generateSertifikat(Request $request, $id)
+    {
+        $permohonan = Permohonan::with(['identitas', 'penyelenggara', 'user'])->findOrFail($id);
+
+        $logoPath = public_path('images/logo.png');
+        $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+
+        $bgPath = public_path('images/bg-sertifikat.png');
+        $background = 'data:image/png;base64,' . base64_encode(file_get_contents($bgPath));
+        
+        $data = [
+            'permohonan' => $permohonan,
+            'identitas' => $permohonan->identitas,
+            'penyelenggara' => $permohonan->penyelenggara,
+            'user' => $permohonan->user,
+            'logo' => $logoBase64,
+            'background' => $background
+        ];
+        
+        $pdf = PDF::loadView('filament.permohonan.pdf-sertifikat', $data);
+        
+        $pdf->setPaper('legal', 'landscape');
+        $pdf->setOptions([
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+            'defaultFont' => 'times',
+            'isPhpEnabled' => true,
+            'isJavascriptEnabled' => false,
+        ]);
+        
+        $filename = 'SK_IZIN_' . $permohonan->nomor_sk . '_' . $permohonan->id . '.pdf';
+    
+        return $request->has('download')
+            ? $pdf->download($filename)
+            : $pdf->stream($filename);
+    }
+
     public function downloadAllDocuments(Permohonan $permohonan)
     {
         $lampiran = $permohonan->lampiran;
