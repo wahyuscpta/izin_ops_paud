@@ -20,7 +20,7 @@
             <div class="flex justify-center py-6">
                 <x-filament::button
                     tag="a"
-                    href="{{ route('filament.resources.permohonans.create') }}"
+                    href="{{ route('filament.admin.resources.permohonans.create') }}"
                     icon="heroicon-m-plus"
                     color="primary"
                 >
