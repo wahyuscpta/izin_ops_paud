@@ -32,13 +32,7 @@
         box-shadow: none;
     }
 
-    .kepala-dinas-tab {
-        width: 50% !important;
-        margin-right: 5px !important; 
-        margin-left: 5px !important;
-    }
-
-    .fi-modal-window {
+    #konfirmasi-verifikasi{
         position: fixed !important;
         top: 50% !important;
         left: 50% !important;

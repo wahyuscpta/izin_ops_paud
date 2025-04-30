@@ -13,7 +13,7 @@
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-    }    
+    }   
 </style>
 @endpush
 
@@ -149,7 +149,7 @@
         </x-slot>
     </x-filament::modal>
 
-    <x-filament::modal id="konfirmasi-verifikasi" class="modal-centered" width="xl" wire:model="isModalVerifikasiOpen">
+    <x-filament::modal id="konfirmasi-verifikasi" width="xl" wire:model="isModalVerifikasiOpen">
         <x-slot name="heading">
             <div class="flex items-center gap-2">
                 <x-filament::icon icon="heroicon-o-shield-check" class="h-6 w-6 text-primary-500" />
@@ -157,56 +157,56 @@
             </div>
         </x-slot>
         
-    <div class="rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 p-4 space-y-6">
-        <!-- Informasi Verifikasi -->
-        <div class="space-y-2">
-            <div class="flex items-start gap-3">
-                <div class="flex-shrink-0 mt-1">
-                    <x-filament::icon icon="heroicon-o-information-circle" class="h-5 w-5 text-primary-600 dark:text-primary-300" />
+        <div class="rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-900 p-4 space-y-6">
+            <!-- Informasi Verifikasi -->
+            <div class="space-y-2">
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 mt-1">
+                        <x-filament::icon icon="heroicon-o-information-circle" class="h-5 w-5 text-primary-600 dark:text-primary-300" />
+                    </div>
+                    <div>
+                        <h3 class="text-base font-medium text-primary-900 dark:text-primary-600">
+                            Apakah Anda yakin akan memverifikasi permohonan ini?
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-500">
+                            Permohonan yang terverifikasi akan diproses ke tahap selanjutnya.
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="text-base font-medium text-primary-900 dark:text-primary-600">
-                        Apakah Anda yakin akan memverifikasi permohonan ini?
-                    </h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-500">
-                        Permohonan yang terverifikasi akan diproses ke tahap selanjutnya.
-                    </p>
-                </div>
+
+                <hr class="border-t border-gray-200 dark:border-gray-700 w-3/4 mt-4 mx-auto h-.5px" style="margin-top: 25px">
             </div>
 
-            <hr class="border-t border-gray-200 dark:border-gray-700 w-3/4 mt-4 mx-auto h-.5px" style="margin-top: 25px">
-        </div>
-
-        <!-- Detail Pemohon -->
-        <div class="space-y-2">
-            <div class="flex items-start gap-3">
-                <div class="flex-shrink-0 mt-0.5">
-                    <x-filament::icon icon="heroicon-o-user-circle" class="h-5 w-5 text-gray-700 dark:text-gray-500" />
+            <!-- Detail Pemohon -->
+            <div class="space-y-2">
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 mt-0.5">
+                        <x-filament::icon icon="heroicon-o-user-circle" class="h-5 w-5 text-gray-700 dark:text-gray-500" />
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-500">Detail Pemohon:</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-500 my-2">{{ $record->penyelenggara->nama_perorangan }}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-500">{{ $record->identitas->nama_lembaga }}</p>
+                    </div>
                 </div>
-                <div>
-                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-500">Detail Pemohon:</h4>
-                    <p class="text-sm text-gray-600 dark:text-gray-500 my-2">{{ $record->penyelenggara->nama_perorangan }}</p>
-                    <p class="text-sm text-gray-600 dark:text-gray-500">{{ $record->identitas->nama_lembaga }}</p>
-                </div>
+                
+                <hr class="border-t border-gray-200 dark:border-gray-700 w-3/4 mt-4 mx-auto h-.5px" style="margin-top: 25px">
             </div>
-            
-            <hr class="border-t border-gray-200 dark:border-gray-700 w-3/4 mt-4 mx-auto h-.5px" style="margin-top: 25px">
-        </div>
 
-        <!-- Peringatan -->
-        <div>
-            <div class="flex items-start gap-3">
-                <div class="flex-shrink-0 mt-0.5">
-                    <x-filament::icon icon="heroicon-o-exclamation-triangle" class="h-5 w-5 text-amber-500 dark:text-amber-300" style="color: #f59e0b;" />
-                </div>
-                <div>
-                    <p class="text-sm text-amber-800 dark:text-amber-100" style="color: #f59e0b;" >
-                        Tindakan ini tidak dapat dibatalkan. Pastikan semua dokumen telah diperiksa dengan benar sebelum melanjutkan.
-                    </p>
+            <!-- Peringatan -->
+            <div>
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 mt-0.5">
+                        <x-filament::icon icon="heroicon-o-exclamation-triangle" class="h-5 w-5 text-amber-500 dark:text-amber-300" style="color: #f59e0b;" />
+                    </div>
+                    <div>
+                        <p class="text-sm text-amber-800 dark:text-amber-100" style="color: #f59e0b;" >
+                            Tindakan ini tidak dapat dibatalkan. Pastikan semua dokumen telah diperiksa dengan benar sebelum melanjutkan.
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
         <x-slot name="footer">
             <div class="flex justify-end gap-x-2">
