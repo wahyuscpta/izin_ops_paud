@@ -1548,7 +1548,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->disk('public')
                                         ->acceptedFileTypes(['application/pdf'])
                                         ->maxSize(2048)
-                                        //->required()
+                                        ->required()
                                         ->helperText('Unggah file PDF maks. 2MB'),
                                 ])->flatten(1)->toArray()
                             ))->toArray()
@@ -1585,7 +1585,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                 ->disk('public')
                                 ->acceptedFileTypes(['application/pdf'])
                                 ->maxSize(2048)
-                                //->required()
+                                ->required()
                                 ->previewable(true)
                                 ->helperText('Unggah file PDF maks. 2MB'),
                         ])
