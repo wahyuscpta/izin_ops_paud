@@ -446,7 +446,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->required()
                                         ->rule('before_or_equal:today'),
 
-                                    TextInput::make('telepon_perorangan')
+                                    TextInput::make('telepon_pengelola')
                                         ->label('No Telepon')
                                         ->tel()
                                         ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
@@ -1548,7 +1548,14 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->disk('public')
                                         ->acceptedFileTypes(['application/pdf'])
                                         ->maxSize(2048)
-                                        ->required()
+                                        ->required(function ($record) use ($field) {
+                                            // Hanya required jika tidak ada file yang sudah diunggah sebelumnya
+                                            if ($record && $record->lampiran) {
+                                                $lampiran = $record->lampiran->where('lampiran_type', $field)->first();
+                                                return !($lampiran && $lampiran->lampiran_path);
+                                            }
+                                            return true; // Required untuk record baru
+                                        })
                                         ->helperText('Unggah file PDF maks. 2MB'),
                                 ])->flatten(1)->toArray()
                             ))->toArray()
@@ -1585,7 +1592,14 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                 ->disk('public')
                                 ->acceptedFileTypes(['application/pdf'])
                                 ->maxSize(2048)
-                                ->required()
+                                ->required(function ($record) {
+                                    // Hanya required jika tidak ada file yang sudah diunggah sebelumnya
+                                    if ($record && $record->lampiran) {
+                                        $lampiran = $record->lampiran->where('lampiran_type', 'permohonan_izin')->first();
+                                        return !($lampiran && $lampiran->lampiran_path);
+                                    }
+                                    return true; // Required untuk record baru
+                                })
                                 ->previewable(true)
                                 ->helperText('Unggah file PDF maks. 2MB'),
                         ])
@@ -1602,6 +1616,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                         Kirim Permohonan
                 </x-filament::button>
                 BLADE)))
+                ->skippable()
                 ->columnSpanFull()
                 ->columns(1)
             ]);

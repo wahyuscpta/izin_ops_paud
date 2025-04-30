@@ -88,6 +88,12 @@
         @else
             @php
                 $allSteps = [
+                    'draft' => [
+                        'label' => 'Draft',
+                        'description' => 'Permohonan masih dalam bentuk draft. Silakan lengkapi seluruh data terlebih dahulu.',
+                        'icon' => 'heroicon-o-pencil-square',
+                    ],
+
                     'menunggu_verifikasi' => [
                         'label' => 'Menunggu Verifikasi',
                         'description' => 'Permohonan sedang dalam tahap pemeriksaan dokumen',
