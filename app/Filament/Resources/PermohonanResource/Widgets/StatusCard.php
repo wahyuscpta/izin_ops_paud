@@ -4,6 +4,7 @@ namespace App\Filament\Resources\PermohonanResource\Widgets;
 
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Textarea;
@@ -42,79 +43,91 @@ class StatusCard extends Widget implements HasForms
     public function getFormSchema(): array
     {
         return [
-            Textarea::make('catatan')
-                ->label('')                
-                ->rows(4)
-                ->visible(fn () => $this->showModalTolak),
+            Fieldset::make('')
+            ->schema([
 
-            Grid::make(2)
+                Textarea::make('catatan')
+                    ->label('')                
+                    ->rows(4)
+                    ->visible(fn () => $this->showModalTolak),
+
+                Grid::make(2)
+                    ->schema([
+                        TextInput::make('no_surat_rekomendasi')
+                            ->label('Nomor Surat Rekomendasi')
+                            ->required()
+                            ->maxLength(255)
+                            ->rules([
+                                'string', 
+                                'max:255', 
+                                'regex:/^[A-Za-z0-9\/\.\- ]+$/'
+                            ])
+                            ->visible(fn () => $this->showModalValidasi),
+
+                        DatePicker::make('tgl_surat_rekomendasi')
+                            ->label('Tanggal Surat Rekomendasi')
+                            ->required()
+                            ->rules(['date'])
+                            ->visible(fn () => $this->showModalValidasi),
+
+                    ]),
+
+                Grid::make(2)
                 ->schema([
-                    TextInput::make('no_surat_rekomendasi')
-                        ->label('Nomor Surat Rekomendasi')
-                        ->required()
-                        ->maxLength(255)
-                        ->rules([
-                            'string', 
-                            'max:255', 
-                            'regex:/^[A-Za-z0-9\/\.\- ]+$/'
-                        ])
-                        ->visible(fn () => $this->showModalVerifikasi),
 
-                    DatePicker::make('tgl_surat_rekomendasi')
-                        ->label('Tanggal Surat Rekomendasi')
-                        ->required()
-                        ->rules(['date'])
-                        ->visible(fn () => $this->showModalVerifikasi),
+                    TextInput::make('pemberi_rekomendasi')
+                            ->label('Pemberi Rekomendasi')
+                            ->required()
+                            ->maxLength(255)
+                            ->rules([
+                                'string', 
+                                'max:255',
+                            ])
+                            ->columnSpanFull()
+                            ->visible(fn () => $this->showModalValidasi),
 
-                    TextInput::make('no_verifikasi')
-                        ->label('Nomor Berkas Verifikasi')
-                        ->required()
-                        ->maxLength(255)
-                        ->rules([
-                            'string',
-                            'max:255',
-                            'regex:/^[A-Za-z0-9\/\.\- ]+$/'
-                        ])
-                        ->visible(fn () => $this->showModalValidasi),
+                        TextInput::make('no_verifikasi')
+                            ->label('Nomor Berkas Verifikasi')
+                            ->required()
+                            ->maxLength(255)
+                            ->rules([
+                                'string',
+                                'max:255',
+                                'regex:/^[A-Za-z0-9\/\.\- ]+$/'
+                            ])
+                            ->visible(fn () => $this->showModalValidasi),
 
-                    DatePicker::make('tgl_verifikasi')
-                        ->label('Tanggal Verifikasi')
-                        ->required()
-                        ->rules(['date'])
-                        ->visible(fn () => $this->showModalValidasi),
+                        DatePicker::make('tgl_verifikasi')
+                            ->label('Tanggal Verifikasi')
+                            ->required()
+                            ->rules(['date'])
+                            ->visible(fn () => $this->showModalValidasi),
+
+                        TextInput::make('no_sk')
+                            ->label('Nomor SK Izin Operasional')
+                            ->required()
+                            ->numeric()
+                            ->maxLength(255)
+                            ->visible(fn () => $this->showModalValidasi),
+
+                        FileUpload::make('file_validasi_lapangan')
+                            ->label('Upload Berkas Validasi Lapangan')
+                            ->directory('lampiran')
+                            ->disk('public')
+                            ->acceptedFileTypes(['application/pdf'])
+                            ->maxSize(2048)
+                            ->extraAttributes(['class' => 'custom-file-upload'])
+                            ->required()
+                            ->visible(fn () => $this->showModalValidasi),
                 ]),
-
-            TextInput::make('pemberi_rekomendasi')
-                ->label('Pemberi Rekomendasi')
-                ->required()
-                ->maxLength(255)
-                ->rules([
-                    'string', 
-                    'max:255',
-                ])
-                ->visible(fn () => $this->showModalVerifikasi),
-
-            FileUpload::make('file_validasi_lapangan')
-                ->label('Upload Berkas Validasi Lapangan')
-                ->directory('lampiran')
-                ->disk('public')
-                ->acceptedFileTypes(['application/pdf'])
-                ->maxSize(2048)
-                ->required()
-                ->visible(fn () => $this->showModalValidasi),
-
+            ])
         ];
     }
 
     public function submitVerifikasi()
     {
-        $data = $this->form->getState();
-
         $this->record->update([
-                'status_permohonan' => 'menunggu_validasi_lapangan',
-                'no_surat_rekomendasi' => $data['no_surat_rekomendasi'],
-                'tgl_surat_rekomendasi' => $data['tgl_surat_rekomendasi'],
-                'pemberi_rekomendasi' => $data['pemberi_rekomendasi'],
+                'status_permohonan' => 'menunggu_validasi_lapangan'
             ]);
         
         Notification::make()
@@ -222,14 +235,14 @@ class StatusCard extends Widget implements HasForms
     {
         $this->showModalVerifikasi = true;
 
-        $this->dispatch('open-modal', id: 'verifikasi-administrasi');
+        $this->dispatch('open-modal', id: 'konfirmasi-verifikasi');
     }
 
     public function closeModalVerifikasi()
     {
         $this->showModalVerifikasi = false;
 
-        $this->dispatch('close-modal', id: 'verifikasi-administrasi');
+        $this->dispatch('close-modal', id: 'konfirmasi-verifikasi');
     }
 
     public function openModalValidasi()

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Permohonan;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use ZipArchive;
 use Illuminate\Support\Str;

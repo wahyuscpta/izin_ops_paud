@@ -37,6 +37,8 @@ use Filament\Tables;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -1670,7 +1672,25 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                 })
             ])
             ->filters([
-                //
+                Filter::make('tgl_permohonan')
+                    ->form([
+                        DatePicker::make('created_from')->label('Dari Tanggal'),
+                        DatePicker::make('created_until')->label('Sampai Tanggal'),
+                    ])
+                    ->query(function ($query, array $data) {
+                        return $query
+                            ->when($data['created_from'], fn ($q) => $q->whereDate('created_at', '>=', $data['created_from']))
+                            ->when($data['created_until'], fn ($q) => $q->whereDate('created_at', '<=', $data['created_until']));
+                    }),
+
+                SelectFilter::make('identitas.jenis_lembaga')
+                    ->label('Jenis Lembaga')
+                    ->options([
+                        'paud' => 'PAUD',
+                        'tk' => 'TK',
+                        'kb' => 'Kelompok Bermain',
+                        'tpa' => 'Tempat Penitipan Anak',
+                    ])
             ])
             ->defaultSort('created_at', 'desc')
             ->actions([
