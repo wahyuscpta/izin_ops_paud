@@ -23,13 +23,24 @@
     } */
 
     .fi-tabs {
-        justify-content: flex-start !important;
-        padding-left: 0px !important; 
+        justify-content: space-between !important;
+        /* padding-left: 0px !important;  */
         width: 100% !important;
-        background-color: transparent !important;
+        /* background-color: !important; */
         outline: none !important;
         border: 1px solid transparent !important;
         box-shadow: none;
     }
 
+    #konfirmasi-verifikasi{
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        margin: 0 !important;
+    }
+    
+    /* .custom-file-upload .filepond--panel-root {
+        min-height: 110px !important;
+    } */
 </style>

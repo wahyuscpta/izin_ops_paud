@@ -3,8 +3,12 @@
 namespace App\Filament\Resources\PermohonanResource\Widgets;
 
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Widgets\Widget;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -20,6 +24,12 @@ class StatusCard extends Widget implements HasForms
 
     public $showModalTolak = false;
 
+    public $showModalVerifikasi = false;
+
+    public $showModalValidasi = false;
+
+    public $showModalPenerbitanIzin = false;
+
     public $formData = [];
 
     public function mount($record)
@@ -34,26 +44,103 @@ class StatusCard extends Widget implements HasForms
 
     public function getFormSchema(): array
     {
-        return [
-            Textarea::make('catatan')
+        return [                
+            Fieldset::make('')
+            ->schema([
+                Textarea::make('catatan')
                 ->label('')                
                 ->rows(4)
+                ->columnSpanFull()
                 ->visible(fn () => $this->showModalTolak),
+                    
+                TextInput::make('no_sk')
+                    ->label('Nomor SK Izin Operasional')
+                    ->required()
+                    ->numeric()
+                    ->maxLength(255)
+                    ->visible(fn () => $this->showModalValidasi),
 
-            FileUpload::make('file_validasi_lapangan')
-                ->label('Upload Berkas Validasi Lapangan')
-                ->directory('lampiran')
-                ->disk('public')
-                ->acceptedFileTypes(['application/pdf'])
-                ->maxSize(2048)
-                ->required()
-                ->visible(fn () => !$this->showModalTolak),
+                TextInput::make('pemberi_rekomendasi')
+                    ->label('Pemberi Rekomendasi')
+                    ->required()
+                    ->maxLength(255)
+                    ->rules(['string', 'max:255',])
+                    ->visible(fn () => $this->showModalValidasi),
+
+                TextInput::make('no_surat_rekomendasi')
+                    ->label('Nomor Surat Rekomendasi')
+                    ->required()
+                    ->maxLength(255)
+                    ->rules([
+                        'string', 
+                        'max:255', 
+                        'regex:/^[A-Za-z0-9\/\.\- ]+$/'
+                    ])
+                    ->visible(fn () => $this->showModalValidasi),
+
+                DatePicker::make('tgl_surat_rekomendasi')
+                    ->label('Tanggal Surat Rekomendasi')
+                    ->required()
+                    ->rules(['date'])
+                    ->visible(fn () => $this->showModalValidasi),
+
+                TextInput::make('no_verifikasi')
+                    ->label('Nomor Berkas Verifikasi')
+                    ->required()
+                    ->maxLength(255)
+                    ->rules([
+                        'string',
+                        'max:255',
+                        'regex:/^[A-Za-z0-9\/\.\- ]+$/'
+                    ])
+                    ->visible(fn () => $this->showModalValidasi),
+
+                DatePicker::make('tgl_verifikasi')
+                    ->label('Tanggal Verifikasi')
+                    ->required()
+                    ->rules(['date'])
+                    ->visible(fn () => $this->showModalValidasi),
+
+
+                FileUpload::make('file_validasi_lapangan')
+                    ->label('Upload Berkas Validasi Lapangan')
+                    ->columnSpanFull()
+                    ->directory('lampiran')
+                    ->disk('public')
+                    ->acceptedFileTypes(['application/pdf'])
+                    ->maxSize(2048)
+                    ->extraAttributes(['class' => 'custom-file-upload'])
+                    ->required()
+                    ->visible(fn () => $this->showModalValidasi),
+
+                FileUpload::make('file_sk_izin')
+                    ->label('Upload SK Izin Operasional')
+                    ->columnSpanFull()
+                    ->directory('lampiran')
+                    ->disk('public')
+                    ->acceptedFileTypes(['application/pdf'])
+                    ->maxSize(2048)
+                    ->required()
+                    ->visible(fn () => $this->showModalPenerbitanIzin),
+
+                FileUpload::make('file_sertifikat_izin')
+                    ->label('Upload Sertifikasi Izin Operasional')
+                    ->columnSpanFull()
+                    ->directory('lampiran')
+                    ->disk('public')
+                    ->acceptedFileTypes(['application/pdf'])
+                    ->maxSize(2048)
+                    ->required()
+                    ->visible(fn () => $this->showModalPenerbitanIzin),
+            ])
         ];
     }
 
-    public function confirmVerification()
+    public function submitVerifikasi()
     {
-        $this->record->update(['status_permohonan' => 'menunggu_validasi_lapangan']);
+        $this->record->update([
+                'status_permohonan' => 'menunggu_validasi_lapangan'
+            ]);
         
         Notification::make()
             ->success()
@@ -80,7 +167,12 @@ class StatusCard extends Widget implements HasForms
                 ]);
             }
 
-            $this->record->update(['status_permohonan' => 'proses_penerbitan_izin']);
+            $this->record->update([
+                'status_permohonan' => 'proses_penerbitan_izin',
+                'no_verifikasi' => $data['no_verifikasi'],
+                'tgl_verifikasi' => $data['tgl_verifikasi'],
+            ]);
+
             
             Notification::make()
                 ->success()
@@ -100,35 +192,43 @@ class StatusCard extends Widget implements HasForms
         }
     }
 
-    public function confirmIzinProcess()
+    public function submitPenerbitanIzin()
     {
-        $this->record->update(['status_permohonan' => 'izin_diterbitkan']);
+        $data = $this->form->getState();
         
-        Notification::make()
-            ->success()
-            ->title('Proses Berhasil')
-            ->body('Izin telah berhasil diterbitkan')
-            ->send();
-
-        return redirect()->to('permohonans');
-    }
-
-    public function openModalTolak()
-    {
-        $this->showModalTolak = true;
-
-        $this->dispatch('open-modal', id: 'catatan-tolak');
-    }
-
-    public function closeModalTolak()
-    {
-        $this->showModalTolak = false;
-
-        $this->dispatch('close-modal', id: 'catatan-tolak');
-
-        $this->form->fill([
-            'catatan' => '',
-        ]);
+        try {
+            foreach (['file_sk_izin', 'file_sertifikat_izin'] as $type) {
+                if (!empty($data[$type])) {
+                    $filePath = is_array($data[$type]) ? reset($data[$type]) : $data[$type];
+        
+                    $this->record->lampiran()->create([
+                        'lampiran_type' => $type,
+                        'lampiran_path' => $filePath,
+                    ]);
+                }
+            }
+        
+            $this->record->update([
+                'status_permohonan' => 'izin_diterbitkan',
+            ]);
+        
+            Notification::make()
+                ->success()
+                ->title('Proses Berhasil')
+                ->body('Izin Operasional telah berhasil diterbitkan')
+                ->send();
+        
+            return redirect()->to('permohonans');
+        } catch (\Exception $e) {
+            Notification::make()
+                ->danger()
+                ->title('Proses Gagal')
+                ->body('Terjadi kesalahan: ' . $e->getMessage())
+                ->send();
+        
+            return null;
+        }
+        
     }
 
     public function submitPenolakan()
@@ -150,4 +250,61 @@ class StatusCard extends Widget implements HasForms
 
         return redirect()->to('permohonans');
     }
+
+    public function openModalTolak()
+    {
+        $this->showModalTolak = true;
+
+        $this->dispatch('open-modal', id: 'catatan-tolak');
+    }
+
+    public function closeModalTolak()
+    {
+        $this->showModalTolak = false;
+
+        $this->dispatch('close-modal', id: 'catatan-tolak');
+    }
+
+    public function openModalVerifikasi()
+    {
+        $this->showModalVerifikasi = true;
+
+        $this->dispatch('open-modal', id: 'konfirmasi-verifikasi');
+    }
+
+    public function closeModalVerifikasi()
+    {
+        $this->showModalVerifikasi = false;
+
+        $this->dispatch('close-modal', id: 'konfirmasi-verifikasi');
+    }
+
+    public function openModalValidasi()
+    {
+        $this->showModalValidasi = true;
+
+        $this->dispatch('open-modal', id: 'validasi-lapangan');
+    }
+
+    public function closeModalValidasi()
+    {
+        $this->showModalValidasi = false;
+
+        $this->dispatch('close-modal', id: 'validasi-lapangan');
+    }
+
+    public function openModalPenerbitanIzin()
+    {
+        $this->showModalPenerbitanIzin = true;
+
+        $this->dispatch('open-modal', id: 'penerbitan-izin');
+    }
+
+    public function closeModalPenerbitanIzin()
+    {
+        $this->showModalPenerbitanIzin = false;
+
+        $this->dispatch('close-modal', id: 'penerbitan-izin');
+    }
+
 }

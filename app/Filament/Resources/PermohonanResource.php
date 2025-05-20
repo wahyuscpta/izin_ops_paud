@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use Illuminate\Support\Str;
 use App\Filament\Resources\PermohonanResource\Pages;
 use App\Filament\Resources\PermohonanResource\RelationManagers;
 use App\Models\District;
@@ -37,6 +38,8 @@ use Filament\Tables;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -46,6 +49,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class PermohonanResource extends Resource implements HasShieldPermissions
 {
@@ -97,31 +101,61 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                     
                     Step::make('Identitas')
                     ->schema([
+
+                        TextInput::make('no_permohonan')
+                            ->label('Nomor Surat Permohonan')
+                            ->placeholder('Contoh: 0001/ADM/PAUD/2025')
+                            ->rule('regex:/^[0-9]{4}\/[A-Z]{1,5}\/[A-Z]{1,10}\/[0-9]{4}$/')
+                            ->required()
+                            ->maxLength(50)
+                            ->validationMessages([
+                                'required' => 'Nomor surat permohonan wajib diisi.',
+                                'regex' => 'Format nomor surat harus seperti: 0001/ADM/PAUD/2025.',
+                                'max' => 'Maksimal 50 karakter.',
+                            ]),
+                            
                         Group::make([
                             Grid::make(2)->schema([
                                 TextInput::make('nama_lembaga')
                                     ->label('Nama Lembaga')
                                     ->required()
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->validationMessages([
+                                        'required' => 'Nama lembaga tidak boleh kosong.',
+                                        'max' => 'Nama lembaga terlalu panjang.',
+                                    ]),
 
                                 TextInput::make('no_telepon_identitas')
                                     ->label('No Telepon')
                                     ->tel()
-                                    ->rule('regex:/^08[0-9]{8,11}$/')
+                                    ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
+                                    ->rule('regex:/^(\+62|62)?[\s-]?(\(0[0-9]{2,3}\)[\s-]?|0[0-9]{2,3}[\s-]?)[0-9]{6,8}$|^(\+62|62|0)8[1-9][0-9]{6,9}$/')
                                     ->required()
-                                    ->maxLength(20),
+                                    ->maxLength(20)
+                                    ->validationMessages([
+                                        'required' => 'Nomor telepon wajib diisi.',
+                                        'regex' => 'Format nomor telepon tidak valid.',
+                                        'max' => 'Nomor telepon maksimal 20 karakter.',
+                                    ])
                             ]),
 
                             Textarea::make('alamat_identitas')
-                                ->label('Alamat Jalan')
+                                ->label('Alamat Lengkap')
                                 ->required()
-                                ->maxLength(500),
+                                ->maxLength(500)
+                                ->validationMessages([
+                                    'required' => 'Alamat jalan wajib diisi.',
+                                    'max' => 'Alamat jalan maksimal 500 karakter.',
+                                ]),
 
                             Select::make('kabupaten_identitas')
                                 ->label('Kabupaten/Kota')
                                 ->live()
                                 ->options(Regency::where('province_id', 51)->pluck('name', 'id'))
-                                ->required(),
+                                ->required()
+                                ->validationMessages([
+                                    'required' => 'Kabupaten/Kota wajib dipilih.',
+                                ]),
 
                             Grid::make(2)->schema([
                                 Select::make('kecamatan_identitas')
@@ -132,7 +166,10 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                 ->searchable()
                                 ->preload()
                                 ->live()
-                                ->required(),
+                                ->required()
+                                ->validationMessages([
+                                    'required' => 'Kecamatan wajib dipilih.',
+                                ]),
 
                                 Select::make('desa_identitas')
                                     ->label('Desa')
@@ -142,30 +179,52 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     ->searchable()
                                     ->preload()
                                     ->live()
-                                    ->required(),
+                                    ->required()
+                                    ->validationMessages([
+                                        'required' => 'Desa wajib dipilih.',
+                                    ]),
 
                                 DatePicker::make('tgl_didirikan')
                                     ->label('Didirikan Pada Tanggal')
                                     ->rule('before_or_equal:today')
-                                    ->required(),
+                                    ->required()
+                                    ->validationMessages([
+                                        'required' => 'Tanggal pendirian wajib diisi.',
+                                        'before_or_equal' => 'Tanggal tidak boleh melebihi hari ini.',
+                                    ]),
 
                                 DatePicker::make('tgl_terdaftar')
                                     ->label('Status Penyelenggaraan Terdaftar Sejak')
                                     ->rule('before_or_equal:today')
-                                    ->required(),
+                                    ->required()
+                                    ->validationMessages([
+                                        'required' => 'Tanggal terdaftar wajib diisi.',
+                                        'before_or_equal' => 'Tanggal tidak boleh melebihi hari ini.',
+                                    ]),
 
                                 TextInput::make('no_registrasi')
                                     ->label('No Registrasi')
-                                    ->required(),
+                                    ->required()
+                                    ->validationMessages([
+                                        'required' => 'Nomor registrasi wajib diisi.',
+                                    ]),
 
                                 TextInput::make('no_surat_keputusan')
                                     ->label('No Surat Keputusan')
-                                    ->required(),
+                                    ->required()
+                                    ->validationMessages([
+                                        'required' => 'Nomor surat keputusan wajib diisi.',
+                                    ]),
 
                                 TextInput::make('rumpun_pendidikan')
+                                    ->placeholder('Contoh: Pendidikan Anak Usia Dini (PAUD)')
                                     ->label('Rumpun Pendidikan')
                                     ->required()
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->validationMessages([
+                                        'required' => 'Rumpun pendidikan wajib diisi.',
+                                        'max' => 'Rumpun pendidikan maksimal 255 karakter.',
+                                    ]),
 
                                 Select::make('jenis_pendidikan')
                                     ->label('Jenis Pendidikan')
@@ -176,7 +235,10 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         'sps' => 'Satuan PAUD Sejenis',
                                         'kursus' => 'Kursus',
                                     ])
-                                ->required(),
+                                ->required()
+                                ->validationMessages([
+                                    'required' => 'Jenis pendidikan wajib dipilih.',
+                                ]),
                             ]),
 
                             Select::make('jenis_lembaga')
@@ -186,19 +248,30 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     'cabang' => 'Cabang',
                                 ])
                                 ->required()
-                                ->live(),
+                                ->live()
+                                ->validationMessages([
+                                    'required' => 'Jenis lembaga wajib dipilih.',
+                                ]),
 
                             TextInput::make('nama_lembaga_induk')
                                 ->visible(fn (Get $get) => $get('jenis_lembaga') === 'cabang')
                                 ->label('Nama Lembaga Induk')
                                 ->required(fn (Get $get) => $get('jenis_lembaga') === 'cabang')
-                                ->maxLength(255),
+                                ->maxLength(255)
+                                ->validationMessages([
+                                    'required' => 'Nama lembaga induk wajib diisi.',
+                                    'max' => 'Nama lembaga induk maksimal 255 karakter.',
+                                ]),
 
                             Textarea::make('alamat_lembaga_induk')
                                 ->visible(fn (Get $get) => $get('jenis_lembaga') === 'cabang')
                                 ->label('Alamat Lembaga Induk')
                                 ->required(fn (Get $get) => $get('jenis_lembaga') === 'cabang')
-                                ->maxLength(500),
+                                ->maxLength(500)
+                                ->validationMessages([
+                                    'required' => 'Alamat lembaga induk wajib diisi.',
+                                    'max' => 'Alamat lembaga induk maksimal 500 karakter.',
+                                ]),
 
                             Select::make('has_cabang')
                                 ->label('Apakah Mempunyai Cabang')
@@ -208,7 +281,11 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                 ])
                                 ->visible(fn (Get $get) => $get('jenis_lembaga') === 'induk')
                                 ->required(fn (Get $get) => $get('jenis_lembaga') === 'induk')
-                                ->live(),
+                                ->live()
+                                ->validationMessages([
+                                    'required' => 'Alamat lembaga induk wajib diisi.',
+                                    'max' => 'Alamat lembaga induk maksimal 500 karakter.',
+                                ]),
 
                             TextInput::make('jumlah_cabang')
                                 ->label('Jumlah Cabang')
@@ -217,7 +294,13 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                 ->numeric()
                                 ->minValue(1)
                                 ->maxValue(100)
-                                ->live(),
+                                ->live()
+                                ->validationMessages([
+                                    'required' => 'Jumlah cabang wajib diisi.',
+                                    'numeric' => 'Jumlah cabang harus berupa angka.',
+                                    'min' => 'Jumlah cabang minimal 1.',
+                                    'max' => 'Jumlah cabang maksimal 100.',
+                                ]),
 
                             Repeater::make('cabang')
                                 ->label('Data Lembaga Cabang')
@@ -225,12 +308,20 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     TextInput::make('nama_lembaga_cabang')
                                         ->label('Nama Cabang ke')
                                         ->required()
-                                        ->maxLength(255),
+                                        ->maxLength(255)
+                                        ->validationMessages([
+                                            'required' => 'Nama cabang wajib diisi.',
+                                            'max' => 'Nama cabang maksimal 255 karakter.',
+                                        ]),
 
                                     TextInput::make('alamat_lembaga_cabang')
                                         ->label('Alamat Cabang')
                                         ->required()
-                                        ->maxLength(500),
+                                        ->maxLength(500)
+                                        ->validationMessages([
+                                            'required' => 'Alamat cabang wajib diisi.',
+                                            'max' => 'Alamat cabang maksimal 500 karakter.',
+                                        ]),
                                 ])
                                 ->visible(fn (Get $get) => $get('jenis_lembaga') === 'induk' && $get('has_cabang') === '1')
                                 ->minItems(fn (Get $get) => (int) $get('jumlah_cabang') ?: 0)
@@ -262,7 +353,11 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                 TextInput::make('nama_perorangan')
                                     ->label('Nama Lengkap')
                                     ->required()
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->validationMessages([
+                                        'required' => 'Nama lengkap wajib diisi.',
+                                        'max' => 'Maksimal 255 karakter.',
+                                    ]),
 
                                 Select::make('agama_perorangan')
                                     ->label('Agama')
@@ -274,42 +369,72 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         'budha' => 'Budha',
                                         'konghuchu' => 'Kong Hu Chu',
                                     ])
-                                    ->required(),
+                                    ->required()
+                                    ->validationMessages([
+                                        'required' => 'Agama wajib dipilih.',
+                                    ]),
 
                                 TextInput::make('kewarganegaraan_perorangan')
                                     ->label('Kewarganegaraan')
                                     ->required()
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->validationMessages([
+                                        'required' => 'Kewarganegaraan wajib diisi.',
+                                        'max' => 'Maksimal 255 karakter.',
+                                    ]),
 
                                 TextInput::make('ktp_perorangan')
                                     ->label('No KTP')
                                     ->numeric()
                                     ->required()
                                     ->minLength(16)
-                                    ->maxLength(16),
+                                    ->maxLength(16)
+                                    ->validationMessages([
+                                        'required' => 'Nomor KTP wajib diisi.',
+                                        'numeric' => 'Nomor KTP harus berupa angka.',
+                                        'min' => 'Nomor KTP harus 16 digit.',
+                                        'max' => 'Nomor KTP harus 16 digit.',
+                                    ]),
 
                                 DatePicker::make('tanggal_perorangan')
                                     ->label('Tanggal')
                                     ->required()
-                                    ->rule('before_or_equal:today'),
+                                    ->rule('before_or_equal:today')
+                                    ->validationMessages([
+                                        'required' => 'Tanggal wajib diisi.',
+                                        'before_or_equal' => 'Tanggal tidak boleh melebihi hari ini.',
+                                    ]),                                
 
                                 TextInput::make('alamat_perorangan')
                                     ->label('Alamat Lengkap Jalan')
                                     ->required()
-                                    ->maxLength(500),
+                                    ->maxLength(500)
+                                    ->validationMessages([
+                                        'required' => 'Alamat wajib diisi.',
+                                        'max' => 'Maksimal 500 karakter.',
+                                    ]),                                
 
                                 TextInput::make('telepon_perorangan')
-                                    ->label('Telepon')
-                                    ->numeric()
+                                    ->label('No Telepon')
+                                    ->tel()
+                                    ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
+                                    ->rule('regex:/^(\+62|62)?[\s-]?(\(0[0-9]{2,3}\)[\s-]?|0[0-9]{2,3}[\s-]?)[0-9]{6,8}$|^(\+62|62|0)8[1-9][0-9]{6,9}$/')
                                     ->required()
-                                    ->rule('regex:/^08[0-9]{8,11}$/')
-                                    ->maxLength(13),
+                                    ->maxLength(20)
+                                    ->validationMessages([
+                                        'required' => 'Nomor telepon wajib diisi.',
+                                        'regex' => 'Format nomor telepon tidak valid.',
+                                        'max' => 'Maksimal 20 karakter.',
+                                    ]),
 
                                 Select::make('kabupaten_perorangan')
                                     ->label('Kabupaten/Kota')
                                     ->live()
                                     ->options(Regency::where('province_id', 51)->pluck('name', 'id'))
-                                    ->required(),
+                                    ->required()
+                                    ->validationMessages([
+                                        'required' => 'Kabupaten/Kota wajib dipilih.',
+                                    ]),
                             ]),
 
                             Section::make('Badan Hukum')
@@ -318,7 +443,11 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                 TextInput::make('nama_badan')
                                     ->label('Nama Lengkap')
                                     ->required()
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->validationMessages([
+                                        'required' => 'Nama lengkap wajib diisi.',
+                                        'max' => 'Maksimal 255 karakter.',
+                                    ]),
 
                                 Select::make('agama_badan')
                                     ->label('Agama')
@@ -330,42 +459,68 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         'budha' => 'Budha',
                                         'konghuchu' => 'Kong Hu Chu',
                                     ])
-                                    ->required(),
+                                    ->required()
+                                    ->validationMessages([
+                                        'required' => 'Agama wajib dipilih.',
+                                    ]),
 
                                 TextInput::make('akte_badan')
                                     ->label('Akte')
-                                    ->numeric()
                                     ->required()
-                                    ->maxLength(50),
+                                    ->maxLength(50)
+                                    ->validationMessages([
+                                        'required' => 'Akte wajib diisi.',
+                                        'max' => 'Maksimal 50 karakter.',
+                                    ]),
 
                                 TextInput::make('nomor_badan')
                                     ->label('Nomor')
-                                    ->numeric()
                                     ->required()
-                                    ->maxLength(50),
+                                    ->maxLength(50)
+                                    ->validationMessages([
+                                        'required' => 'Nomor wajib diisi.',
+                                        'max' => 'Maksimal 50 karakter.',
+                                    ]),
 
                                 DatePicker::make('tanggal_badan')
                                     ->label('Tanggal')
                                     ->required()
-                                    ->rule('before_or_equal:today'),
+                                    ->rule('before_or_equal:today')
+                                    ->validationMessages([
+                                        'required' => 'Tanggal wajib diisi.',
+                                        'before_or_equal' => 'Tanggal tidak boleh melebihi hari ini.',
+                                    ]),
 
                                 TextInput::make('alamat_badan')
                                     ->label('Alamat Lengkap Jalan')
                                     ->required()
-                                    ->maxLength(500),
+                                    ->maxLength(500)
+                                    ->validationMessages([
+                                        'required' => 'Alamat wajib diisi.',
+                                        'max' => 'Maksimal 500 karakter.',
+                                    ]),
 
                                 TextInput::make('telepon_badan')
-                                    ->label('Telepon')
-                                    ->numeric()
+                                    ->label('No Telepon')
+                                    ->tel()
+                                    ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
+                                    ->rule('regex:/^(\+62|62)?[\s-]?(\(0[0-9]{2,3}\)[\s-]?|0[0-9]{2,3}[\s-]?)[0-9]{6,8}$|^(\+62|62|0)8[1-9][0-9]{6,9}$/')
                                     ->required()
-                                    ->rule('regex:/^08[0-9]{8,11}$/')
-                                    ->maxLength(13),
+                                    ->maxLength(20)
+                                    ->validationMessages([
+                                        'required' => 'Nomor telepon wajib diisi.',
+                                        'regex' => 'Format nomor telepon tidak valid.',
+                                        'max' => 'Maksimal 20 karakter.',
+                                    ]),
 
                                 Select::make('kabupaten_badan')
                                     ->label('Kabupaten/Kota')
                                     ->live()
                                     ->options(Regency::where('province_id', 51)->pluck('name', 'id'))
-                                    ->required(),
+                                    ->required()
+                                    ->validationMessages([
+                                        'required' => 'Kabupaten/Kota wajib dipilih.',
+                                    ]),
                             ])
 
                         ])
@@ -395,7 +550,11 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     TextInput::make('nama_pengelola')
                                         ->label('Nama Lengkap')
                                         ->required()
-                                        ->maxLength(255),
+                                        ->maxLength(255)
+                                        ->validationMessages([
+                                            'required' => 'Nama lengkap wajib diisi.',
+                                            'max' => 'Maksimal 255 karakter.',
+                                        ]),
 
                                     Select::make('agama_pengelola')
                                         ->label('Agama')
@@ -407,7 +566,10 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                             'budha' => 'Budha',
                                             'konghuchu' => 'Kong Hu Chu',
                                         ])
-                                        ->required(),
+                                        ->required()
+                                        ->validationMessages([
+                                            'required' => 'Agama wajib dipilih.',
+                                        ]),
 
                                     Select::make('jenis_kelamin_pengelola')
                                         ->label('Jenis Kelamin')
@@ -415,43 +577,73 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                             'l' => 'Laki - Laki',
                                             'p' => 'Perempuan',
                                         ])
-                                        ->required(),
+                                        ->required()
+                                        ->validationMessages([
+                                            'required' => 'Jenis kelamin wajib dipilih.',
+                                        ]),
 
                                     TextInput::make('kewarganegaraan_pengelola')
                                         ->label('Kewarganegaraan')
                                         ->required()
-                                        ->maxLength(100),
+                                        ->maxLength(100)
+                                        ->validationMessages([
+                                            'required' => 'Kewarganegaraan wajib diisi.',
+                                            'max' => 'Maksimal 100 karakter.',
+                                        ]),
 
                                     TextInput::make('ktp_pengelola')
                                         ->label('Nomor KTP')
                                         ->numeric()
                                         ->required()
                                         ->minLength(16)
-                                        ->maxLength(16),
+                                        ->maxLength(16)
+                                        ->validationMessages([
+                                            'required' => 'Nomor KTP wajib diisi.',
+                                            'numeric' => 'Nomor KTP harus berupa angka.',
+                                            'min' => 'Nomor KTP harus 16 digit.',
+                                            'max' => 'Nomor KTP harus 16 digit.',
+                                        ]),
 
                                     DatePicker::make('tanggal_pengelola')
                                         ->label('Tanggal')
                                         ->required()
-                                        ->rule('before_or_equal:today'),
+                                        ->rule('before_or_equal:today')
+                                        ->validationMessages([
+                                            'required' => 'Tanggal wajib diisi.',
+                                            'before_or_equal' => 'Tanggal tidak boleh melebihi hari ini.',
+                                        ]),
 
                                     TextInput::make('telepon_pengelola')
-                                        ->label('Telepon')
-                                        ->numeric()
+                                        ->label('No Telepon')
+                                        ->tel()
+                                        ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
+                                        ->rule('regex:/^(\+62|62)?[\s-]?(\(0[0-9]{2,3}\)[\s-]?|0[0-9]{2,3}[\s-]?)[0-9]{6,8}$|^(\+62|62|0)8[1-9][0-9]{6,9}$/')
                                         ->required()
-                                        ->rule('regex:/^08[0-9]{8,11}$/')
-                                        ->maxLength(13),
+                                        ->maxLength(20)
+                                        ->validationMessages([
+                                            'required' => 'Nomor telepon wajib diisi.',
+                                            'regex' => 'Format nomor telepon tidak valid.',
+                                            'max' => 'Maksimal 20 karakter.',
+                                        ]),
 
                                     Select::make('kabupaten_pengelola')
                                         ->label('Kabupaten/Kota')
                                         ->live()
                                         ->options(Regency::where('province_id', 51)->pluck('name', 'id'))
-                                        ->required(),
+                                        ->required()
+                                        ->validationMessages([
+                                            'required' => 'Kabupaten/Kota wajib dipilih.',
+                                        ]),
                                 ]),
 
                             Textarea::make('alamat_pengelola')
                                 ->label('Alamat Lengkap')
                                 ->required()
-                                ->maxLength(500),
+                                ->maxLength(500)
+                                ->validationMessages([
+                                    'required' => 'Alamat wajib diisi.',
+                                    'max' => 'Maksimal 500 karakter.',
+                                ]),
                         ])
                         ->hidden(function (Get $get): bool {
                             return $get("wizard_step") < 2;
@@ -485,7 +677,10 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                             'ya' => 'Ya',
                                             'tidak' => 'Tidak',
                                         ])
-                                        ->required(),
+                                        ->required()
+                                        ->validationMessages([
+                                            'required' => 'Pilih apakah penerimaan melalui test.',
+                                        ]),
 
                                     Select::make('tata_usaha_penerimaan')
                                         ->label('Tata Usaha Penerimaan')
@@ -493,7 +688,10 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                             'ada' => 'Ada',
                                             'tidak' => 'Tidak',
                                         ])
-                                        ->required(),
+                                        ->required()
+                                        ->validationMessages([
+                                            'required' => 'Pilih apakah ada tata usaha penerimaan.',
+                                        ]),
 
                                     TextInput::make('jumlah_tiap_angkatan')
                                         ->label('Jumlah Setiap Kelompok/Angkatan')
@@ -501,7 +699,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->minValue(0)
                                         ->required()
                                         ->prefix('Rata - Rata')
-                                        ->suffix('orang'),
+                                        ->suffix('orang')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah peserta tiap angkatan wajib diisi.',
+                                            'numeric' => 'Jumlah harus berupa angka.',
+                                            'min' => 'Jumlah tidak boleh kurang dari 0.',
+                                        ]),
 
                                     TextInput::make('jumlah_menyelesaikan')
                                         ->label('Yang Menyelesaikan Program Pendidikan Sampai Akhir')
@@ -510,7 +713,13 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->maxValue(100)
                                         ->required()
                                         ->prefix('Rata - Rata')
-                                        ->suffix('%'),
+                                        ->suffix('%')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah yang menyelesaikan program wajib diisi.',
+                                            'numeric' => 'Jumlah harus berupa angka.',
+                                            'min' => 'Jumlah tidak boleh kurang dari 0%.',
+                                            'max' => 'Jumlah tidak boleh lebih dari 100%.',
+                                        ]),
 
                                 ]),
 
@@ -528,7 +737,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $pr = (int) $get('jumlah_sekarang_pr');
                                             $set('jumlah_sekarang_total', $state + $pr);
-                                        }),
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Jumlah laki-laki sekarang wajib diisi.',
+                                            'numeric' => 'Jumlah harus berupa angka.',
+                                            'min' => 'Jumlah tidak boleh kurang dari 0.',
+                                        ]),
 
                                     TextInput::make('jumlah_sekarang_pr')
                                         ->label('Perempuan')
@@ -540,7 +754,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $lk = (int) $get('jumlah_sekarang_lk');
                                             $set('jumlah_sekarang_total', $state + $lk);
-                                        }),
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Jumlah perempuan sekarang wajib diisi.',
+                                            'numeric' => 'Jumlah harus berupa angka.',
+                                            'min' => 'Jumlah tidak boleh kurang dari 0.',
+                                        ]),
 
                                     TextInput::make('jumlah_sekarang_total')
                                         ->label('Jumlah')
@@ -549,7 +768,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->required()
                                         ->suffix('orang')
                                         ->disabled()
-                                        ->dehydrated(),
+                                        ->dehydrated()
+                                        ->validationMessages([
+                                            'required' => 'Jumlah total peserta sekarang wajib diisi.',
+                                            'numeric' => 'Jumlah harus berupa angka.',
+                                            'min' => 'Jumlah tidak boleh kurang dari 0.',
+                                        ]),
 
                                 ]),
 
@@ -567,8 +791,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $pr = (int) $get('jumlah_tamat_pr');
                                             $set('jumlah_tamat_total', $state + $pr);
-                                        }),
-
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Jumlah laki-laki tamat wajib diisi.',
+                                            'numeric' => 'Jumlah harus berupa angka.',
+                                            'min' => 'Jumlah tidak boleh kurang dari 0.',
+                                        ]),                                        
 
                                     TextInput::make('jumlah_tamat_pr')
                                         ->label('Perempuan')
@@ -580,7 +808,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $lk = (int) $get('jumlah_tamat_lk');
                                             $set('jumlah_tamat_total', $state + $lk);
-                                        }),
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Jumlah perempuan tamat wajib diisi.',
+                                            'numeric' => 'Jumlah harus berupa angka.',
+                                            'min' => 'Jumlah tidak boleh kurang dari 0.',
+                                        ]),
 
                                     TextInput::make('jumlah_tamat_total')
                                         ->label('Jumlah')
@@ -588,7 +821,11 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->minValue(0)
                                         ->disabled()
                                         ->dehydrated()
-                                        ->suffix('orang'),
+                                        ->suffix('orang')
+                                        ->validationMessages([
+                                            'numeric' => 'Jumlah harus berupa angka.',
+                                            'min' => 'Jumlah tidak boleh kurang dari 0.',
+                                        ]),
                                 ]),
 
                         ])
@@ -627,7 +864,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $guru_pr = (int) $get('guru_wni_pr');
                                             $set('guru_wni_jumlah', (int)$state + $guru_pr);
-                                        }),
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Jumlah Guru/Pengasuh laki-laki WNI harus diisi.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
 
                                     TextInput::make('guru_wni_pr')
                                         ->label('Guru/Pengasuh (Perempuan)')
@@ -640,7 +882,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $guru_lk = (int) $get('guru_wni_lk');
                                             $set('guru_wni_jumlah', (int)$state + $guru_lk);
-                                        }),
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Jumlah Guru/Pengasuh perempuan WNI harus diisi.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
 
                                     TextInput::make('guru_wni_jumlah')
                                         ->label('Total Guru/Pengasuh (WNI)')
@@ -650,7 +897,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->required()
                                         ->disabled()
                                         ->dehydrated()
-                                        ->suffix('orang'),
+                                        ->suffix('orang')
+                                        ->validationMessages([
+                                            'required' => 'Total Guru/Pengasuh WNI harus dihitung.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
 
                                     TextInput::make('asisten_wni_lk')
                                         ->label('Asisten Guru/Pengasuh (Laki-Laki)')
@@ -663,7 +915,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $asisten_pr = (int) $get('asisten_wni_pr');
                                             $set('asisten_wni_jumlah', (int)$state + $asisten_pr);
-                                        }),
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Jumlah Asisten Guru/Pengasuh laki-laki WNI harus diisi.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
 
                                     TextInput::make('asisten_wni_pr')
                                         ->label('Asisten Guru/Pengasuh (Perempuan)')
@@ -676,7 +933,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $asisten_lk = (int) $get('asisten_wni_lk');
                                             $set('asisten_wni_jumlah', (int)$state + $asisten_lk);
-                                        }),
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Jumlah Asisten Guru/Pengasuh perempuan WNI harus diisi.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
 
                                     TextInput::make('asisten_wni_jumlah')
                                         ->label('Total Asisten Guru/Pengasuh (WNI)')
@@ -686,7 +948,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->required()
                                         ->disabled()
                                         ->dehydrated()
-                                        ->suffix('orang'),
+                                        ->suffix('orang')
+                                        ->validationMessages([
+                                            'required' => 'Total Asisten Guru/Pengasuh WNI harus dihitung.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
 
                                     TextInput::make('tata_usaha_wni_lk')
                                         ->label('Tata Usaha (Laki-Laki)')
@@ -699,7 +966,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $tu_pr = (int) $get('tata_usaha_wni_pr');
                                             $set('tata_usaha_wni_jumlah', (int)$state + $tu_pr);
-                                        }),
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Total Tata Usaha Laki-Laki WNI harus diisi.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
 
                                     TextInput::make('tata_usaha_wni_pr')
                                         ->label('Tata Usaha (Perempuan)')
@@ -712,7 +984,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $tu_lk = (int) $get('tata_usaha_wni_lk');
                                             $set('tata_usaha_wni_jumlah', (int)$state + $tu_lk);
-                                        }),
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Total Tata Usaha Perempuan WNI harus diisi.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
                                     
                                     TextInput::make('tata_usaha_wni_jumlah')
                                         ->label('Total Tata Usaha (WNI)')
@@ -722,7 +999,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->required()
                                         ->disabled()
                                         ->dehydrated()
-                                        ->suffix('orang'),
+                                        ->suffix('orang')
+                                        ->validationMessages([
+                                            'required' => 'Total Tata Usaha WNI harus dihitung.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
 
                                     TextInput::make('pesuruh_wni_lk')
                                         ->label('Pesuruh (Laki-Laki)')
@@ -735,7 +1017,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $pesuruh_pr = (int) $get('pesuruh_wni_pr');
                                             $set('pesuruh_wni_jumlah', (int)$state + $pesuruh_pr);
-                                        }),                                                                
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Total Pesuruh Laki-Laki WNI harus diisi.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),                                                                
 
                                     TextInput::make('pesuruh_wni_pr')
                                         ->label('Pesuruh (Perempuan)')
@@ -748,7 +1035,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $pesuruh_lk = (int) $get('pesuruh_wni_lk');
                                             $set('pesuruh_wni_jumlah', (int)$state + $pesuruh_lk);
-                                        }),                                    
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Total Pesuruh Perempuan WNI harus diisi.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),                                    
 
                                     TextInput::make('pesuruh_wni_jumlah')
                                         ->label('Total Pesuruh (WNI)')
@@ -758,7 +1050,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->required()
                                         ->disabled()
                                         ->dehydrated()
-                                        ->suffix('orang'),
+                                        ->suffix('orang')
+                                        ->validationMessages([
+                                            'required' => 'Total Pesuruh WNI harus dihitung.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
                                 ]),
 
                             Section::make('Warga Negara Asing')
@@ -775,7 +1072,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $guru_pr = (int) $get('guru_wna_pr');
                                             $set('guru_wna_jumlah', (int)$state + $guru_pr);
-                                        }),
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Jumlah Guru/Pengasuh laki-laki WNA harus diisi.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
 
                                     TextInput::make('guru_wna_pr')
                                         ->label('Guru/Pengasuh (Perempuan)')
@@ -788,7 +1090,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $guru_lk = (int) $get('guru_wna_lk');
                                             $set('guru_wna_jumlah', (int)$state + $guru_lk);
-                                        }),
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Jumlah Guru/Pengasuh perempuan WNA harus diisi.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
 
                                     TextInput::make('guru_wna_jumlah')
                                         ->label('Total Guru/Pengasuh (WNA)')
@@ -798,7 +1105,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->required()
                                         ->disabled()
                                         ->dehydrated()
-                                        ->suffix('orang'),
+                                        ->suffix('orang')
+                                        ->validationMessages([
+                                            'required' => 'Total Guru/Pengasuh WNA harus dihitung.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
 
                                     TextInput::make('asisten_wna_lk')
                                         ->label('Asisten Guru/Pengasuh (Laki-Laki)')
@@ -811,7 +1123,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $asisten_pr = (int) $get('asisten_wna_pr');
                                             $set('asisten_wna_jumlah', (int)$state + $asisten_pr);
-                                        }),
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Jumlah Asisten Guru/Pengasuh laki-laki WNA harus diisi.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
 
                                     TextInput::make('asisten_wna_pr')
                                         ->label('Asisten Guru/Pengasuh (Perempuan)')
@@ -824,7 +1141,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $asisten_lk = (int) $get('asisten_wna_lk');
                                             $set('asisten_wna_jumlah', (int)$state + $asisten_lk);
-                                        }),
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Jumlah Asisten Guru/Pengasuh perempuan WNA harus diisi.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
 
                                     TextInput::make('asisten_wna_jumlah')
                                         ->label('Total Asisten Guru//Pengasuh (WNA)')
@@ -834,7 +1156,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->required()
                                         ->disabled()
                                         ->dehydrated()
-                                        ->suffix('orang'),
+                                        ->suffix('orang')
+                                        ->validationMessages([
+                                            'required' => 'Total Asisten Guru/Pengasuh WNA harus dihitung.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
 
                                     TextInput::make('tata_usaha_wna_lk')
                                         ->label('Tata Usaha (Laki-Laki)')
@@ -847,7 +1174,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $tu_pr = (int) $get('tata_usaha_wna_pr');
                                             $set('tata_usaha_wna_jumlah', (int)$state + $tu_pr);
-                                        }),
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Total Tata Usaha laki-laki WNA harus diisi.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
 
                                     TextInput::make('tata_usaha_wna_pr')
                                         ->label('Tata Usaha (Perempuan)')
@@ -860,7 +1192,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $tu_lk = (int) $get('tata_usaha_wna_lk');
                                             $set('tata_usaha_wna_jumlah', (int)$state + $tu_lk);
-                                        }),
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Total Tata Usaha perempuan WNA harus diisi.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
                                     
                                     TextInput::make('tata_usaha_wna_jumlah')
                                         ->label('Total Tata Usaha (WNA)')
@@ -870,7 +1207,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->required()
                                         ->disabled()
                                         ->dehydrated()
-                                        ->suffix('orang'),
+                                        ->suffix('orang')
+                                        ->validationMessages([
+                                            'required' => 'Total Tata Usaha WNA harus dihitung.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),
 
                                     TextInput::make('pesuruh_wna_lk')
                                         ->label('Pesuruh (Laki-Laki)')
@@ -883,7 +1225,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $pesuruh_pr = (int) $get('pesuruh_wna_pr');
                                             $set('pesuruh_wna_jumlah', (int)$state + $pesuruh_pr);
-                                        }),                                                                
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Total Pesuruh laki-laki WNA harus diisi.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),                                                                
 
                                     TextInput::make('pesuruh_wna_pr')
                                         ->label('Pesuruh (Perempuan)')
@@ -896,8 +1243,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                             $pesuruh_lk = (int) $get('pesuruh_wna_lk');
                                             $set('pesuruh_wna_jumlah', (int)$state + $pesuruh_lk);
-                                        }),                                    
-
+                                        })
+                                        ->validationMessages([
+                                            'required' => 'Total Pesuruh perempuan WNA harus diisi.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),                                                                                              
                                     TextInput::make('pesuruh_wna_jumlah')
                                         ->label('Total Pesuruh (WNI)')
                                         ->prefix('Jumlah')
@@ -906,7 +1257,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->required()
                                         ->disabled()
                                         ->dehydrated()
-                                        ->suffix('orang'),
+                                        ->suffix('orang')
+                                        ->validationMessages([
+                                            'required' => 'Total Pesuruh WNA harus dihitung.',
+                                            'numeric' => 'Input harus berupa angka.',
+                                            'min' => 'Nilai minimal adalah 0.',
+                                        ]),            
                                 ]),
                         ])
                         ->hidden(function (Get $get): bool {
@@ -947,7 +1303,11 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                                 ->columns(2)
                                                 ->required()
                                                 ->rules(['array', 'min:1'])
-
+                                                ->validationMessages([
+                                                    'required' => 'Bahan pembelajaran wajib dipilih.',
+                                                    'array' => 'Format bahan pembelajaran tidak valid.',
+                                                    'min' => 'Pilih minimal satu bahan pembelajaran.',
+                                                ]),
                                         ]),
 
                                     Section::make('Cara Penyampaian/Penyajian Pelajaran')
@@ -962,7 +1322,11 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                                 ->columns(2)
                                                 ->required()
                                                 ->rules(['array', 'min:1'])
-
+                                                ->validationMessages([
+                                                    'required' => 'Cara penyampaian wajib dipilih.',
+                                                    'array' => 'Format cara penyampaian tidak valid.',
+                                                    'min' => 'Pilih minimal satu cara penyampaian.',
+                                                ]),
                                         ])
 
                                 ])
@@ -995,46 +1359,75 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->label('Milik Sendiri')
                                         ->numeric()
                                         ->minValue(0)
-                                    
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang belajar milik sendiri wajib diisi.',
+                                            'numeric' => 'Jumlah ruang belajar milik sendiri harus berupa angka.',
+                                            'min' => 'Jumlah ruang belajar milik sendiri tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_belajar.kontrak')
                                         ->label('Kontrak')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang belajar kontrak wajib diisi.',
+                                            'numeric' => 'Jumlah ruang belajar kontrak harus berupa angka.',
+                                            'min' => 'Jumlah ruang belajar kontrak tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_belajar.sewa')
                                         ->label('Sewa')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang belajar sewa wajib diisi.',
+                                            'numeric' => 'Jumlah ruang belajar sewa harus berupa angka.',
+                                            'min' => 'Jumlah ruang belajar sewa tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_belajar.pinjam')
                                         ->label('Pinjam')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang belajar pinjam wajib diisi.',
+                                            'numeric' => 'Jumlah ruang belajar pinjam harus berupa angka.',
+                                            'min' => 'Jumlah ruang belajar pinjam tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_belajar.beli_sewa')
                                         ->label('Beli - Sewa')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang belajar beli-sewa wajib diisi.',
+                                            'numeric' => 'Jumlah ruang belajar beli-sewa harus berupa angka.',
+                                            'min' => 'Jumlah ruang belajar beli-sewa tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_belajar.jumlah_luas')
                                         ->label('Jumlah Luas Ruangan')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('m²'),
+                                        ->suffix('m²')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah luas ruang belajar wajib diisi.',
+                                            'numeric' => 'Jumlah luas ruang belajar harus berupa angka.',
+                                            'min' => 'Jumlah luas ruang belajar tidak boleh kurang dari 0.',
+                                        ]),
                                 ]),
-
+                
                             Section::make('Ruang Bermain')
                                 ->columns(3)
                                 ->schema([
@@ -1043,44 +1436,74 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang bermain milik sendiri wajib diisi.',
+                                            'numeric' => 'Jumlah ruang bermain milik sendiri harus berupa angka.',
+                                            'min' => 'Jumlah ruang bermain milik sendiri tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_bermain.kontrak')
                                         ->label('Kontrak')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang bermain kontrak wajib diisi.',
+                                            'numeric' => 'Jumlah ruang bermain kontrak harus berupa angka.',
+                                            'min' => 'Jumlah ruang bermain kontrak tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_bermain.sewa')
                                         ->label('Sewa')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang bermain sewa wajib diisi.',
+                                            'numeric' => 'Jumlah ruang bermain sewa harus berupa angka.',
+                                            'min' => 'Jumlah ruang bermain sewa tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_bermain.pinjam')
                                         ->label('Pinjam')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang bermain pinjam wajib diisi.',
+                                            'numeric' => 'Jumlah ruang bermain pinjam harus berupa angka.',
+                                            'min' => 'Jumlah ruang bermain pinjam tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_bermain.beli_sewa')
                                         ->label('Beli - Sewa')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang bermain beli-sewa wajib diisi.',
+                                            'numeric' => 'Jumlah ruang bermain beli-sewa harus berupa angka.',
+                                            'min' => 'Jumlah ruang bermain beli-sewa tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_bermain.jumlah_luas')
                                         ->label('Jumlah Luas Ruangan')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('m²'),
+                                        ->suffix('m²')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah luas ruang bermain wajib diisi.',
+                                            'numeric' => 'Jumlah luas ruang bermain harus berupa angka.',
+                                            'min' => 'Jumlah luas ruang bermain tidak boleh kurang dari 0.',
+                                        ]),
                                 ]),
-
+                
                             Section::make('Ruang Pimpinan')
                                 ->columns(3)
                                 ->schema([
@@ -1089,44 +1512,74 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang pimpinan milik sendiri wajib diisi.',
+                                            'numeric' => 'Jumlah ruang pimpinan milik sendiri harus berupa angka.',
+                                            'min' => 'Jumlah ruang pimpinan milik sendiri tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_pimpinan.kontrak')
                                         ->label('Kontrak')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang pimpinan kontrak wajib diisi.',
+                                            'numeric' => 'Jumlah ruang pimpinan kontrak harus berupa angka.',
+                                            'min' => 'Jumlah ruang pimpinan kontrak tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_pimpinan.sewa')
                                         ->label('Sewa')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang pimpinan sewa wajib diisi.',
+                                            'numeric' => 'Jumlah ruang pimpinan sewa harus berupa angka.',
+                                            'min' => 'Jumlah ruang pimpinan sewa tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_pimpinan.pinjam')
                                         ->label('Pinjam')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang pimpinan pinjam wajib diisi.',
+                                            'numeric' => 'Jumlah ruang pimpinan pinjam harus berupa angka.',
+                                            'min' => 'Jumlah ruang pimpinan pinjam tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_pimpinan.beli_sewa')
                                         ->label('Beli - Sewa')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang pimpinan beli-sewa wajib diisi.',
+                                            'numeric' => 'Jumlah ruang pimpinan beli-sewa harus berupa angka.',
+                                            'min' => 'Jumlah ruang pimpinan beli-sewa tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_pimpinan.jumlah_luas')
                                         ->label('Jumlah Luas Ruangan')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('m²'),
+                                        ->suffix('m²')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah luas ruang pimpinan wajib diisi.',
+                                            'numeric' => 'Jumlah luas ruang pimpinan harus berupa angka.',
+                                            'min' => 'Jumlah luas ruang pimpinan tidak boleh kurang dari 0.',
+                                        ]),
                                 ]),
-
+                
                             Section::make('Ruang Sumber Belajar')
                                 ->columns(3)
                                 ->schema([
@@ -1135,44 +1588,74 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang sumber belajar milik sendiri wajib diisi.',
+                                            'numeric' => 'Jumlah ruang sumber belajar milik sendiri harus berupa angka.',
+                                            'min' => 'Jumlah ruang sumber belajar milik sendiri tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_sumber_belajar.kontrak')
                                         ->label('Kontrak')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang sumber belajar kontrak wajib diisi.',
+                                            'numeric' => 'Jumlah ruang sumber belajar kontrak harus berupa angka.',
+                                            'min' => 'Jumlah ruang sumber belajar kontrak tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_sumber_belajar.sewa')
                                         ->label('Sewa')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang sumber belajar sewa wajib diisi.',
+                                            'numeric' => 'Jumlah ruang sumber belajar sewa harus berupa angka.',
+                                            'min' => 'Jumlah ruang sumber belajar sewa tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_sumber_belajar.pinjam')
                                         ->label('Pinjam')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang sumber belajar pinjam wajib diisi.',
+                                            'numeric' => 'Jumlah ruang sumber belajar pinjam harus berupa angka.',
+                                            'min' => 'Jumlah ruang sumber belajar pinjam tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_sumber_belajar.beli_sewa')
                                         ->label('Beli - Sewa')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang sumber belajar beli-sewa wajib diisi.',
+                                            'numeric' => 'Jumlah ruang sumber belajar beli-sewa harus berupa angka.',
+                                            'min' => 'Jumlah ruang sumber belajar beli-sewa tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_sumber_belajar.jumlah_luas')
                                         ->label('Jumlah Luas Ruangan')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('m²'),
+                                        ->suffix('m²')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah luas ruang sumber belajar wajib diisi.',
+                                            'numeric' => 'Jumlah luas ruang sumber belajar harus berupa angka.',
+                                            'min' => 'Jumlah luas ruang sumber belajar tidak boleh kurang dari 0.',
+                                        ]),
                                 ]),
-
+                
                             Section::make('Ruang Guru')
                                 ->columns(3)
                                 ->schema([
@@ -1181,44 +1664,74 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang guru milik sendiri wajib diisi.',
+                                            'numeric' => 'Jumlah ruang guru milik sendiri harus berupa angka.',
+                                            'min' => 'Jumlah ruang guru milik sendiri tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_guru.kontrak')
                                         ->label('Kontrak')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang guru kontrak wajib diisi.',
+                                            'numeric' => 'Jumlah ruang guru kontrak harus berupa angka.',
+                                            'min' => 'Jumlah ruang guru kontrak tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_guru.sewa')
                                         ->label('Sewa')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang guru sewa wajib diisi.',
+                                            'numeric' => 'Jumlah ruang guru sewa harus berupa angka.',
+                                            'min' => 'Jumlah ruang guru sewa tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_guru.pinjam')
                                         ->label('Pinjam')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang guru pinjam wajib diisi.',
+                                            'numeric' => 'Jumlah ruang guru pinjam harus berupa angka.',
+                                            'min' => 'Jumlah ruang guru pinjam tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_guru.beli_sewa')
                                         ->label('Beli - Sewa')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang guru beli-sewa wajib diisi.',
+                                            'numeric' => 'Jumlah ruang guru beli-sewa harus berupa angka.',
+                                            'min' => 'Jumlah ruang guru beli-sewa tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_guru.jumlah_luas')
                                         ->label('Jumlah Luas Ruangan')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('m²'),
+                                        ->suffix('m²')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah luas ruang guru wajib diisi.',
+                                            'numeric' => 'Jumlah luas ruang guru harus berupa angka.',
+                                            'min' => 'Jumlah luas ruang guru tidak boleh kurang dari 0.',
+                                        ]),
                                 ]),
-
+                
                             Section::make('Ruang Tata Usaha')
                                 ->columns(3)
                                 ->schema([
@@ -1227,44 +1740,74 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang tata usaha milik sendiri wajib diisi.',
+                                            'numeric' => 'Jumlah ruang tata usaha milik sendiri harus berupa angka.',
+                                            'min' => 'Jumlah ruang tata usaha milik sendiri tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_tata_usaha.kontrak')
                                         ->label('Kontrak')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang tata usaha kontrak wajib diisi.',
+                                            'numeric' => 'Jumlah ruang tata usaha kontrak harus berupa angka.',
+                                            'min' => 'Jumlah ruang tata usaha kontrak tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_tata_usaha.sewa')
                                         ->label('Sewa')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang tata usaha sewa wajib diisi.',
+                                            'numeric' => 'Jumlah ruang tata usaha sewa harus berupa angka.',
+                                            'min' => 'Jumlah ruang tata usaha sewa tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_tata_usaha.pinjam')
                                         ->label('Pinjam')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang tata usaha pinjam wajib diisi.',
+                                            'numeric' => 'Jumlah ruang tata usaha pinjam harus berupa angka.',
+                                            'min' => 'Jumlah ruang tata usaha pinjam tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_tata_usaha.beli_sewa')
                                         ->label('Beli - Sewa')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah ruang tata usaha beli-sewa wajib diisi.',
+                                            'numeric' => 'Jumlah ruang tata usaha beli-sewa harus berupa angka.',
+                                            'min' => 'Jumlah ruang tata usaha beli-sewa tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('ruang_tata_usaha.jumlah_luas')
                                         ->label('Jumlah Luas Ruangan')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('m²'),
+                                        ->suffix('m²')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah luas ruang tata usaha wajib diisi.',
+                                            'numeric' => 'Jumlah luas ruang tata usaha harus berupa angka.',
+                                            'min' => 'Jumlah luas ruang tata usaha tidak boleh kurang dari 0.',
+                                        ]),
                                 ]),
-
+                
                             Section::make('Kamar Mandi')
                                 ->columns(3)
                                 ->schema([
@@ -1273,44 +1816,74 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah kamar mandi milik sendiri wajib diisi.',
+                                            'numeric' => 'Jumlah kamar mandi milik sendiri harus berupa angka.',
+                                            'min' => 'Jumlah kamar mandi milik sendiri tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('kamar_mandi.kontrak')
                                         ->label('Kontrak')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah kamar mandi kontrak wajib diisi.',
+                                            'numeric' => 'Jumlah kamar mandi kontrak harus berupa angka.',
+                                            'min' => 'Jumlah kamar mandi kontrak tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('kamar_mandi.sewa')
                                         ->label('Sewa')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah kamar mandi sewa wajib diisi.',
+                                            'numeric' => 'Jumlah kamar mandi sewa harus berupa angka.',
+                                            'min' => 'Jumlah kamar mandi sewa tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('kamar_mandi.pinjam')
                                         ->label('Pinjam')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah kamar mandi pinjam wajib diisi.',
+                                            'numeric' => 'Jumlah kamar mandi pinjam harus berupa angka.',
+                                            'min' => 'Jumlah kamar mandi pinjam tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('kamar_mandi.beli_sewa')
                                         ->label('Beli - Sewa')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah kamar mandi beli-sewa wajib diisi.',
+                                            'numeric' => 'Jumlah kamar mandi beli-sewa harus berupa angka.',
+                                            'min' => 'Jumlah kamar mandi beli-sewa tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('kamar_mandi.jumlah_luas')
                                         ->label('Jumlah Luas Ruangan')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('m²'),
+                                        ->suffix('m²')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah luas kamar mandi wajib diisi.',
+                                            'numeric' => 'Jumlah luas kamar mandi harus berupa angka.',
+                                            'min' => 'Jumlah luas kamar mandi tidak boleh kurang dari 0.',
+                                        ]),
                                 ]),
-
+                
                             Section::make('Kamar Kecil')
                                 ->columns(3)
                                 ->schema([
@@ -1319,42 +1892,72 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah kamar kecil milik sendiri wajib diisi.',
+                                            'numeric' => 'Jumlah kamar kecil milik sendiri harus berupa angka.',
+                                            'min' => 'Jumlah kamar kecil milik sendiri tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('kamar_kecil.kontrak')
                                         ->label('Kontrak')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah kamar kecil kontrak wajib diisi.',
+                                            'numeric' => 'Jumlah kamar kecil kontrak harus berupa angka.',
+                                            'min' => 'Jumlah kamar kecil kontrak tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('kamar_kecil.sewa')
                                         ->label('Sewa')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah kamar kecil sewa wajib diisi.',
+                                            'numeric' => 'Jumlah kamar kecil sewa harus berupa angka.',
+                                            'min' => 'Jumlah kamar kecil sewa tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('kamar_kecil.pinjam')
                                         ->label('Pinjam')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah kamar kecil pinjam wajib diisi.',
+                                            'numeric' => 'Jumlah kamar kecil pinjam harus berupa angka.',
+                                            'min' => 'Jumlah kamar kecil pinjam tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('kamar_kecil.beli_sewa')
                                         ->label('Beli - Sewa')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('buah'),
-
+                                        ->suffix('buah')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah kamar kecil beli-sewa wajib diisi.',
+                                            'numeric' => 'Jumlah kamar kecil beli-sewa harus berupa angka.',
+                                            'min' => 'Jumlah kamar kecil beli-sewa tidak boleh kurang dari 0.',
+                                        ]),
+                
                                     TextInput::make('kamar_kecil.jumlah_luas')
                                         ->label('Jumlah Luas Ruangan')
                                         ->numeric()
                                         ->minValue(0)
                                         ->required()
-                                        ->suffix('m²'),
+                                        ->suffix('m²')
+                                        ->validationMessages([
+                                            'required' => 'Jumlah luas kamar kecil wajib diisi.',
+                                            'numeric' => 'Jumlah luas kamar kecil harus berupa angka.',
+                                            'min' => 'Jumlah luas kamar kecil tidak boleh kurang dari 0.',
+                                        ]),
                                 ]),
                         ])
                         ->hidden(function (Get $get): bool {
@@ -1389,8 +1992,11 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                             'kurang' => 'Kurang',
                                             'tidak_ada' => 'Tidak Ada',
                                         ])
-                                        ->required(),
-
+                                        ->required()
+                                        ->validationMessages([
+                                            'required' => 'Status ketersediaan buku pelajaran wajib diisi.',
+                                        ]),
+                
                                     Select::make('alat_permainan_edukatif')
                                         ->label('Alat Permainan Edukatif')
                                         ->options([
@@ -1400,8 +2006,11 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                             'kurang' => 'Kurang',
                                             'tidak_ada' => 'Tidak Ada',
                                         ])
-                                        ->required(),
-
+                                        ->required()
+                                        ->validationMessages([
+                                            'required' => 'Status ketersediaan alat permainan edukatif wajib diisi.',
+                                        ]),
+                
                                     Select::make('meja_kursi')
                                         ->label('Meja+Kursi/Bangku untuk Belajar')
                                         ->options([
@@ -1411,8 +2020,11 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                             'kurang' => 'Kurang',
                                             'tidak_ada' => 'Tidak Ada',
                                         ])
-                                        ->required(),
-
+                                        ->required()
+                                        ->validationMessages([
+                                            'required' => 'Status ketersediaan meja dan kursi belajar wajib diisi.',
+                                        ]),
+                
                                     Select::make('papan_tulis')
                                         ->label('Papan Tulis')
                                         ->options([
@@ -1422,8 +2034,11 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                             'kurang' => 'Kurang',
                                             'tidak_ada' => 'Tidak Ada',
                                         ])
-                                        ->required(),
-
+                                        ->required()
+                                        ->validationMessages([
+                                            'required' => 'Status ketersediaan papan tulis wajib diisi.',
+                                        ]),
+                
                                     Select::make('alat_tata_usaha')
                                         ->label('Alat Perlengkapan Tata Usaha')
                                         ->options([
@@ -1433,8 +2048,11 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                             'kurang' => 'Kurang',
                                             'tidak_ada' => 'Tidak Ada',
                                         ])
-                                        ->required(),
-
+                                        ->required()
+                                        ->validationMessages([
+                                            'required' => 'Status ketersediaan alat perlengkapan tata usaha wajib diisi.',
+                                        ]),
+                
                                     Select::make('listrik')
                                         ->label('Listrik')
                                         ->options([
@@ -1444,9 +2062,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                             'kurang' => 'Kurang',
                                             'tidak_ada' => 'Tidak Ada',
                                         ])
-                                        ->required(),
+                                        ->required()
+                                        ->validationMessages([
+                                            'required' => 'Status ketersediaan listrik wajib diisi.',
+                                        ]),
                                 ]),
-
+                
                             Select::make('air_bersih')
                                 ->label('Air Bersih')
                                 ->options([
@@ -1456,7 +2077,10 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     'kurang' => 'Kurang',
                                     'tidak_ada' => 'Tidak Ada',
                                 ])
-                                ->required(),
+                                ->required()
+                                ->validationMessages([
+                                    'required' => 'Status ketersediaan air bersih wajib diisi.',
+                                ]),
                         ])
                         ->hidden(function (Get $get): bool {
                             return $get("wizard_step") < 7;
@@ -1478,106 +2102,161 @@ class PermohonanResource extends Resource implements HasShieldPermissions
 
                     Step::make('Lampiran')
                     ->schema([
-                        Grid::make(2)
-                        ->schema(
-                            collect([
-                                'ktp_ketua' => 'KTP Ketua Yayasan/Kepsek PAUD/Kursus',
-                                'ijasah_penyelenggara' => 'Ijasah Penyelenggara/Ketua Yayasan',
-                                'struktur_yayasan' => 'Struktur Lembaga Kursus/PAUD',
-                                'ijasah_kepsek' => 'Ijasah Kepsek/Pengelola PAUD/Kursus',
-                                'ijasah_pendidik' => 'Ijasah Pendidik/Guru/Instruktur LKP',
-                                'kurikulum' => 'Kurikulum Kursus/PAUD',
-                                'sarana_prasarana' => 'Daftar Sarana dan Prasarana Lembaga',
-                                'tata_tertib' => 'Tata Tertib Kursus/PAUD',
-                                'peta_lokasi' => 'Peta Lokasi Kursus/PAUD',
-                                'daftar_guru' => 'Daftar Guru/Pendidik',
-                                'daftar_peserta' => 'Daftar Peserta Didik Kursus/PAUD',
-                                'akte_notaris' => 'Akte Notaris Yayasan dan Kemenhumham',
-                                'rek_ke_lurah' => 'Surat Permohonan Rekomendasi Ijin Operasional ke Lurah (Diketahui Kepala Lingkungan Setempat)',
-                                'rek_ke_korwil' => 'Surat Permohonan Rekomendasi Ijin Operasional ke Korwil Disdikpora Setempat',
-                                'rek_dari_lurah' => 'Surat Rekomendasi dari Lurah/Kepala Desa Menunjuk Permohonan Rekomendasi dari Lembaga',
-                                'rek_dari_korwil' => 'Surat Rekomendasi dari Korwil Disdikpora Setempat',
-                                'rip' => '(RIP) Rencana Induk Pengembangan',
-                                'perjanjian_sewa' => 'Perjanjian Sewa Menyewa',
-                                'imb' => '(IMB) Ijin Mendirikan Bangunan',
-                                'nib' => '(NIB) No Induk Berusaha'
-                            ])
-                            ->chunk(2)
-                            ->map(fn ($pair) => Group::make(
-                                collect($pair)->map(fn ($label, $field) => [
-                                    Placeholder::make("preview_{$field}")
-                                        ->label($label)
-                                        ->content(function ($record) use ($field) {
-                                            // Cek jika record ada dan dalam mode update/view
-                                            if ($record && $record->lampiran) {
-                                                $lampiran = $record->lampiran->where('lampiran_type', $field)->first();
-
-                                                if ($lampiran && $lampiran->lampiran_path) {
-                                                    $fileUrl = asset('storage/' . $lampiran->lampiran_path);
-                                                    $fileName = basename($lampiran->lampiran_path);
-
-                                                    return new HtmlString(<<<HTML
-                                                        <div class="text-gray-500">
-                                                            <a href="{$fileUrl}" target="_blank" class="text-sm font-semibold">{$fileName}</a>
+                        Group::make([
+                            Grid::make(2)
+                            ->schema(
+                                collect([
+                                    'ktp_ketua' => 'KTP Ketua Yayasan/Kepsek PAUD/Kursus',
+                                    'ijasah_penyelenggara' => 'Ijasah Penyelenggara/Ketua Yayasan',
+                                    'struktur_yayasan' => 'Struktur Lembaga Kursus/PAUD',
+                                    'ijasah_kepsek' => 'Ijasah Kepsek/Pengelola PAUD/Kursus',
+                                    'ijasah_pendidik' => 'Ijasah Pendidik/Guru/Instruktur LKP',
+                                    'kurikulum' => 'Kurikulum Kursus/PAUD',
+                                    'sarana_prasarana' => 'Daftar Sarana dan Prasarana Lembaga',
+                                    'tata_tertib' => 'Tata Tertib Kursus/PAUD',
+                                    'peta_lokasi' => 'Peta Lokasi Kursus/PAUD',
+                                    'daftar_guru' => 'Daftar Guru/Pendidik',
+                                    'daftar_peserta' => 'Daftar Peserta Didik Kursus/PAUD',
+                                    'akte_notaris' => 'Akte Notaris Yayasan dan Kemenhumham',
+                                    'rek_ke_lurah' => 'Surat Permohonan Rekomendasi Ijin Operasional ke Lurah (Diketahui Kepala Lingkungan Setempat)',
+                                    'rek_ke_korwil' => 'Surat Permohonan Rekomendasi Ijin Operasional ke Korwil Disdikpora Setempat',
+                                    'rek_dari_lurah' => 'Surat Rekomendasi dari Lurah/Kepala Desa Menunjuk Permohonan Rekomendasi dari Lembaga',
+                                    'rek_dari_korwil' => 'Surat Rekomendasi dari Korwil Disdikpora Setempat',
+                                    'rip' => '(RIP) Rencana Induk Pengembangan',
+                                    'perjanjian_sewa' => 'Perjanjian Sewa Menyewa',
+                                    'imb' => '(IMB) Ijin Mendirikan Bangunan',
+                                    'nib' => '(NIB) No Induk Berusaha'
+                                ])
+                                ->chunk(2)
+                                ->map(fn ($pair) => Group::make(
+                                    collect($pair)->map(fn ($label, $field) => [
+                                        Placeholder::make("preview_{$field}")
+                                            ->label($label)
+                                            ->content(function ($record) use ($field) {
+                                                if ($record && $record->lampiran) {
+                                                    $lampiran = $record->lampiran->where('lampiran_type', $field)->first();
+    
+                                                    if ($lampiran && $lampiran->lampiran_path) {
+                                                        $fileUrl = asset('storage/' . $lampiran->lampiran_path);
+                                                        $fileName = basename($lampiran->lampiran_path);
+    
+                                                        return new HtmlString(<<<HTML
+                                                        <div class="text-gray-500 flex items-center">
+                                                            <a href="{$fileUrl}" target="_blank" class="text-sm font-semibold flex items-center gap-1 hover:text-primary-600 transition-colors">
+                                                                {$fileName}
+                                                                <svg xmlns="http://www.w3.org/2000/svg" class="ml-4 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                </svg>
+                                                            </a>
                                                         </div>
                                                     HTML);
+                                                    } else {
+                                                        return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
+                                                    }
                                                 } else {
                                                     return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
                                                 }
-                                            } else {
-                                                return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
-                                            }
-                                        }),
-
-                                    FileUpload::make($field)
-                                        ->label('')
-                                        ->directory('lampiran')
-                                        ->disk('public')
-                                        ->acceptedFileTypes(['application/pdf'])
-                                        ->maxSize(2048)
-                                        //->required()
-                                        ->helperText('Unggah file PDF maks. 2MB'),
-                                ])->flatten(1)->toArray()
-                            ))->toArray()
-                        ),
-
-                        Group::make([
-                            Placeholder::make('preview_pdf')
-                            ->label('Surat Permohonan ijin operasional Kursus/PAUD Ditujukan Kepada Kepala Dinas Pendidikan, Kepemudaan dan Olah Raga Kabupaten Badung')
-                            ->content(function ($record) {
-                                // Cek jika record ada dan dalam mode update/view
-                                if ($record && $record->lampiran) {
-                                    $lampiran = $record->lampiran->where('lampiran_type', 'permohonan_izin')->first();
-
-                                    if ($lampiran && $lampiran->lampiran_path) {
-                                        $fileUrl = asset('storage/' . $lampiran->lampiran_path);
-                                        $fileName = basename($lampiran->lampiran_path);
-
-                                        return new HtmlString(<<<HTML
-                                            <div class="text-gray-500">
-                                                <a href="{$fileUrl}" target="_blank" class="text-sm font-semibold">{$fileName}</a>
-                                            </div>
-                                        HTML);
+                                            }),
+    
+                                        FileUpload::make($field)
+                                            ->label('')
+                                            ->directory('lampiran')
+                                            ->disk('public')
+                                            ->acceptedFileTypes(['application/pdf'])
+                                            ->maxSize(2048)
+                                            ->required(function ($record, $livewire) use ($field) {
+                                                // Jika mode kirim permohonan, periksa keberadaan lampiran
+                                                if ($livewire->isKirimPermohonan) {
+                                                    if ($record && $record->lampiran) {
+                                                        $lampiran = $record->lampiran->where('lampiran_type', $field)->first();
+                                                        return !($lampiran && $lampiran->lampiran_path);
+                                                    }
+                                                    return true; // Required jika tidak ada lampiran dan mode submit
+                                                }
+                                                
+                                                // Jika mode draft, tidak required
+                                                return false;
+                                            })
+                                            ->getUploadedFileNameForStorageUsing(function (Get $get, TemporaryUploadedFile $file) {
+                                                $namaLembaga = Str::slug($get('nama_lembaga'), '_');
+                                                return "{$namaLembaga}" . $file->getClientOriginalExtension();
+                                            })
+                                            ->previewable(true)
+                                            ->helperText('Unggah file PDF maks. 2MB'),
+                                    ])->flatten(1)->toArray()
+                                ))->toArray()
+                            ),
+    
+                            Group::make([
+                                Placeholder::make('preview_pdf')
+                                ->label('Surat Permohonan ijin operasional Kursus/PAUD Ditujukan Kepada Kepala Dinas Pendidikan, Kepemudaan dan Olah Raga Kabupaten Badung')
+                                ->content(function ($record) {
+                                    if ($record && $record->lampiran) {
+                                        $lampiran = $record->lampiran->where('lampiran_type', 'permohonan_izin')->first();
+    
+                                        if ($lampiran && $lampiran->lampiran_path) {
+                                            $fileUrl = asset('storage/' . $lampiran->lampiran_path);
+                                            $fileName = basename($lampiran->lampiran_path);
+    
+                                            return new HtmlString(<<<HTML
+                                                <div class="text-gray-500 flex items-center">
+                                                    <a href="{$fileUrl}" target="_blank" class="text-sm font-semibold flex items-center gap-1 hover:text-primary-600 transition-colors">
+                                                        {$fileName}
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-4 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                        </svg>
+                                                    </a>
+                                                </div>
+                                            HTML);
+                                        } else {
+                                            return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
+                                        }
                                     } else {
                                         return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
                                     }
-                                } else {
-                                    return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
-                                }
-                            }),
-
-                            FileUpload::make('permohonan_izin')
-                                ->label('')
-                                ->directory('lampiran')
-                                ->disk('public')
-                                ->acceptedFileTypes(['application/pdf'])
-                                ->maxSize(2048)
-                                //->required()
-                                ->previewable(true)
-                                ->helperText('Unggah file PDF maks. 2MB'),
-                        ])
-
+                                }),
+    
+                                FileUpload::make('permohonan_izin')
+                                    ->label('')
+                                    ->directory('lampiran')
+                                    ->disk('public')
+                                    ->acceptedFileTypes(['application/pdf'])
+                                    ->maxSize(2048)
+                                    ->required(function ($record, $livewire) {
+                                        // Jika mode kirim permohonan, periksa keberadaan lampiran
+                                        if ($livewire->isKirimPermohonan) {
+                                            if ($record && $record->lampiran) {
+                                                $lampiran = $record->lampiran->where('lampiran_type', 'permohonan_izin')->first();
+                                                return !($lampiran && $lampiran->lampiran_path);
+                                            }
+                                            return true; // Required jika tidak ada lampiran dan mode submit
+                                        }
+                                        
+                                        // Jika mode draft, tidak required
+                                        return false;
+                                    })
+                                    ->previewable(true)
+                                    ->helperText('Unggah file PDF maks. 2MB'),
+                            ])
+                        ])    
+                        ->hidden(function (Get $get): bool {
+                            return $get("wizard_step") < 8;
+                        })            
                     ])
+                    ->beforeValidation(function (string $context, Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set("wizard_step", $wizard->getCurrentStepIndex());
+                    })
+                    ->afterValidation(function (Set $set, $state, $livewire) {
+                        $wizard = $livewire->form->getComponent(
+                            fn (Component $component): bool => $component instanceof Wizard
+                        );
+                        $set("wizard_step", $wizard->getCurrentStepIndex()+1);
+                    }),
 
                 ])
                 ->submitAction(new HtmlString(Blade::render(<<<BLADE
@@ -1659,7 +2338,25 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                 })
             ])
             ->filters([
-                //
+                Filter::make('tgl_permohonan')
+                    ->form([
+                        DatePicker::make('created_from')->label('Dari Tanggal'),
+                        DatePicker::make('created_until')->label('Sampai Tanggal'),
+                    ])
+                    ->query(function ($query, array $data) {
+                        return $query
+                            ->when($data['created_from'], fn ($q) => $q->whereDate('created_at', '>=', $data['created_from']))
+                            ->when($data['created_until'], fn ($q) => $q->whereDate('created_at', '<=', $data['created_until']));
+                    }),
+
+                SelectFilter::make('identitas.jenis_lembaga')
+                    ->label('Jenis Lembaga')
+                    ->options([
+                        'paud' => 'PAUD',
+                        'tk' => 'TK',
+                        'kb' => 'Kelompok Bermain',
+                        'tpa' => 'Tempat Penitipan Anak',
+                    ])
             ])
             ->defaultSort('created_at', 'desc')
             ->actions([

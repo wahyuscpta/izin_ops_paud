@@ -6,6 +6,7 @@ use App\Filament\Resources\PermohonanResource;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Support\Exceptions\Halt;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -43,13 +44,7 @@ class CreatePermohonan extends CreateRecord
         $data['status_permohonan'] = $this->isKirimPermohonan ? 'menunggu_verifikasi' : 'draft';
         $data['user_id'] = Auth::id();
         $data['tgl_status_terakhir'] = now();
-        $data['no_permohonan'] = 'IZIN-' . now()->format('YmdHis') . '-' . rand(1000, 9999);
-        
-        if ($this->isKirimPermohonan) {
-            $data['tgl_permohonan'] = now();
-        } else {
-            $data['tgl_permohonan'] = null;
-        }
+        $data['tgl_permohonan'] = now();
 
         return $data;
     }
@@ -201,7 +196,37 @@ class CreatePermohonan extends CreateRecord
             ->color('gray')
             ->action(function() {
                 $this->isKirimPermohonan = false;
-                $this->create();
+                $this->create(shouldValidateForms: false); // Skip validasi saat menyimpan draft
             });
     }    
+
+    // Override method create untuk validasi selektif
+    public function create(?bool $shouldValidateForms = null): void
+    {
+        $shouldValidateForms = $shouldValidateForms ?? $this->isKirimPermohonan;
+
+        // Lanjutkan proses create dengan opsi validasi berdasarkan mode
+        try {
+            if ($shouldValidateForms) {
+                $data = $this->form->getState();
+            } else {
+                // Jika tidak perlu validasi (mode draft), ambil data tanpa validasi
+                $data = $this->form->getRawState();
+            }
+
+            $data = $this->mutateFormDataBeforeCreate($data);
+
+            $record = $this->handleRecordCreation($data);
+
+            $this->form->model($record)->saveRelationships();
+
+            $this->getCreatedNotification()?->send();
+
+            if ($redirectUrl = $this->getRedirectUrl()) {
+                $this->redirect($redirectUrl);
+            }
+        } catch (Halt $exception) {
+            return;
+        }
+    }
 }

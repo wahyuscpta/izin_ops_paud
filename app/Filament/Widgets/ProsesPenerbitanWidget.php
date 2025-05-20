@@ -10,7 +10,7 @@ use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
-class PermohonanTerbaruWidget extends BaseWidget
+class ProsesPenerbitanWidget extends BaseWidget
 {
     protected static ?string $maxHeight = '300px';
     protected static ?int $sort = 3;
@@ -20,7 +20,7 @@ class PermohonanTerbaruWidget extends BaseWidget
     protected function getTableQuery(): Builder
     {
         return Permohonan::query()
-            ->where('status_permohonan', 'menunggu_verifikasi')
+            ->where('status_permohonan', 'proses_penerbitan_izin')
             ->latest()
             ->limit($this->permohonanLimit);
     }
@@ -61,12 +61,12 @@ class PermohonanTerbaruWidget extends BaseWidget
 
     protected function getTableHeading(): string
     {
-        return 'Permohonan Menunggu Verifikasi';
+        return 'Menunggu Penerbitan Izin';
     }
 
     protected function getTableDescription(): string|Htmlable|null
     {
-        return 'Daftar permohonan yang sedang menunggu verifikasi';
+        return 'Daftar permohonan yang sedang menunggu penerbitan izin';
     }
 
     protected function isTablePaginationEnabled(): bool
@@ -81,6 +81,6 @@ class PermohonanTerbaruWidget extends BaseWidget
 
     public static function canView(): bool
     {
-        return Auth::user()->hasAnyRole(['admin', 'super_admin']);
+        return Auth::user()->hasAnyRole(['kepala_dinas', 'super_admin']);
     }
 }

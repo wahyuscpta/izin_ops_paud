@@ -41,7 +41,7 @@ class ListPermohonans extends ListRecords
 
     public function getTabs(): array
     {
-        if (!Auth::user()->hasRole('admin') && !Auth::user()->hasRole('kepala_dinas')) {
+        if (Auth::user()->hasRole('pemohon')) {
             return [];
         }
 
@@ -60,58 +60,77 @@ class ListPermohonans extends ListRecords
                             'proses_penerbitan_izin',
                             'izin_diterbitkan',
                         ])
-                    ),
+                    )
+                    ->extraAttributes(['class' => 'kepala-dinas-tab']),
 
                 'Proses Penerbitan Izin' => Tab::make('Menunggu Penerbitan Izin')
                     ->badge(function () {
                         return $this->getTotalPermohonanCount('proses_penerbitan_izin');
                     })
-                    ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'proses_penerbitan_izin')),
+                    ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'proses_penerbitan_izin'))
+                    ->extraAttributes(['class' => 'kepala-dinas-tab']),
 
                 'Izin Diterbitkan' => Tab::make('Izin Diterbitkan')
                     ->badge(function () {
                         return $this->getTotalPermohonanCount('izin_diterbitkan');
                     })
-                    ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'izin_diterbitkan')),
+                    ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'izin_diterbitkan'))
+                    ->extraAttributes(['class' => 'kepala-dinas-tab']),
             ];
         }
 
-        // Tabs untuk Admin
+        // Tabs untuk Admin dan Super Admin
+        if (Auth::user()->hasRole('admin') || Auth::user()->hasRole('super_admin')) {
+            return [
+                'Semua' => Tab::make('Semua')
+                    ->badge(function () {
+                        return $this->getTotalPermohonanCount();
+                    })
+                    ->extraAttributes(['class' => 'admin-tab']),
+
+                'Menunggu Verifikasi' => Tab::make('Menunggu Verifikasi')
+                    ->badge(function () {
+                        return $this->getTotalPermohonanCount('menunggu_verifikasi');
+                    })
+                    ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'menunggu_verifikasi'))
+                    ->extraAttributes(['class' => 'admin-tab']),
+
+                'Proses Validasi Lapangan' => Tab::make('Validasi Lapangan')
+                    ->badge(function () {
+                        return $this->getTotalPermohonanCount('menunggu_validasi_lapangan');
+                    })
+                    ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'menunggu_validasi_lapangan'))
+                    ->extraAttributes(['class' => 'admin-tab']),
+
+                'Proses Penerbitan Izin' => Tab::make('Penerbitan Izin')
+                    ->badge(function () {
+                        return $this->getTotalPermohonanCount('proses_penerbitan_izin');
+                    })
+                    ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'proses_penerbitan_izin'))
+                    ->extraAttributes(['class' => 'admin-tab']),
+
+                'Izin Diterbitkan' => Tab::make('Izin Diterbitkan')
+                    ->badge(function () {
+                        return $this->getTotalPermohonanCount('izin_diterbitkan');
+                    })
+                    ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'izin_diterbitkan'))
+                    ->extraAttributes(['class' => 'admin-tab']),
+
+                'Permohonan Ditolak' => Tab::make('Permohonan Ditolak')
+                    ->badge(function () {
+                        return $this->getTotalPermohonanCount('permohonan_ditolak');
+                    })
+                    ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'permohonan_ditolak'))
+                    ->extraAttributes(['class' => 'admin-tab']),
+            ];
+        }
+        
+        // Default tabs jika tidak memiliki role spesifik
         return [
             'Semua' => Tab::make('Semua')
                 ->badge(function () {
                     return $this->getTotalPermohonanCount();
                 }),
-
-            'Menunggu Verifikasi' => Tab::make('Menunggu Verifikasi')
-                ->badge(function () {
-                    return $this->getTotalPermohonanCount('menunggu_verifikasi');
-                })
-                ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'menunggu_verifikasi')),
-
-            'Proses Validasi Lapangan' => Tab::make('Validasi Lapangan')
-                ->badge(function () {
-                    return $this->getTotalPermohonanCount('menunggu_validasi_lapangan');
-                })
-                ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'menunggu_validasi_lapangan')),
-
-            'Proses Penerbitan Izin' => Tab::make('Penerbitan Izin')
-                ->badge(function () {
-                    return $this->getTotalPermohonanCount('proses_penerbitan_izin');
-                })
-                ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'proses_penerbitan_izin')),
-
-            'Izin Diterbitkan' => Tab::make('Izin Diterbitkan')
-                ->badge(function () {
-                    return $this->getTotalPermohonanCount('izin_diterbitkan');
-                })
-                ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'izin_diterbitkan')),
-
-            'Permohonan Ditolak' => Tab::make('Permohonan Ditolak')
-                ->badge(function () {
-                    return $this->getTotalPermohonanCount('permohonan_ditolak');
-                })
-                ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'permohonan_ditolak')),
         ];
     }
 
