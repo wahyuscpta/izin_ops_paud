@@ -1,4 +1,4 @@
-@push('styles')
+{{-- @push('styles')
 <style>
     div[wire\:id] .filepond--root {
         min-height: 37px !important;
@@ -15,7 +15,7 @@
         justify-content: center !important;
     }   
 </style>
-@endpush
+@endpush --}}
 
 <div class="root">
 
@@ -120,18 +120,15 @@
         </div>
     @endif
 
-    @if (auth()->user()->hasRole('kepala_dinas') && $record->status_permohonan === 'proses_penerbitan_izin')
+    @if (auth()->user()->hasRole('admin') && $record->status_permohonan === 'proses_penerbitan_izin')
         <div class="flex md:flex-row justify-between gap-4 pt-6">
-            <x-filament::button color="gray" class="w-full p-2" wire:click="openModalTolak">
-                Tolak
-            </x-filament::button>
-            <x-filament::button color="primary" class="w-full p-2" wire:click="confirmIzinProcess">
-                Proses Izin
+            <x-filament::button color="primary" class="w-full h-full" wire:click="openModalPenerbitanIzin">
+                Upload SK dan Sertifikat
             </x-filament::button>
         </div>
     @endif
 
-    <x-filament::modal id="catatan-tolak" width="2xl">
+    <x-filament::modal id="catatan-tolak" width="2xl" wire:model="showModalTolak" :close-by-clicking-away="false">
         <x-slot name="heading">Tolak Permohonan</x-slot>
         <x-slot name="description">Berikan catatan atau alasan penolakan atas permohonan ini.</x-slot>
 
@@ -149,7 +146,7 @@
         </x-slot>
     </x-filament::modal>
 
-    <x-filament::modal id="konfirmasi-verifikasi" width="xl" wire:model="isModalVerifikasiOpen">
+    <x-filament::modal id="konfirmasi-verifikasi" width="xl" wire:model="showModalVerifikasi" :close-by-clicking-away="false">
         <x-slot name="heading">
             <div class="flex items-center gap-2">
                 <x-filament::icon icon="heroicon-o-shield-check" class="h-6 w-6 text-primary-500" />
@@ -214,21 +211,21 @@
                     Batal
                 </x-filament::button>
                 <x-filament::button color="primary" wire:click="submitVerifikasi" wire:loading.attr="disabled">
-                    <span wire:loading.remove wire:target="submitVerifikasi">Verifikasi</span>
+                    <span wire:loading.remove wire:target="submitVerifikasi">Verifikasi Permohonan</span>
                     <span wire:loading wire:target="submitVerifikasi">Memproses...</span>
                 </x-filament::button>            
             </div>
         </x-slot>
     </x-filament::modal>
 
-    <x-filament::modal id="validasi-lapangan" width="3xl">
+    <x-filament::modal id="validasi-lapangan" width="5xl" wire:model="showModalValidasi" :close-by-clicking-away="false">
         <x-slot name="heading">
             <div class="flex items-center gap-2">
                 <x-filament::icon icon="heroicon-o-check-badge" class="h-5 w-5 text-primary-500" />
                 <span>Validasi Lapangan</span>
             </div>
         </x-slot>
-        <x-slot name="description">Upload berkas hasil validasi lapangan dan informasi verifikasi untuk permohonan ini sebagai dasar penerbitan SK dan Sertifikat.</x-slot>
+        <x-slot name="description">Upload berkas hasil validasi lapangan dan informasi verifikasi untuk penerbitan SK dan Sertifikat.</x-slot>
 
         {{ $this->form }}
 
@@ -238,9 +235,35 @@
                     Batal
                 </x-filament::button>
 
-                <x-filament::button color="primary" wire:click="save">
-                    Validasi
-                </x-filament::button>            
+                <x-filament::button color="primary" wire:click="save" wire:loading.attr="disabled">
+                    <span wire:loading.remove wire:target="save">Validasi Permohonan</span>
+                    <span wire:loading wire:target="save">Memproses...</span>
+                </x-filament::button>          
+            </div>
+        </x-slot>
+    </x-filament::modal>
+
+    <x-filament::modal id="penerbitan-izin" width="3xl" wire:model="showModalPenerbitanIzin" :close-by-clicking-away="false">
+        <x-slot name="heading">
+            <div class="flex items-center gap-2">
+                <x-filament::icon icon="heroicon-o-check-badge" class="h-5 w-5 text-primary-500" />
+                <span>Penerbitan Izin</span>
+            </div>
+        </x-slot>
+        <x-slot name="description">Upload SK dan Sertifikat Izin Operasional yang telah disetujui Kepala Dinas</x-slot>
+
+        {{ $this->form }}
+
+        <x-slot name="footer">
+            <div class="flex md:flex-row justify-end gap-4">
+                <x-filament::button color="gray" wire:click="closeModalValidasi">
+                    Batal
+                </x-filament::button>
+
+                <x-filament::button color="primary" wire:click="submitPenerbitanIzin" wire:loading.attr="disabled">
+                    <span wire:loading.remove wire:target="submitPenerbitanIzin">Upload & Terbitkan Izin</span>
+                    <span wire:loading wire:target="submitPenerbitanIzin">Memproses...</span>
+                </x-filament::button> 
             </div>
         </x-slot>
     </x-filament::modal>

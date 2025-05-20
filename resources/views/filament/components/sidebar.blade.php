@@ -40,7 +40,7 @@
         margin: 0 !important;
     }
     
-    .custom-file-upload .filepond--panel-root {
+    /* .custom-file-upload .filepond--panel-root {
         min-height: 110px !important;
-    }
+    } */
 </style>
