@@ -90,7 +90,7 @@
         .button {
             display: inline-block;
             background-color: #4361ee;
-            color: white;
+            color: #fff !important;
             padding: 14px 28px;
             text-decoration: none;
             border-radius: 6px;
@@ -417,15 +417,15 @@
                             </tr>
                             <tr>
                                 <td>Nama Lembaga</td>
-                                <td>{{ $permohonan->identias->nama_lembaga }}</td>
+                                <td>{{ $permohonan->identitas->nama_lembaga }}</td>
                             </tr>
                             <tr>
                                 <td>Alamat Lembaga</td>
-                                <td>{{ $permohonan->identias->alamat_identitas }}</td>
+                                <td>{{ $permohonan->identitas->alamat_identitas }}</td>
                             </tr>
                             <tr>
                                 <td>Nama Pemohon</td>
-                                <td>{{ $user->name }}</td>
+                                <td>{{ $permohonan->user->name }}</td>
                             </tr>
                             <tr>
                                 <td>Tanggal Pengajuan</td>

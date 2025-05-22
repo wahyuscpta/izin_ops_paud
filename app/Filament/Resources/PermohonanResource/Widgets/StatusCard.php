@@ -2,11 +2,10 @@
 
 namespace App\Filament\Resources\PermohonanResource\Widgets;
 
-use Filament\Forms;
+use Illuminate\Support\Facades\File;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Widgets\Widget;
@@ -113,7 +112,7 @@ class StatusCard extends Widget implements HasForms
                     ->required()
                     ->visible(fn () => $this->showModalValidasi),
 
-                FileUpload::make('file_sk_izin')
+                FileUpload::make('sk_izin')
                     ->label('Upload SK Izin Operasional')
                     ->columnSpanFull()
                     ->directory('lampiran')
@@ -123,7 +122,7 @@ class StatusCard extends Widget implements HasForms
                     ->required()
                     ->visible(fn () => $this->showModalPenerbitanIzin),
 
-                FileUpload::make('file_sertifikat_izin')
+                FileUpload::make('sertifikat_izin')
                     ->label('Upload Sertifikasi Izin Operasional')
                     ->columnSpanFull()
                     ->directory('lampiran')
@@ -197,19 +196,44 @@ class StatusCard extends Widget implements HasForms
         $data = $this->form->getState();
         
         try {
-            foreach (['file_sk_izin', 'file_sertifikat_izin'] as $type) {
+            foreach (['sk_izin', 'sertifikat_izin'] as $type) {
                 if (!empty($data[$type])) {
                     $filePath = is_array($data[$type]) ? reset($data[$type]) : $data[$type];
-        
-                    $this->record->lampiran()->create([
-                        'lampiran_type' => $type,
-                        'lampiran_path' => $filePath,
-                    ]);
+                    
+                    // Ambil file original dari temporary storage
+                    $tmpPath = storage_path('app/public/' . $filePath);
+                    
+                    // Generate nama file baru
+                    $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+                    $newFileName = strtoupper(str_replace(' ', '_', $type . '_' . $this->record->identitas->nama_lembaga)) . '.' . $extension;
+                    
+                    // Path tujuan untuk file dengan nama baru
+                    $newPath = 'lampiran/' . $newFileName;
+                    $newFullPath = storage_path('app/public/' . $newPath);
+                    
+                    // Pindahkan file dengan nama baru
+                    if (File::exists($tmpPath)) {
+                        // Pastikan direktori tujuan ada
+                        File::ensureDirectoryExists(dirname($newFullPath));
+                        
+                        // Salin file ke lokasi baru dengan nama baru
+                        File::copy($tmpPath, $newFullPath);
+                        
+                        // Hapus file temporary (opsional)
+                        File::delete($tmpPath);
+                        
+                        // Simpan path baru ke database
+                        $this->record->lampiran()->create([
+                            'lampiran_type' => $type,
+                            'lampiran_path' => $newPath,
+                        ]);
+                    }
                 }
             }
         
             $this->record->update([
                 'status_permohonan' => 'izin_diterbitkan',
+                'tgl_status_terakhir' => now()
             ]);
         
             Notification::make()

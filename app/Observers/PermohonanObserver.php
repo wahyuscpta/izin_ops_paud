@@ -30,6 +30,7 @@ class PermohonanObserver
                     ->actions([
                         Action::make('view')
                             ->button()
+                            ->url(fn () => route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id]))
                             ->markAsRead(),
                     ])
                     ->sendToDatabase($admin);
@@ -63,6 +64,38 @@ class PermohonanObserver
             $admins = User::role('admin')->get();
             $kepalaDinas = User::role('kepala_dinas')->get();
             $permohonan->previous_status = $permohonan->getOriginal('status_permohonan');
+
+            if ($status === 'menunggu_verifikasi') {
+                foreach ($admins as $admin) {
+                    Notification::make()
+                        ->title('Permohonan Baru Masuk')
+                        ->icon('heroicon-o-information-circle')
+                        ->iconColor('primary')
+                        ->body('Permohonan dari ' . $pemohon->name . ' menunggu verifikasi.')
+                        ->actions([
+                            Action::make('view')
+                                ->button()
+                                ->url(fn () => route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id]))
+                                ->markAsRead(),
+                        ])
+                        ->sendToDatabase($admin);
+    
+                    // Notifikasi Email untuk Admin
+                    $admin->notify(new EmailStatusNotification(
+                        $permohonan, 
+                        'new_submission', 
+                        'admin', 
+                        // route('admin.permohonan.verify', $permohonan->id)
+                    ));
+    
+                    $pemohon->notify(new EmailStatusNotification(
+                        $permohonan, 
+                        'new_submission', 
+                        'pemohon', 
+                        // route('permohonan.detail', $permohonan->id)
+                    ));
+                }
+            }
 
             if ($status === 'permohonan_ditolak') {
                 Notification::make()
@@ -139,6 +172,7 @@ class PermohonanObserver
                     ->actions([
                         Action::make('view')
                             ->button()
+                            ->url(fn () => route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id]))
                             ->markAsRead(),
                     ])
                     ->sendToDatabase($pemohon);

@@ -1,3 +1,13 @@
+@push('styles')
+<style>
+    @media (min-width: 996px) and (max-width: 1366px) {
+        p{
+            font-size: 12px !important;
+        }
+    }
+</style>
+@endpush
+
 <x-filament::page>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Dokumen Lampiran -->

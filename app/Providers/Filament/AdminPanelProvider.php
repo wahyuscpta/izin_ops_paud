@@ -17,6 +17,7 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationItem;
 use Filament\Pages;
+use Filament\Pages\Auth\Login;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -39,7 +40,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('')
-            ->login()
+            ->login(Login::class)
+            ->passwordReset()
             ->registration(Register::class)
             ->emailVerification()
             ->profile()
@@ -86,7 +88,7 @@ class AdminPanelProvider extends PanelProvider
                         shouldRegisterUserMenu: false,
                         shouldRegisterNavigation: true,
                         navigationGroup: 'Pengaturan Akun',
-                        hasAvatars: true,
+                        hasAvatars: false,
                         slug: 'my-profile',
                     )
                     ->passwordUpdateRules(
@@ -107,7 +109,7 @@ class AdminPanelProvider extends PanelProvider
                 'Hak Akses Pengguna',
                 'Pengaturan Akun',
             ])        
-            ->spa()
-            ->unsavedChangesAlerts();
+            ->spa();
+            // ->unsavedChangesAlerts();
     }
 }

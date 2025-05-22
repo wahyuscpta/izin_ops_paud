@@ -1,6 +1,6 @@
-{{-- @push('styles')
+@push('styles')
 <style>
-    div[wire\:id] .filepond--root {
+    /* div[wire\:id] .filepond--root {
         min-height: 37px !important;
     }
     
@@ -13,14 +13,24 @@
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-    }   
+    }    */
+
+    @media (min-width: 996px) and (max-width: 1366px) {
+        .badge-status{
+            display: block;
+        }
+
+        .info-status p{
+            font-size: 12px !important;
+        }
+    }
 </style>
-@endpush --}}
+@endpush
 
 <div class="root">
 
     <div class="border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 self-start" style="border-radius: 10px; padding: 30px">
-        <div class="flex justify-between items-center">
+        <div class="flex justify-between items-center badge-status">
             <p class="text-sm font-semibold mb-4">Status :</p>
             <x-filament::badge
                 :color="match($record->status_permohonan) {
@@ -32,6 +42,7 @@
                     default => 'secondary',
                 }"
                 style="margin-top: -10px"
+                class="text-uppercase"
             >
                 {{ ucwords(str_replace('_', ' ', $record->status_permohonan)) }}
             </x-filament::badge>
@@ -39,7 +50,7 @@
 
         <hr class="my-4 border-gray-200 dark:border-gray-700">
 
-        <div class="space-y-4 pt-2">
+        <div class="space-y-4 pt-2 info-status">
             <div>
                 <p class="mt-2 text-sm font-semibold">Nama Pemohon</p>
                 <p class="text-gray-600 dark:text-gray-500">{{ $record->penyelenggara->nama_perorangan }}</p>
@@ -56,7 +67,7 @@
             </div>
 
             <div>
-                <p class="text-sm font-semibold">Tanggal Status Diubah Terakhir</p>
+                <p class="text-sm font-semibold">Tanggal Status Terakhir</p>
                 <p class="text-gray-600 dark:text-gray-500">{{ \Carbon\Carbon::parse($record->tgl_status_terakhir)->format('d M Y') }}</p>
             </div>
 
@@ -70,7 +81,7 @@
                     <p class="text-sm font-semibold">SK Izin Operasional</p>
                     <x-filament::button
                         tag="a"
-                        href="{{ route('sk-izin.generate-pdf', $record->id) }}"
+                        href="{{ route('download.sk-izin', ['id' => $record->id]) }}"
                         target="_blank"
                         icon="heroicon-m-arrow-down-tray"
                         color="primary"
@@ -84,7 +95,7 @@
                     <p class="text-sm font-semibold">Sertifikat Izin Operasional:</p>
                     <x-filament::button
                         tag="a"
-                        href="{{ route('sertifikat.pdf', $record->id) }}"
+                        href="{{ route('download.sertifikat', ['id' => $record->id]) }}"
                         target="_blank"
                         icon="heroicon-m-arrow-down-tray"
                         color="primary"
@@ -122,8 +133,31 @@
 
     @if (auth()->user()->hasRole('admin') && $record->status_permohonan === 'proses_penerbitan_izin')
         <div class="flex md:flex-row justify-between gap-4 pt-6">
+            <x-filament::button
+                tag="a"
+                href="{{ route('sk-izin.generate-pdf', $record->id) }}"
+                target="_blank"
+                icon="heroicon-m-arrow-down-tray"
+                color="gray"
+                class="w-full p-2"
+            >
+                Draft SK
+            </x-filament::button>
+            <x-filament::button
+                tag="a"
+                href="{{ route('sertifikat.pdf', $record->id) }}"
+                target="_blank"
+                icon="heroicon-m-arrow-down-tray"
+                color="gray"
+                class="w-full p-2"
+            >
+                Draft Sertifikat
+            </x-filament::button>
+        </div>
+
+        <div class="flex md:flex-row justify-between gap-4 pt-6">
             <x-filament::button color="primary" class="w-full h-full" wire:click="openModalPenerbitanIzin">
-                Upload SK dan Sertifikat
+                Unggah SK & Sertifikat (TTD)
             </x-filament::button>
         </div>
     @endif
