@@ -89,7 +89,6 @@ class Register extends BaseRegister
                     'regex:/[A-Z]/',
                     'regex:/[a-z]/',
                     'regex:/[0-9]/',
-                    'regex:/[@$!%*#?&]/',
                 ])
                 ->validationMessages([
                     'required' => 'Kata sandi wajib diisi',
