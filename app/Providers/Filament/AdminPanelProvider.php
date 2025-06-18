@@ -31,6 +31,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Jeffgreco13\FilamentBreezy\BreezyCore;
+use Rmsramos\Activitylog\ActivitylogPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -97,8 +98,9 @@ class AdminPanelProvider extends PanelProvider
                     )
                     ->myProfileComponents([
                         'personal_info' => MyPersonalInfo::class
-                    ])
-      
+                    ]),
+                ActivitylogPlugin::make()
+                    ->resource(\App\Filament\Resources\CustomActivitylogResource::class),
             ])
             ->authMiddleware([
                 Authenticate::class,
@@ -107,6 +109,7 @@ class AdminPanelProvider extends PanelProvider
                 'Manajemen Data',
                 'Permohonan Saya',
                 'Hak Akses Pengguna',
+                'Manajemen Aktivitas',
                 'Pengaturan Akun',
             ])        
             ->spa();

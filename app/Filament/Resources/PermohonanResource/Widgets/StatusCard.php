@@ -12,6 +12,7 @@ use Filament\Widgets\Widget;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Auth;
 
 class StatusCard extends Widget implements HasForms
 {
@@ -139,8 +140,22 @@ class StatusCard extends Widget implements HasForms
     {
         $this->record->update([
                 'status_permohonan' => 'menunggu_validasi_lapangan'
-            ]);
-        
+            ]);        
+
+        activity()
+            ->causedBy(Auth::user())
+            ->performedOn($this->record)
+            ->withProperties([
+                'attributes' => [
+                    'status_permohonan' => $this->record->status_permohonan,
+                    'nama_pemohon' => $this->record->nama_pemohon,
+                ],
+                'role' => Auth::user()?->getRoleNames()?->first(),
+            ])
+            ->event('updated')
+            ->useLog('Permohonan') 
+            ->log('Telah memverifikasi permohonan izin operasional milik "' . $this->record->identitas->nama_lembaga . '" dan mengubah status menjadi "Menunggu Validasi Lapangan"');
+
         Notification::make()
             ->success()
             ->title('Proses Berhasil')
@@ -168,10 +183,26 @@ class StatusCard extends Widget implements HasForms
 
             $this->record->update([
                 'status_permohonan' => 'proses_penerbitan_izin',
+                'no_surat_rekomendasi' => $data['no_surat_rekomendasi'],
+                'tgl_surat_rekomendasi' => $data['tgl_surat_rekomendasi'],
+                'pemberi_rekomendasi' => $data['pemberi_rekomendasi'],
                 'no_verifikasi' => $data['no_verifikasi'],
                 'tgl_verifikasi' => $data['tgl_verifikasi'],
             ]);
 
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($this->record)
+                ->withProperties([
+                    'attributes' => [
+                        'status_permohonan' => $this->record->status_permohonan,
+                        'nama_pemohon' => $this->record->nama_pemohon,
+                    ],
+                    'role' => Auth::user()?->getRoleNames()?->first(),
+                ])
+                ->event('updated')
+                ->useLog('Permohonan') 
+                ->log('Telah melakukan proses validasi lapangan milik "' . $this->record->identitas->nama_lembaga . '" dan mengubah status menjadi "Proses Penerbitan Izin"');
             
             Notification::make()
                 ->success()
@@ -235,6 +266,20 @@ class StatusCard extends Widget implements HasForms
                 'status_permohonan' => 'izin_diterbitkan',
                 'tgl_status_terakhir' => now()
             ]);
+
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($this->record)
+                ->withProperties([
+                    'attributes' => [
+                        'status_permohonan' => $this->record->status_permohonan,
+                        'nama_pemohon' => $this->record->nama_pemohon,
+                    ],
+                    'role' => Auth::user()?->getRoleNames()?->first(),
+                ])
+                ->event('updated')
+                ->useLog('Permohonan') 
+                ->log('Telah menerbitkan izin permohonan milik "' . $this->record->identitas->nama_lembaga . '" dan mengubah status menjadi "Izin Diterbitkan"');
         
             Notification::make()
                 ->success()
@@ -265,6 +310,20 @@ class StatusCard extends Widget implements HasForms
         ]);
 
         $this->dispatch('close-modal', id: 'catatan-tolak');
+
+        activity()
+            ->causedBy(Auth::user())
+            ->performedOn($this->record)
+            ->withProperties([
+                'attributes' => [
+                    'status_permohonan' => $this->record->status_permohonan,
+                    'nama_pemohon' => $this->record->nama_pemohon,
+                ],
+                'role' => Auth::user()?->getRoleNames()?->first(),
+            ])
+            ->event('updated')
+            ->useLog('Permohonan') 
+            ->log('Telah menolak permohonan izin milik "' . $this->record->identitas->nama_lembaga . '" dan mengubah status menjadi "Permohonan Ditolak"');
 
         Notification::make()
             ->success()
