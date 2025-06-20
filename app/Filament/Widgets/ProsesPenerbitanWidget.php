@@ -64,6 +64,11 @@ class ProsesPenerbitanWidget extends BaseWidget
         return 'Menunggu Penerbitan Izin';
     }
 
+    protected function getTableEmptyStateHeading(): ?string
+    {
+        return 'Belum ada permohonan';
+    }
+
     protected function getTableDescription(): string|Htmlable|null
     {
         return 'Daftar permohonan yang sedang menunggu penerbitan izin';

@@ -2587,22 +2587,16 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                             ->acceptedFileTypes(['application/pdf'])
                                             ->maxSize(2048)
                                             ->required(function ($record, $livewire) use ($field) {
-                                                // Jika mode kirim permohonan, periksa keberadaan lampiran
                                                 if ($livewire->isKirimPermohonan) {
                                                     if ($record && $record->lampiran) {
                                                         $lampiran = $record->lampiran->where('lampiran_type', $field)->first();
                                                         return !($lampiran && $lampiran->lampiran_path);
                                                     }
-                                                    return true; // Required jika tidak ada lampiran dan mode submit
+                                                    return true;
                                                 }
                                                 
-                                                // Jika mode draft, tidak required
                                                 return false;
                                             })
-                                            // ->getUploadedFileNameForStorageUsing(function (Get $get, TemporaryUploadedFile $file) {
-                                            //     $namaLembaga = Str::slug($get('nama_lembaga'), '_');
-                                            //     return "{$namaLembaga}" . $file->getClientOriginalExtension();
-                                            // })
                                             ->previewable(true)
                                             ->helperText('Unggah file PDF maks. 2MB'),
                                     ])->flatten(1)->toArray()
@@ -2803,8 +2797,16 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                             ->when($data['created_until'], fn ($q) => $q->whereDate('created_at', '<=', $data['created_until']));
                     }),
 
-                SelectFilter::make('identitas.jenis_lembaga')
-                    ->label('Jenis Lembaga')
+                SelectFilter::make('jenis_pendidikan')
+                    ->label('Jenis Pendidikan')
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (filled($data['value'])) {
+                            return $query->whereHas('identitas', function ($q) use ($data) {
+                                $q->where('jenis_pendidikan', $data['value']);
+                            });
+                        }
+                        return $query;
+                    })
                     ->options([
                         'paud' => 'PAUD',
                         'tk' => 'TK',

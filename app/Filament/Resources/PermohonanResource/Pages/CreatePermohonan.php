@@ -7,12 +7,8 @@ use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Exceptions\Halt;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\ValidationException;
-use League\Flysystem\FilesystemException;
 
 class CreatePermohonan extends CreateRecord
 {
@@ -26,21 +22,14 @@ class CreatePermohonan extends CreateRecord
 
     public bool $isKirimPermohonan = false;
 
-    /**
-     * Get redirect URL after record creation
-     */
     public function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
     }
     
-    /**
-     * Prepare record data before creation
-     */
+    // Memodifikasi data input sebelum proses penyimpanan dilakukan
     protected function mutateFormDataBeforeCreate(array $data): array
-    {
-        Gate::authorize('create', static::getModel());
-        
+    {                
         $data['status_permohonan'] = $this->isKirimPermohonan ? 'menunggu_verifikasi' : 'draft';
         $data['user_id'] = Auth::id();
         $data['tgl_status_terakhir'] = now();
@@ -49,92 +38,109 @@ class CreatePermohonan extends CreateRecord
         return $data;
     }
 
-    /**
-     * Handle additional processing after create
-     */
     protected function afterCreate(): void
     {
+        // Mulai transaksi database untuk menjaga konsistensi data
         DB::beginTransaction();
         
         try {
-            $this->createLampiran($this->record);
-            DB::commit();
-        } catch (QueryException $e) {
-            DB::rollBack();
-            report($e);
-            $this->cleanupFailedRecord();
-            $this->showErrorNotification('Terjadi kesalahan pada database. Silakan coba lagi nanti.');
-        } catch (FilesystemException $e) {
-            DB::rollBack();
-            report($e);
-            $this->cleanupFailedRecord();
-            $this->showErrorNotification('Terjadi kesalahan saat menyimpan berkas. Pastikan berkas memiliki format yang benar.');
+            $this->createLampiran($this->record);        // Jalankan proses tambah file lampiran
+            DB::commit();                                // Jika semua proses berhasil, simpan perubahan
+            $this->showSuccessNotification();
         } catch (\Exception $e) {
-            DB::rollBack();
+            DB::rollBack();                              // Jika terjadi error, batalkan semua proses
             report($e);
             $this->cleanupFailedRecord();
-            $this->showErrorNotification('Terjadi kesalahan saat menyimpan permohonan. Silakan periksa data Anda dan coba lagi.');
+            $this->showErrorNotification();
         }
     }
 
-    /**
-     * Create attachment records for the application
-     */
     protected function createLampiran($permohonan): void
     {
         $requiredFields = [
-            'ktp_ketua', 'struktur_yayasan', 'ijasah_penyelenggara', 'ijasah_kepsek', 'ijasah_pendidik',
-            'sarana_prasarana', 'kurikulum', 'tata_tertib', 'peta_lokasi', 'daftar_peserta', 'daftar_guru',
-            'akte_notaris', 'rek_ke_lurah', 'rek_dari_lurah', 'rek_ke_korwil', 'rek_dari_korwil',
-            'permohonan_izin', 'rip', 'imb', 'perjanjian_sewa', 'nib',
+            'ktp_ketua', 'struktur_yayasan', 'ijasah_penyelenggara', 'ijasah_kepsek', 'ijasah_pendidik', 'sarana_prasarana', 'kurikulum', 'tata_tertib', 'peta_lokasi', 'daftar_peserta', 'daftar_guru', 'akte_notaris', 'rek_ke_lurah', 'rek_dari_lurah', 'rek_ke_korwil', 'rek_dari_korwil', 'permohonan_izin', 'rip', 'imb', 'perjanjian_sewa', 'nib'
         ];
-
-        // Prepare data for batch insert to improve performance
-        $lampiranBatch = [];
-
+    
+        $lampiranData = [];
+    
         foreach ($requiredFields as $field) {
+            // Ambil isi file yang diupload user dari form berdasarkan nama field-nya
             $filePath = data_get($this->data, $field);
             
             if (!empty($filePath)) {
-                $lampiranBatch[] = [
+                $lampiranData[] = [
                     'permohonan_id' => $permohonan->id,
                     'lampiran_type' => $field,
+                    // Cek apakah filePath berbentuk array, ambil yang pertama, jika tidak masukkan string filePath
                     'lampiran_path' => is_array($filePath) ? reset($filePath) : $filePath,
                 ];
             }
         }
-
-        // Perform batch insert if we have attachments to add
-        if (!empty($lampiranBatch)) {
-            $permohonan->lampiran()->createMany($lampiranBatch);
+    
+        if (!empty($lampiranData)) {
+            $permohonan->lampiran()->createMany($lampiranData);
         }
     }
 
-    /**
-     * Customize notification message based on submission type
-     */
-    protected function getCreatedNotificationMessage(): ?string
+    public function create(?bool $shouldValidateForms = null): void
     {
-        return $this->isKirimPermohonan
-            ? 'Permohonan berhasil dikirim dan sedang menunggu verifikasi.'
-            : 'Permohonan berhasil disimpan sebagai draft.';
+        // Jika kirim permohonan maka akan validasi form
+        $shouldValidateForms = $shouldValidateForms ?? $this->isKirimPermohonan;
+    
+        try {
+            // getState -> data tervalidasi
+            // getRawState -> data tanpa validasi
+            $data = $shouldValidateForms ? $this->form->getState() : $this->form->getRawState();
+            
+            $data = $this->mutateFormDataBeforeCreate($data);
+            $record = $this->handleRecordCreation($data);
+            $this->form->model($record)->saveRelationships();
+
+            // Log aktivitas
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($this->record)
+                ->withProperties([
+                    'attributes' => [
+                        'status_permohonan' => $this->record->status_permohonan,
+                        'nama_pemohon' => $this->record->nama_pemohon,
+                    ],
+                    'role' => Auth::user()?->getRoleNames()?->first(),
+                ])
+                ->event('created')
+                ->useLog('Permohonan') 
+                ->log('Telah meengajukan permohonan izin operasional untuk "' . $this->record->identitas->nama_lembaga . '"');
+    
+            if ($redirectUrl = $this->getRedirectUrl()) {
+                $this->redirect($redirectUrl);
+            }
+        } catch (Halt $exception) {
+            // Kalau proses dihentikan secara normal, langsung keluar tanpa error
+            return;
+        }
     }
     
-    /**
-     * Add additional notification customization if needed
-     */
-    protected function getCreatedNotification(): ?Notification
+    protected function getFormActions(): array
     {
-        return Notification::make()
-            ->success()
-            ->title('Berhasil Disimpan!')
-            ->body($this->getCreatedNotificationMessage())
-            ->duration(5000);
+        return [
+            $this->getCreateInDraftFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
     
-    /**
-     * Clean up record if creation process failed
-     */
+    // Aksi untuk tombol draft
+    protected function getCreateInDraftFormAction(): Action
+    {
+        return Action::make('draft')
+            ->label('Simpan Draft')
+            ->color('gray')
+            ->action(function() {
+                $this->isKirimPermohonan = false; // Set status draft
+                $this->create(shouldValidateForms: false); // Jalankan proses create tanpa validasi
+            });
+    }
+
+    // Bersihkan data permohonan kalau terjadi error
     protected function cleanupFailedRecord(): void
     {
         if ($this->record && $this->record->exists) {
@@ -145,88 +151,24 @@ class CreatePermohonan extends CreateRecord
             }
         }
     }
-    
-    /**
-     * Handle validation errors
-     */
-    protected function onValidationError(ValidationException $exception): void
-    {
-        Notification::make()
-            ->title('Data Tidak Valid')
-            ->body('Harap periksa kembali data yang Anda masukkan.')
-            ->danger()
-            ->duration(8000)
-            ->send();
-            
-        parent::onValidationError($exception);
-    }
 
-    /**
-     * Display error notification with actions
-     */
-    protected function showErrorNotification(string $message): void
+    protected function showSuccessNotification(): void
     {
         Notification::make()
-            ->title('Gagal Disimpan!')
-            ->body($message)
-            ->danger()
-            ->duration(8000)
-            ->persistent()
+            ->success()
+            ->title('Berhasil!')
+            ->body($this->isKirimPermohonan ? 
+                'Permohonan berhasil dikirim.' : 
+                'Permohonan berhasil disimpan sebagai draft.')
             ->send();
     }
 
-    /**
-     * Define custom form actions
-     */
-    protected function getFormActions(): array
+    protected function showErrorNotification(): void
     {
-        return [
-            $this->getCreateInDraftFormAction(),
-            $this->getCancelFormAction(),
-        ];
-    }
-
-    /**
-     * Create action for saving as draft
-     */
-    protected function getCreateInDraftFormAction(): Action
-    {
-        return Action::make('draft')
-            ->label('Simpan Draft')
-            ->color('gray')
-            ->action(function() {
-                $this->isKirimPermohonan = false;
-                $this->create(shouldValidateForms: false); // Skip validasi saat menyimpan draft
-            });
-    }    
-
-    // Override method create untuk validasi selektif
-    public function create(?bool $shouldValidateForms = null): void
-    {
-        $shouldValidateForms = $shouldValidateForms ?? $this->isKirimPermohonan;
-
-        // Lanjutkan proses create dengan opsi validasi berdasarkan mode
-        try {
-            if ($shouldValidateForms) {
-                $data = $this->form->getState();
-            } else {
-                // Jika tidak perlu validasi (mode draft), ambil data tanpa validasi
-                $data = $this->form->getRawState();
-            }
-
-            $data = $this->mutateFormDataBeforeCreate($data);
-
-            $record = $this->handleRecordCreation($data);
-
-            $this->form->model($record)->saveRelationships();
-
-            $this->getCreatedNotification()?->send();
-
-            if ($redirectUrl = $this->getRedirectUrl()) {
-                $this->redirect($redirectUrl);
-            }
-        } catch (Halt $exception) {
-            return;
-        }
+        Notification::make()
+            ->danger()
+            ->title('Gagal!')
+            ->body('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.')
+            ->send();
     }
 }

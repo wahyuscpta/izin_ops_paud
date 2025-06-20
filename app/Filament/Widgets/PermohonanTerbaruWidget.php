@@ -59,6 +59,11 @@ class PermohonanTerbaruWidget extends BaseWidget
             route('filament.admin.resources.permohonans.view', $record);
     }
 
+    protected function getTableEmptyStateHeading(): ?string
+    {
+        return 'Belum ada permohonan';
+    }
+
     protected function getTableHeading(): string
     {
         return 'Permohonan Menunggu Verifikasi';

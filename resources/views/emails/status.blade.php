@@ -393,9 +393,9 @@
                     
                     <p>Permohonan Anda telah diterima dan sedang dalam antrian untuk diverifikasi oleh tim kami. Anda dapat memantau status permohonan melalui dashboard akun Anda.</p>
                     
-                    {{-- <div class="button-container">
-                        <a href="{{ route('permohonan.detail', $permohonan->id) }}" class="button">Lihat Detail Permohonan</a>
-                    </div> --}}
+                    <div class="button-container">
+                        <a href="{{ $actionUrl }}" class="button">Verifikasi Permohonan</a>
+                    </div>
                     
                     <p>Jika ada pertanyaan atau memerlukan bantuan, silakan hubungi kami melalui:</p>
                     <p><strong>Email:</strong> info@disdikporabadung.go.id<br>
@@ -434,9 +434,9 @@
                         </table>
                     </div>
                     
-                    {{-- <div class="button-container">
-                        <a href="{{ route('admin.permohonan.verify', $permohonan->id) }}" class="button">Verifikasi Permohonan</a>
-                    </div> --}}
+                    <div class="button-container">
+                        <a href="{{ $actionUrl }}" class="button">Verifikasi Permohonan</a>
+                    </div>
 
                 @elseif($notificationType == 'status_update' && $userRole == 'pemohon')
                     <span class="status-indicator status-{{ strtolower($formattedStatus ) }}">{{ $formattedStatus  }}</span>
@@ -477,58 +477,24 @@
                     
                     @if($formattedStatus  == 'Disetujui')
                     <p>Selamat! Permohonan Izin Operasional PAUD Anda telah <strong>disetujui</strong>. Sertifikat Izin Operasional dapat diunduh melalui sistem.</p>
-                    {{-- <div class="button-container">
-                        <a href="{{ route('permohonan.certificate', $permohonan->id) }}" class="button">Unduh Sertifikat</a>
-                    </div> --}}
+                    <div class="button-container">
+                        <a href="{{ $actionUrl }}" class="button">Unduh Sertifikat</a>
+                    </div>
                     @elseif($formattedStatus  == 'Ditolak')
                     <p>Mohon maaf, permohonan Anda <strong>tidak dapat disetujui</strong>. Silakan periksa catatan dari admin untuk detail alasan penolakan.</p>
-                    {{-- <div class="button-container">
-                        <a href="{{ route('permohonan.detail', $permohonan->id) }}" class="button">Lihat Detail</a>
-                    </div> --}}
+                    <div class="button-container">
+                        <a href="{{ $actionUrl }}" class="button">Lihat Detail</a>
+                    </div>
                     @else
                     <p>Status permohonan Anda telah diperbarui. Silakan periksa detail permohonan untuk informasi lebih lanjut.</p>
-                    {{-- <div class="button-container">
-                        <a href="{{ route('permohonan.detail', $permohonan->id) }}" class="button">Lihat Detail Permohonan</a>
-                    </div> --}}
+                    <div class="button-container">
+                        <a href="{{ $actionUrl }}" class="button">Lihat Detail Permohonan</a>
+                    </div>
                     @endif
                     
                     <p>Jika ada pertanyaan atau memerlukan bantuan, silakan hubungi kami melalui:</p>
                     <p><strong>Email:</strong> info@disdikporabadung.go.id<br>
                     <strong>Telepon:</strong> (0361) 123456</p>
-
-                @elseif($notificationType == 'status_update' && $userRole == 'kepala_dinas')
-                    <span class="status-indicator status-verifikasi">Menunggu Persetujuan</span>
-                    <h1>Permohonan Izin Operasional PAUD Memerlukan Persetujuan</h1>
-                    
-                    <p>Yth. Bapak/Ibu {{ $user->name }},</p>
-                    
-                    <p>Terdapat permohonan izin operasional PAUD yang telah diverifikasi dan memerlukan persetujuan Anda sebagai pimpinan.</p>
-                    
-                    <div class="status-detail">
-                        <table class="info-table">
-                            <tr>
-                                <td>Nomor Registrasi</td>
-                                <td>{{ $permohonan->no_permohonan }}</td>
-                            </tr>
-                            <tr>
-                                <td>Nama Lembaga</td>
-                                <td>{{ $permohonan->identitas->nama_lembaga }}</td>
-                            </tr>
-                            <tr>
-                                <td>Alamat Lembaga</td>
-                                <td>{{ $permohonan->identitas->alamat_identitas }}</td>
-                            </tr>
-                            <tr>
-                                <td>Hasil Verifikasi</td>
-                                <td>{{ $formattedStatus  }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                    
-                    {{-- <div class="button-container">
-                        <a href="{{ route('admin.permohonan.approve', $permohonan->id) }}" class="button">Tinjau dan Setujui</a>
-                    </div> --}}
-                @endif
                 
                 <div class="signature">
                     Email ini dikirim secara otomatis oleh sistem. Mohon tidak membalas email ini.

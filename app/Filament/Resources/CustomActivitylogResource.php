@@ -16,6 +16,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Str;
 
@@ -25,9 +26,14 @@ class CustomActivitylogResource extends Resource
 
     protected static ?string $navigationLabel = 'Riwayat Aktivitas';
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
-    protected static ?string $navigationGroup = 'Manajemen Aktivitas';
+    protected static ?string $navigationGroup = 'Manajemen Sistem';
 
     protected static ?string $label = 'Riwayat Aktivitas';
+
+    public static function canAccess(): bool
+    {
+        return !Auth::user()->hasRole(['pemohon']);   
+    }
 
     public static function form(Form $form): Form
     {
