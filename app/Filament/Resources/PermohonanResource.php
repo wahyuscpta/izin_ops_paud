@@ -111,7 +111,6 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                         TextInput::make('no_permohonan')
                             ->label('Nomor Surat Permohonan')
                             ->placeholder('Contoh: 0001/ADM/PAUD/2025')
-                            ->rule('regex:/^[0-9]{4}\/[A-Z]{1,5}\/[A-Z]{1,10}\/[0-9]{4}$/')
                             ->required()
                             ->maxLength(50)
                             ->validationMessages([
@@ -2536,7 +2535,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     'akte_notaris' => 'Akte Notaris Yayasan dan Kemenhumham',
                                     'rek_ke_lurah' => 'Surat Permohonan Rekomendasi Ijin Operasional ke Lurah',
                                     'rek_ke_korwil' => 'Surat Permohonan Rekomendasi Ijin Operasional ke Korwil Disdikpora Setempat',
-                                    'rek_dari_lurah' => 'Surat Rekomendasi dari Lurah/Kepala Desa Menunjuk Permohonan Rekomendasi dari Lembaga',
+                                    'rek_dari_lurah' => 'Surat Rekomendasi dari Lurah Menunjuk Rekomendasi dari Lembaga',
                                     'rek_dari_korwil' => 'Surat Rekomendasi dari Korwil Disdikpora Setempat',
                                     'rip' => '(RIP) Rencana Induk Pengembangan',
                                     'perjanjian_sewa' => 'Perjanjian Sewa Menyewa',
@@ -2763,12 +2762,12 @@ class PermohonanResource extends Resource implements HasShieldPermissions
 
                 TextColumn::make('tgl_permohonan')
                 ->label('Tanggal Diajukan')
-                ->date()
+                ->date('d F Y')
                 ->sortable(),
 
                 TextColumn::make('tgl_status_terakhir')
                 ->label('Tanggal Status Terakhir')
-                ->date()
+                ->date('d F Y')
                 ->sortable(),
 
                 TextColumn::make('status_permohonan')
@@ -2874,5 +2873,10 @@ class PermohonanResource extends Resource implements HasShieldPermissions
             'view' => Pages\ViewPermohonan::route('/{record}'),
             'edit' => Pages\EditPermohonan::route('/{record}/edit'),
         ];
+    }
+
+    protected function getCreatedNotification(): ?Notification
+    {
+        return null; // Menonaktifkan notifikasi default dari CreateRecord
     }
 }

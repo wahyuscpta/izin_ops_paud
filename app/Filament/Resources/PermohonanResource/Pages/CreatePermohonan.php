@@ -47,6 +47,22 @@ class CreatePermohonan extends CreateRecord
             $this->createLampiran($this->record);        // Jalankan proses tambah file lampiran
             DB::commit();                                // Jika semua proses berhasil, simpan perubahan
             $this->showSuccessNotification();
+
+            // Log aktivitas
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($this->record)
+                ->withProperties([
+                    'attributes' => [
+                        'status_permohonan' => $this->record->status_permohonan,
+                        'nama_pemohon' => $this->record->nama_pemohon,
+                    ],
+                    'role' => Auth::user()?->getRoleNames()?->first(),
+                ])
+                ->event('created')
+                ->useLog('Permohonan') 
+                ->log('Telah meengajukan permohonan izin operasional untuk "' . $this->record->identitas->nama_lembaga . '"');
+
         } catch (\Exception $e) {
             DB::rollBack();                              // Jika terjadi error, batalkan semua proses
             report($e);
@@ -95,21 +111,6 @@ class CreatePermohonan extends CreateRecord
             $data = $this->mutateFormDataBeforeCreate($data);
             $record = $this->handleRecordCreation($data);
             $this->form->model($record)->saveRelationships();
-
-            // Log aktivitas
-            activity()
-                ->causedBy(Auth::user())
-                ->performedOn($this->record)
-                ->withProperties([
-                    'attributes' => [
-                        'status_permohonan' => $this->record->status_permohonan,
-                        'nama_pemohon' => $this->record->nama_pemohon,
-                    ],
-                    'role' => Auth::user()?->getRoleNames()?->first(),
-                ])
-                ->event('created')
-                ->useLog('Permohonan') 
-                ->log('Telah meengajukan permohonan izin operasional untuk "' . $this->record->identitas->nama_lembaga . '"');
     
             if ($redirectUrl = $this->getRedirectUrl()) {
                 $this->redirect($redirectUrl);
@@ -161,6 +162,11 @@ class CreatePermohonan extends CreateRecord
                 'Permohonan berhasil dikirim.' : 
                 'Permohonan berhasil disimpan sebagai draft.')
             ->send();
+    }
+
+    protected function getCreatedNotification(): ?Notification
+    {
+        return null; // Menonaktifkan notifikasi default dari CreateRecord
     }
 
     protected function showErrorNotification(): void

@@ -187,8 +187,9 @@ class UserResource extends Resource implements HasShieldPermissions
                 //
             ])
             ->actions([
-                Impersonate::make()                    
-                    ->color('warning'),
+                Impersonate::make()
+                    ->color('warning')
+                    ->visible(fn () => Auth::user()?->hasRole('super_admin')),
                 ActionsEditAction::make(),
                 ActionsDeleteAction::make()
                     ->requiresConfirmation()

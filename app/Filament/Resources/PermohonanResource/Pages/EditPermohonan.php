@@ -6,6 +6,7 @@ use App\Filament\Resources\PermohonanResource;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -46,6 +47,22 @@ class EditPermohonan extends EditRecord
             $this->updateLampiran($this->record); // Jalankan proses update file lampiran terkait permohonan
             DB::commit();                         // Jika semua proses berhasil, simpan perubahan secara permanen
             $this->showSuccessNotification();
+
+            // Log aktivitas
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($this->record)
+                ->withProperties([
+                    'attributes' => [
+                        'status_permohonan' => $this->record->status_permohonan,
+                        'nama_pemohon' => $this->record->nama_pemohon,
+                    ],
+                    'role' => Auth::user()?->getRoleNames()?->first(),
+                ])
+                ->event('created')
+                ->useLog('Permohonan') 
+                ->log('Telah meengajukan permohonan izin operasional untuk "' . $this->record->identitas->nama_lembaga . '"');
+                
         } catch (\Exception $e) {                 // Jika terjadi error, batalkan semua perubahan
             DB::rollBack();
             report($e);
@@ -131,5 +148,10 @@ class EditPermohonan extends EditRecord
             ->title('Gagal!')
             ->body('Terjadi kesalahan saat memperbarui data. Silakan coba lagi.')
             ->send();
+    }
+
+    protected function getSavedNotification(): ?Notification
+    {
+        return null; // Menonaktifkan notifikasi default dari CreateRecord
     }
 }
