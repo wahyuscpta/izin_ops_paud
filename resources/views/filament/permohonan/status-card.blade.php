@@ -53,7 +53,7 @@
         <div class="space-y-4 pt-2 info-status">
             <div>
                 <p class="mt-2 text-sm font-semibold">Nama Pemohon</p>
-                <p class="text-gray-600 dark:text-gray-500">{{ $record->penyelenggara->nama_perorangan }}</p>
+                <p class="text-gray-600 dark:text-gray-500">{{ $record->user->name }}</p>
             </div>
 
             <div>

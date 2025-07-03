@@ -159,7 +159,7 @@
             <td>Menimbang</td>
             <td style="padding: 0 15px 0 10px; text-align: center;">:</td>
             <td style="padding: 0 5px">a.</td>
-            <td>bahwa sesuai dengan surat permohonan Izin Operasional/Penyelenggaraan Pendidikan Anak Usia Dini (PAUD) dari {{ $penyelenggara->nama_perorangan }}/Ketua {{ $penyelenggara->nama_badan }}, Nomor {{ $permohonan->no_permohonan }}, tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_permohonan)->locale('id')->translatedFormat('d F Y') }} dan berdasarkan Surat Rekomendasi dari {{ $permohonan->pemberi_rekomendasi }} Nomor {{ $permohonan->no_surat_rekomendasi }}, tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_surat_rekomendasi)->locale('id')->translatedFormat('d F Y') }}, beserta lampiran-lampirannya;</td>
+            <td>bahwa sesuai dengan surat permohonan Izin Operasional/Penyelenggaraan Pendidikan Anak Usia Dini (PAUD) dari {{ $pengelola->nama_pengelola }}/Ketua {{ $penyelenggara->nama_badan }}, Nomor {{ $permohonan->no_permohonan }}, tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_permohonan)->locale('id')->translatedFormat('d F Y') }} dan berdasarkan Surat Rekomendasi dari {{ $permohonan->pemberi_rekomendasi }} Nomor {{ $permohonan->no_surat_rekomendasi }}, tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_surat_rekomendasi)->locale('id')->translatedFormat('d F Y') }}, beserta lampiran-lampirannya;</td>
         </tr>
 
         <tr>

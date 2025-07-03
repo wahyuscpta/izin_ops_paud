@@ -27,6 +27,7 @@
                     Ajukan Permohonan
                 </x-filament::button>
             </div>
+
         @elseif($currentStatus === 'izin_diterbitkan')
             <div class="flex items-center gap-3">
                 <div class="flex-shrink-0">
@@ -60,6 +61,7 @@
                     Lihat Permohonan
                 </x-filament::button>
             </div>
+
         @elseif($currentStatus === 'permohonan_ditolak')
             <div class="flex items-center gap-3">
                 <div class="flex-shrink-0">
@@ -85,6 +87,7 @@
                     Ajukan Kembali
                 </x-filament::button>
             </div>
+
         @else
             @php
                 $allSteps = [
@@ -125,13 +128,13 @@
                     <div class="flex items-center gap-3">
                         <div class="flex-shrink-0">
                             <div class="rounded-full p-2">
-                                <x-filament::icon :icon="$step['icon']" class="{{ $isCurrentStatus ? 'text-primary-600 border-primary-600' : 'text-white border-white' }} p-2 h-10 w-10 border rounded-full"/>
+                                <x-filament::icon :icon="$step['icon']" class="{{ $isCurrentStatus ? 'text-primary-600 border-primary-600' : 'dark:text-white dark:border-white text-gray-500 border-gray-500' }} p-2 h-10 w-10 border rounded-full"/>
                             </div>
                         </div>
                         
                         <div class="flex-grow">
                             <div class="flex items-center">
-                                <h4 class="{{ $isCurrentStatus ? 'font-medium text-primary-600' : 'text-white' }}">
+                                <h4 class="{{ $isCurrentStatus ? 'font-medium text-primary-600' : 'dark:text-white text-gray-500' }}">
                                     {{ $step['label'] }}
                                 </h4>
                                 
@@ -157,6 +160,17 @@
                     </div>
                 @endforeach
             </div>
+
+            <x-filament::button
+                tag="a"
+                href="{{ route('filament.admin.resources.permohonans.view', $permohonan->id) }}"
+                class="w-full cursor-pointer"
+                style="margin-top: 20px"
+                color="primary"
+            >
+                Lihat Permohonan
+            </x-filament::button>
+
         @endif
     </x-filament::section>
 </x-filament-widgets::widget>

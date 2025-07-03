@@ -61,7 +61,7 @@ class CreatePermohonan extends CreateRecord
                 ])
                 ->event('created')
                 ->useLog('Permohonan') 
-                ->log('Telah meengajukan permohonan izin operasional untuk "' . $this->record->identitas->nama_lembaga . '"');
+                ->log('Telah mengajukan permohonan izin operasional untuk "' . $this->record->identitas->nama_lembaga . '"');
 
         } catch (\Exception $e) {
             DB::rollBack();                              // Jika terjadi error, batalkan semua proses
@@ -78,10 +78,12 @@ class CreatePermohonan extends CreateRecord
         ];
     
         $lampiranData = [];
+
+        $formData = $this->formData ?? $this->data ?? $this->form->getState();
     
         foreach ($requiredFields as $field) {
             // Ambil isi file yang diupload user dari form berdasarkan nama field-nya
-            $filePath = data_get($this->data, $field);
+            $filePath = data_get($formData, $field);
             
             if (!empty($filePath)) {
                 $lampiranData[] = [
@@ -137,7 +139,7 @@ class CreatePermohonan extends CreateRecord
             ->color('gray')
             ->action(function() {
                 $this->isKirimPermohonan = false; // Set status draft
-                $this->create(shouldValidateForms: false); // Jalankan proses create tanpa validasi
+                $this->create(shouldValidateForms: true); // Jalankan proses create tanpa validasi
             });
     }
 
