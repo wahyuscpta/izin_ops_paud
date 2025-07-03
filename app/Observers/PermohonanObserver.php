@@ -10,17 +10,18 @@ use Filament\Notifications\Notification;
 
 class PermohonanObserver
 {
-    /**
-     * Handle the Permohonan "created" event.
-     */
     public function created(Permohonan $permohonan): void
     {
 
+        // Ambil status awal dari permohonan yang baru dibuat
         $status = $permohonan->status_permohonan;
+        // Ambil user yang mengajukan permohonan (relasi 'user' dari model Permohonan)
         $pemohon = $permohonan->user;
+        // Ambil seluruh user yang memiliki peran 'admin' untuk dikirimi notifikasi
         $admins = User::role('admin')->get();
 
         if ($status === 'menunggu_verifikasi') {
+            // Kirim notifikasi berbasis database ke admin
             foreach ($admins as $admin) {
                 Notification::make()
                     ->title('Permohonan Baru Masuk')
@@ -30,39 +31,72 @@ class PermohonanObserver
                     ->actions([
                         Action::make('view')
                             ->button()
+                            ->url(fn () => route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id]))
                             ->markAsRead(),
                     ])
                     ->sendToDatabase($admin);
 
-                // Notifikasi Email untuk Admin
+                // Kirim notifikasi email ke admin terkait adanya permohonan baru
                 $admin->notify(new EmailStatusNotification(
                     $permohonan, 
                     'new_submission', 
                     'admin', 
-                    // route('admin.permohonan.verify', $permohonan->id)
+                    route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
                 ));
 
+                // Kirim notifikasi email ke pemohon sebagai konfirmasi bahwa permohonan berhasil diajukan
                 $pemohon->notify(new EmailStatusNotification(
                     $permohonan, 
                     'new_submission', 
                     'pemohon', 
-                    // route('permohonan.detail', $permohonan->id)
+                    route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
                 ));
             }
         }
     }
 
-    /**
-     * Handle the Permohonan "updated" event.
-     */
     public function updated(Permohonan $permohonan): void
     {
+        // Periksa apakah status_permohonan mengalami perubahan setelah update
         if ($permohonan->wasChanged('status_permohonan')) {
+
+            // Ambil status baru dari permohonan
             $status = $permohonan->status_permohonan;
+            // Ambil user yang mengajukan permohonan
             $pemohon = $permohonan->user;
+            // Ambil semua pengguna dengan peran admin
             $admins = User::role('admin')->get();
-            $kepalaDinas = User::role('kepala_dinas')->get();
-            $permohonan->previous_status = $permohonan->getOriginal('status_permohonan');
+
+            if ($status === 'menunggu_verifikasi') {
+                foreach ($admins as $admin) {
+                    Notification::make()
+                        ->title('Permohonan Baru Masuk')
+                        ->icon('heroicon-o-information-circle')
+                        ->iconColor('primary')
+                        ->body('Permohonan dari ' . $pemohon->name . ' menunggu verifikasi.')
+                        ->actions([
+                            Action::make('view')
+                                ->button()
+                                ->url(fn () => route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id]))
+                                ->markAsRead(),
+                        ])
+                        ->sendToDatabase($admin);
+    
+                    $admin->notify(new EmailStatusNotification(
+                        $permohonan, 
+                        'new_submission', 
+                        'admin', 
+                        route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
+                    ));
+    
+                    $pemohon->notify(new EmailStatusNotification(
+                        $permohonan, 
+                        'new_submission', 
+                        'pemohon', 
+                        route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
+                    ));
+                }
+            }
 
             if ($status === 'permohonan_ditolak') {
                 Notification::make()
@@ -76,7 +110,7 @@ class PermohonanObserver
                     $permohonan, 
                     'status_update', 
                     'pemohon', 
-                    // route('permohonan.detail', $permohonan->id)
+                    route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
                 ));
             }
 
@@ -93,7 +127,7 @@ class PermohonanObserver
                     $permohonan, 
                     'status_update', 
                     'pemohon', 
-                    // route('permohonan.detail', $permohonan->id)
+                    route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
                 ));
             }
 
@@ -109,22 +143,23 @@ class PermohonanObserver
                     $permohonan, 
                     'status_update', 
                     'pemohon', 
-                    // route('permohonan.detail', $permohonan->id)
+                    route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
                 ));
 
-                Notification::make()
-                    ->title('Permohonan Siap Diterbitkan')
-                    ->icon('heroicon-o-information-circle')
-                    ->iconColor('primary')
-                    ->body('Permohonan dari ' . $pemohon->name . ' menunggu proses penerbitan izin.')
-                    ->sendToDatabase($kepalaDinas);
+                foreach ($admins as $admin) {
+                    Notification::make()
+                        ->title('Permohonan Siap Diterbitkan')
+                        ->icon('heroicon-o-information-circle')
+                        ->iconColor('primary')
+                        ->body('Permohonan dari ' . $pemohon->name . ' menunggu proses penerbitan izin.')
+                        ->sendToDatabase($admin);
 
-                foreach ($kepalaDinas as $kepala) {
-                    $kepala->notify(new EmailStatusNotification(
+                
+                    $admin->notify(new EmailStatusNotification(
                         $permohonan,
                         'status_update',
-                        'kepala_dinas',
-                        // route('permohonan.detail', $permohonan->id)
+                        'admin',
+                        route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
                     ));
                 }
 
@@ -139,6 +174,7 @@ class PermohonanObserver
                     ->actions([
                         Action::make('view')
                             ->button()
+                            ->url(fn () => route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id]))
                             ->markAsRead(),
                     ])
                     ->sendToDatabase($pemohon);
@@ -147,7 +183,7 @@ class PermohonanObserver
                     $permohonan, 
                     'status_update', 
                     'pemohon', 
-                    // route('permohonan.detail', $permohonan->id)
+                    route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
                 ));
 
                 foreach ($admins as $admin) {
@@ -167,25 +203,16 @@ class PermohonanObserver
         }
     }
 
-    /**
-     * Handle the Permohonan "deleted" event.
-     */
     public function deleted(Permohonan $permohonan): void
     {
         //
     }
 
-    /**
-     * Handle the Permohonan "restored" event.
-     */
     public function restored(Permohonan $permohonan): void
     {
         //
     }
 
-    /**
-     * Handle the Permohonan "force deleted" event.
-     */
     public function forceDeleted(Permohonan $permohonan): void
     {
         //

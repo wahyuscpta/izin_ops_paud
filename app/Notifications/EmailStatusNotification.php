@@ -17,27 +17,30 @@ class EmailStatusNotification extends Notification implements ShouldQueue
     protected $actionUrl;
     protected $formattedStatus;
 
+    // Konstruktor notifikasi yang menerima data dari observer
     public function __construct($permohonan, $notificationType, $userRole, $actionUrl = null)
     {
+        // Simpan data permohonan yang dikirim
         $this->permohonan = $permohonan;
+        // Simpan jenis notifikasi berdasarkan status permohonan
         $this->notificationType = $notificationType;
+        // Simpan peran pengguna yang menerima notifikasi
         $this->userRole = $userRole;
-        $this->actionUrl = $actionUrl ?? '#'; // Provide a default value
-                
-        // Mengubah format status ke format yang lebih mudah dibaca
+        // Gunakan action URL yang dikirim, atau default ke '#' jika tidak ada
+        $this->actionUrl = $actionUrl ?? '#';
+        // Format status permohonan agar tampil lebih rapi
         $this->formattedStatus = $this->formatStatus($permohonan->status_permohonan);    
-        
-        // Memasukkan catatan sebagai notes jika ada
+        // Jika ada catatan pada permohonan, simpan ke properti notes 
         if (isset($permohonan->catatan)) {
             $this->permohonan->notes = $permohonan->catatan;
         }
-        
-        // Ensure identitas is loaded
+        // Jika relasi 'identitas' belum dimuat, muat relasinya agar bisa diakses di notifikasi
         if ($permohonan->relationLoaded('identitas') === false && method_exists($permohonan, 'identitas')) {
             $permohonan->load('identitas');
         }
     }
 
+    // Menentukan jalur notifikasi, ini dikirim melalui email
     public function via($notifiable)
     {
         return ['mail'];
@@ -45,46 +48,61 @@ class EmailStatusNotification extends Notification implements ShouldQueue
 
     public function toMail($notifiable)
     {
-        $subject = $this->getEmailSubject();
-            
-        $mail = (new MailMessage)
-            ->subject($subject);
-
+        // Ambil subjek email yang disesuaikan berdasarkan jenis notifikasi
+        $subject = $this->getEmailSubject();            
+        // Buat instance MailMessage dengan subjek yang sudah ditentukan
+        $mail = (new MailMessage)->subject($subject);
+        // Format status permohonan agar tampil lebih rapi dan mudah dibaca
         $formattedStatus = $this->formatStatus($this->permohonan->status_permohonan);
             
-        return $mail->view('emails.status', [
-            'user' => $notifiable,
-            'permohonan' => $this->permohonan,
-            'notificationType' => $this->notificationType,
-            'userRole' => $this->userRole,
-            'actionUrl' => $this->actionUrl,
-            'formattedStatus' => $formattedStatus
+        // Kembalikan email yang menggunakan custom view
+        return $mail->view('emails.status', [                    // Custom blade view
+            'user' => $notifiable,                               // User yang menerima notifikasi
+            'permohonan' => $this->permohonan,                   // Objek permohonan yang berkaitan
+            'notificationType' => $this->notificationType,       // Jenis notifikasi
+            'userRole' => $this->userRole,                       // Peran user penerima
+            'actionUrl' => $this->actionUrl,                     // Link aksi (link ke detail permohonan)
+            'formattedStatus' => $formattedStatus                // Status yang sudah diformat agar lebih informatif
         ]);
     }
 
+    // Membuat subjek email berdasarkan jenis notifikasi dan role penerima
     protected function getEmailSubject()
     {
+        // Jika jenis notifikasi adalah 'new_submission'
         if ($this->notificationType == 'new_submission') {
+            // Jika yang menerima adalah pemohon, kirim subjek konfirmasi pengajuan
             if ($this->userRole == 'pemohon') {
                 return 'Permohonan Izin Operasional PAUD Berhasil Diajukan';
             } else {
+                // Jika admin, subjek berupa permintaan verifikasi
                 return 'Permohonan Izin Operasional PAUD Baru Memerlukan Verifikasi';
             }
+
+        // Jika jenis notifikasi adalah 'status_update'
         } elseif ($this->notificationType == 'status_update') {
+            // Jika yang menerima adalah pemohon, subjek mencantumkan status terbaru
             if ($this->userRole == 'pemohon') {
                 return 'Status Permohonan Izin Operasional PAUD: ' . $this->formattedStatus;
             } else {
+                // Jika admin, berarti memerlukan persetujuan lanjutan
                 return 'Permohonan Izin Operasional PAUD Memerlukan Persetujuan';
             }
+
+        // Jika jenis notifikasi adalah 'reminder'
         } elseif ($this->notificationType == 'reminder') {
+            // Subjek berupa pengingat tindakan terhadap permohonan
             return 'Pengingat: Permohonan Izin Operasional PAUD Menunggu Tindakan';
         }
-        
+
+        // Default subjek jika jenis notifikasi tidak dikenali
         return 'Notifikasi Sistem Permohonan Izin Operasional PAUD';
     }
     
+    // Mengubah nilai status permohonan menjadi format teks yang lebih terbaca
     protected function formatStatus($status)
     {
+        // Daftar status
         $statuses = [
             'menunggu_verifikasi' => 'Menunggu Verifikasi',
             'permohonan_ditolak' => 'Ditolak',
@@ -93,6 +111,7 @@ class EmailStatusNotification extends Notification implements ShouldQueue
             'izin_diterbitkan' => 'Izin Diterbitkan'
         ];
         
+        // Kembalikan teks yang sudah diformat jika tersedia, jika tidak, kembalikan string asli
         return $statuses[$status] ?? $status;
     }
 }

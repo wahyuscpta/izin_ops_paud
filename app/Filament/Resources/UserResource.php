@@ -23,7 +23,9 @@ use Filament\Tables\Actions\EditAction as ActionsEditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use STS\FilamentImpersonate\Tables\Actions\Impersonate;
@@ -83,8 +85,12 @@ class UserResource extends Resource implements HasShieldPermissions
                             ->maxLength(255),
                         Select::make('roles')
                             ->label('Jabatan')
-                            ->relationship('roles', 'name')
+                            ->relationship('roles', 'name', function ($query) {
+                                return $query->whereNotIn('name', ['super_admin', 'kepala_dinas']);
+                            })
+                            ->getOptionLabelFromRecordUsing(fn (Model $record) => ucwords(str_replace('_', ' ', $record->name)))
                             ->preload()
+                            ->live()
                             ->required()
                             ->searchable(),
                         TextInput::make('email')
@@ -112,7 +118,22 @@ class UserResource extends Resource implements HasShieldPermissions
                             ->dehydrated(fn ($state) => filled($state))
                             ->required(fn (string $operation): bool => $operation === 'create')
                             ->dehydrateStateUsing(fn ($state) => Hash::make($state)),
-                    ])
+                    ]),
+
+                    Section::make('')
+                        ->schema([
+                            TextInput::make('admin_pin')
+                                ->label('PIN Konfirmasi Admin')
+                                ->password()
+                                ->revealable()
+                                ->required()
+                                ->helperText('Masukkan PIN untuk verifikasi pembuatan akun admin')
+                                ->prefixIcon('heroicon-m-shield-check')
+                                ->extraInputAttributes(['class' => 'font-mono'])
+                        ])
+                        ->columnSpanFull()
+                        ->visible(fn (Get $get) => $get('roles') === '2')
+                        ->compact()
                     
             ]);
     }
@@ -154,17 +175,21 @@ class UserResource extends Resource implements HasShieldPermissions
                     })
                     ->searchable(),
                 TextColumn::make('email_verified_at')
-                    ->dateTime()
+                    ->label('Tgl Verifikasi Email')
+                    ->date(),
+                TextColumn::make('created_at')
+                    ->label('Tanggal Dibuat')
+                    ->date()
                     ->sortable(),
-                TextColumn::make('created_at'),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
                 //
             ])
             ->actions([
-                Impersonate::make()                    
-                    ->color('warning'),
+                Impersonate::make()
+                    ->color('warning')
+                    ->visible(fn () => Auth::user()?->hasRole('super_admin')),
                 ActionsEditAction::make(),
                 ActionsDeleteAction::make()
                     ->requiresConfirmation()
@@ -172,6 +197,14 @@ class UserResource extends Resource implements HasShieldPermissions
                         ->modalDescription('Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.')
                         ->modalSubmitActionLabel('Ya, Hapus Data')
                         ->successNotificationTitle('Data berhasil dihapus')
+                        ->after(function (Model $record) {
+                            activity()
+                                ->causedBy(Auth::user())
+                                ->performedOn($record)
+                                ->event('deleted')
+                                ->useLog('Pengguna')
+                                ->log('Telah menghapus akun pengguna dengan nama ' . $record->name . ' dengan role ' . $record->getRoleNames()->first() . '.');
+                        })
                         ->successNotification(
                             Notification::make()
                                 ->success()

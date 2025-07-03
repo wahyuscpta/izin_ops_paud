@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Lampiran;
 use App\Models\Permohonan;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -11,6 +12,7 @@ use Illuminate\Support\Str;
 
 class PermohonanController extends Controller
 {
+    // Generate Sertifikat
     public function generateSertifikat(Request $request, $id)
     {
         $permohonan = Permohonan::with(['identitas', 'penyelenggara', 'user'])->findOrFail($id);
@@ -47,7 +49,34 @@ class PermohonanController extends Controller
             ? $pdf->download($filename)
             : $pdf->stream($filename);
     }
+
+    // Download SK
+    public function downloadSKIzin($id)
+    {        
+        // Cari dokumen SK dari tabel lampiran
+        $dokumen = Lampiran::where('permohonan_id', $id)
+                        ->where('lampiran_type', 'sk_izin')
+                        ->latest()
+                        ->firstOrFail();
+        
+        // Return file untuk diunduh
+        return redirect('storage/'.$dokumen->lampiran_path);
+    }
+
+    // Download Sertifikat
+    public function downloadSertifikat($id)
+    {
+        // Cari dokumen SK dari tabel lampiran
+        $dokumen = Lampiran::where('permohonan_id', $id)
+                        ->where('lampiran_type', 'sertifikat_izin')
+                        ->latest()
+                        ->firstOrFail();
+
+        // Return file untuk diunduh
+        return redirect('storage/'.$dokumen->lampiran_path);
+    }
     
+    // Download Semua Dokumen
     public function downloadAllDokumen(Permohonan $permohonan)
     {
         // Validasi permohonan memiliki lampiran

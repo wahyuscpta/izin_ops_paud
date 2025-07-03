@@ -7,20 +7,21 @@ use Illuminate\Notifications\Messages\MailMessage;
 
 class CustomVerifyEmail extends VerifyEmail
 {
-    // Properti untuk menyimpan URL verifikasi
+    // Properti opsional untuk menampung URL verifikasi yang dikustom
     public $url;
 
+    // Override method bawaan untuk mengirim email menggunakan custom view
     public function toMail($notifiable)
     {
+         // Gunakan URL yang dikirim dari luar, atau fallback ke bawaan Laravel
         $verificationUrl = $this->url ?? $this->verificationUrl($notifiable);
         
-        // Pastikan komponen variabel yang diperlukan tersedia
         return (new MailMessage)
-            ->subject('Verifikasi Email Anda')
-            ->view('emails.verify', [
-                'url' => $verificationUrl, 
-                'user' => $notifiable,
-                'app_name' => config('app.name')
+            ->subject('Verifikasi Email Anda')          // Subjek email
+            ->view('emails.verify', [                   // Custom Blade view
+                'url' => $verificationUrl,              // Kirim URL verifikasi ke view
+                'user' => $notifiable,                  // Data user penerima
+                'app_name' => config('app.name')        // Nama aplikasi dari konfigurasi
             ]);
     }
 }

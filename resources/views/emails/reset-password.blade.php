@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Verifikasi - Disdikpora Kabupaten Badung</title>
+    <title>Reset Password - Disdikpora Kabupaten Badung</title>
     <style>
         * {
             margin: 0;
@@ -296,27 +296,19 @@
                     <div class="logo-text-mobile">Disdikpora Kab Badung</div>
                 </div>
                 
-                <h1>Yth. Bapak/Ibu {{ $user->name }},</h1>
+                <h1>Yth. Bapak/Ibu {{ $user->name }},</h1>                            
                 
-                <p>Terima kasih telah melakukan pendaftaran pada <strong>Sistem Permohonan Izin Operasional PAUD</strong> 
-                <span class="full-text">Dinas Pendidikan Pemuda dan Olahraga Kabupaten Badung</span>
-                <span class="short-text">Dinas Pendidikan Pemuda dan Olahraga Kab Badung</span>.</p>
-                
-                <p>Sebagai langkah keamanan dan untuk memastikan keabsahan informasi, kami memerlukan verifikasi alamat email Anda. Silakan klik tombol di bawah ini untuk memverifikasi email dan melanjutkan proses permohonan izin operasional PAUD:</p>
+                <p>Anda menerima email ini karena kami menerima permintaan untuk <strong>mengatur ulang kata sandi</strong> akun Anda.Tautan untuk mengatur ulang kata sandi ini akan kedaluwarsa dalam 60 menit. Jika Anda tidak merasa melakukan permintaan ini, Anda tidak perlu melakukan tindakan apa pun.</p>
                 
                 <div class="button-container">
-                    <a href="{{ $url }}" class="button">Verifikasi Email</a>
+                    <a href="{{ $url }}" class="button">Reset Password</a>
                 </div>
 
-                <p>Jika Anda mengalami kendala dalam proses verifikasi, silakan klik tautan berikut atau salin ke browser Anda:</p>
+                <p>Jika Anda mengalami kendala dalam proses reset password, silakan klik tautan berikut atau salin ke browser Anda:</p>
 
                 <div class="help">
                     <a href="{{ $url }}">{{ $url }}</a>
-                </div>
-                
-                <div class="signature">
-                    Jika Anda tidak melakukan pendaftaran ini, silakan abaikan email ini.
-                </div>
+                </div>            
             </div>
             
             <div class="footer">

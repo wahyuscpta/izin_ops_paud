@@ -45,40 +45,6 @@ class ListPermohonans extends ListRecords
             return [];
         }
 
-        // Tabs untuk Kepala Dinas
-        if (Auth::user()->hasRole('kepala_dinas')) {
-            return [
-                'Semua' => Tab::make('Semua')
-                    ->badge(function () {
-                        return $this->getTotalPermohonanCount([
-                            'proses_penerbitan_izin',
-                            'izin_diterbitkan',
-                        ]);
-                    })
-                    ->modifyQueryUsing(fn ($query) =>
-                        $query->whereIn('status_permohonan', [
-                            'proses_penerbitan_izin',
-                            'izin_diterbitkan',
-                        ])
-                    )
-                    ->extraAttributes(['class' => 'kepala-dinas-tab']),
-
-                'Proses Penerbitan Izin' => Tab::make('Menunggu Penerbitan Izin')
-                    ->badge(function () {
-                        return $this->getTotalPermohonanCount('proses_penerbitan_izin');
-                    })
-                    ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'proses_penerbitan_izin'))
-                    ->extraAttributes(['class' => 'kepala-dinas-tab']),
-
-                'Izin Diterbitkan' => Tab::make('Izin Diterbitkan')
-                    ->badge(function () {
-                        return $this->getTotalPermohonanCount('izin_diterbitkan');
-                    })
-                    ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'izin_diterbitkan'))
-                    ->extraAttributes(['class' => 'kepala-dinas-tab']),
-            ];
-        }
-
         // Tabs untuk Admin dan Super Admin
         if (Auth::user()->hasRole('admin') || Auth::user()->hasRole('super_admin')) {
             return [
@@ -95,7 +61,7 @@ class ListPermohonans extends ListRecords
                     ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', 'menunggu_verifikasi'))
                     ->extraAttributes(['class' => 'admin-tab']),
 
-                'Proses Validasi Lapangan' => Tab::make('Validasi Lapangan')
+                'Menunggu Validasi Lapangan' => Tab::make('Validasi Lapangan')
                     ->badge(function () {
                         return $this->getTotalPermohonanCount('menunggu_validasi_lapangan');
                     })

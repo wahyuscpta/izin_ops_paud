@@ -2,17 +2,19 @@
 
 namespace App\Filament\Resources\PermohonanResource\Widgets;
 
-use Filament\Forms;
+use App\Models\Permohonan;
+use Illuminate\Support\Facades\File;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Widgets\Widget;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class StatusCard extends Widget implements HasForms
 {
@@ -37,6 +39,7 @@ class StatusCard extends Widget implements HasForms
         $this->record = $record;        
     }
 
+    // Menentukan path penyimpanan state form di dalam komponen
     protected function getFormStatePath(): string
     {
         return 'formData';
@@ -113,7 +116,7 @@ class StatusCard extends Widget implements HasForms
                     ->required()
                     ->visible(fn () => $this->showModalValidasi),
 
-                FileUpload::make('file_sk_izin')
+                FileUpload::make('sk_izin')
                     ->label('Upload SK Izin Operasional')
                     ->columnSpanFull()
                     ->directory('lampiran')
@@ -123,7 +126,7 @@ class StatusCard extends Widget implements HasForms
                     ->required()
                     ->visible(fn () => $this->showModalPenerbitanIzin),
 
-                FileUpload::make('file_sertifikat_izin')
+                FileUpload::make('sertifikat_izin')
                     ->label('Upload Sertifikasi Izin Operasional')
                     ->columnSpanFull()
                     ->directory('lampiran')
@@ -136,52 +139,108 @@ class StatusCard extends Widget implements HasForms
         ];
     }
 
+    // Method untuk memverifikasi permohonan
     public function submitVerifikasi()
     {
+        // Update status permohonan di database
         $this->record->update([
-                'status_permohonan' => 'menunggu_validasi_lapangan'
-            ]);
-        
+            'status_permohonan' => 'menunggu_validasi_lapangan'
+        ]);        
+
+        // Catat aktivitas verifikasi
+        activity()
+            ->causedBy(Auth::user())
+            ->performedOn($this->record)
+            ->withProperties([
+                'attributes' => [
+                    'status_permohonan' => $this->record->status_permohonan,
+                    'nama_pemohon' => $this->record->nama_pemohon,
+                ],
+                'role' => Auth::user()?->getRoleNames()?->first(),
+            ])
+            ->event('updated')
+            ->useLog('Permohonan') 
+            ->log('Telah memverifikasi permohonan izin operasional milik "' . $this->record->identitas->nama_lembaga . '" dan mengubah status menjadi "Menunggu Validasi Lapangan"');
+
+        // Tampilkan notifikasi berhasil ke pengguna
         Notification::make()
             ->success()
             ->title('Proses Berhasil')
-            ->body('Status permohonan telah diverifikasi')
+            ->body('Status permohonan telah diverifikasi.')
             ->send();
 
+        // Redirect pengguna ke halaman daftar permohonan
         return redirect()->to('permohonans');
     }
 
+    // Method untuk menyimpan hasil validasi lapangan
     public function save()
     {
+        // Ambil seluruh data form (termasuk file dan field input lainnya)
         $data = $this->form->getState();
 
         try {
-            if (!empty($data['file_validasi_lapangan'])) {
-                $filePath = is_array($data['file_validasi_lapangan'])
-                    ? reset($data['file_validasi_lapangan'])
-                    : $data['file_validasi_lapangan'];
+            DB::transaction(function () use ($data) {
+                // Jika ada file validasi lapangan yang diunggah
+                if (!empty($data['file_validasi_lapangan'])) {
+                    // Ambil path file (support untuk array/multiple dan single)
+                    $filePath = is_array($data['file_validasi_lapangan'])
+                        ? reset($data['file_validasi_lapangan']) // ambil file pertama jika multiple
+                        : $data['file_validasi_lapangan'];
+    
+                    // Simpan file sebagai lampiran ke tabel lampiran terkait permohonan
+                    $this->record->lampiran()->create([
+                        'lampiran_type' => 'file_validasi_lapangan',
+                        'lampiran_path' => $filePath,
+                    ]);
+                }
 
-                $this->record->lampiran()->create([
-                    'lampiran_type' => 'file_validasi_lapangan',
-                    'lampiran_path' => $filePath,
+                // Nilai awal acuan jika belum ada SK sebelumnya
+                $defaultSk = 351;
+                // Ambil nomor SK terakhir dari database (jika ada)
+                $latestSk = Permohonan::whereNotNull('no_sk')
+                    ->orderByDesc('no_sk')
+                    ->value('no_sk');
+                // Konversi nilai ke integer, lalu tambahkan 1
+                $newSk = intval($latestSk ?? $defaultSk) + 1;
+    
+                // Update data permohonan
+                $this->record->update([
+                    'status_permohonan' => 'proses_penerbitan_izin',
+                    'no_surat_rekomendasi' => $data['no_surat_rekomendasi'],
+                    'tgl_surat_rekomendasi' => $data['tgl_surat_rekomendasi'],
+                    'pemberi_rekomendasi' => $data['pemberi_rekomendasi'],
+                    'no_verifikasi' => $data['no_verifikasi'],
+                    'tgl_verifikasi' => $data['tgl_verifikasi'],
+                    'no_sk' => $newSk
                 ]);
-            }
+            });
 
-            $this->record->update([
-                'status_permohonan' => 'proses_penerbitan_izin',
-                'no_verifikasi' => $data['no_verifikasi'],
-                'tgl_verifikasi' => $data['tgl_verifikasi'],
-            ]);
-
+            // Catat aktivitas bahwa proses validasi lapangan telah dilakukan
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($this->record)
+                ->withProperties([
+                    'attributes' => [
+                        'status_permohonan' => $this->record->status_permohonan,
+                        'nama_pemohon' => $this->record->nama_pemohon,
+                    ],
+                    'role' => Auth::user()?->getRoleNames()?->first(),
+                ])
+                ->event('updated')
+                ->useLog('Permohonan') 
+                ->log('Telah melakukan proses validasi lapangan milik "' . $this->record->identitas->nama_lembaga . '" dan mengubah status menjadi "Proses Penerbitan Izin"');
             
+            // Tampilkan notifikasi sukses ke pengguna
             Notification::make()
                 ->success()
                 ->title('Proses Berhasil')
                 ->body('Status validasi lapangan berhasil disimpan')
                 ->send();
-            
+            // Redirect kembali ke halaman daftar permohonan
             return redirect()->to('permohonans');
         } catch (\Exception $e) {
+            // Tampilkan notifikasi jika terjadi error saat menyimpan
             Notification::make()
                 ->danger()
                 ->title('Proses Gagal')
@@ -197,21 +256,63 @@ class StatusCard extends Widget implements HasForms
         $data = $this->form->getState();
         
         try {
-            foreach (['file_sk_izin', 'file_sertifikat_izin'] as $type) {
+            foreach (['sk_izin', 'sertifikat_izin'] as $type) {
                 if (!empty($data[$type])) {
                     $filePath = is_array($data[$type]) ? reset($data[$type]) : $data[$type];
-        
-                    $this->record->lampiran()->create([
-                        'lampiran_type' => $type,
-                        'lampiran_path' => $filePath,
-                    ]);
+                    
+                    // Ambil file original dari temporary storage
+                    $tmpPath = storage_path('app/public/' . $filePath);
+                    
+                    // Generate nama file baru
+                    $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+                    $newFileName = strtoupper(str_replace(' ', '_', $type . '_' . $this->record->identitas->nama_lembaga)) . '.' . $extension;
+                    
+                    // Path tujuan untuk file dengan nama baru
+                    $newPath = 'lampiran/' . $newFileName;
+                    $newFullPath = storage_path('app/public/' . $newPath);
+                    
+                    // Pindahkan file dengan nama baru
+                    if (File::exists($tmpPath)) {
+                        // Pastikan direktori tujuan ada
+                        File::ensureDirectoryExists(dirname($newFullPath));
+                        
+                        // Salin file ke lokasi baru dengan nama baru
+                        File::copy($tmpPath, $newFullPath);
+                        
+                        // Hapus file temporary (opsional)
+                        File::delete($tmpPath);
+                        
+                        // Simpan path baru ke database
+                        $this->record->lampiran()->create([
+                            'lampiran_type' => $type,
+                            'lampiran_path' => $newPath,
+                        ]);
+                    }
                 }
             }
         
+            // Update data permohonan
             $this->record->update([
                 'status_permohonan' => 'izin_diterbitkan',
+                'tgl_status_terakhir' => now()
             ]);
+
+            // Catat aktivitas bahwa proses validasi lapangan telah dilakukan
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($this->record)
+                ->withProperties([
+                    'attributes' => [
+                        'status_permohonan' => $this->record->status_permohonan,
+                        'nama_pemohon' => $this->record->nama_pemohon,
+                    ],
+                    'role' => Auth::user()?->getRoleNames()?->first(),
+                ])
+                ->event('updated')
+                ->useLog('Permohonan') 
+                ->log('Telah menerbitkan izin permohonan milik "' . $this->record->identitas->nama_lembaga . '" dan mengubah status menjadi "Izin Diterbitkan"');
         
+            // Tampilkan notifikasi sukses ke pengguna
             Notification::make()
                 ->success()
                 ->title('Proses Berhasil')
@@ -220,6 +321,7 @@ class StatusCard extends Widget implements HasForms
         
             return redirect()->to('permohonans');
         } catch (\Exception $e) {
+            // Tampilkan notifikasi gagal ke pengguna
             Notification::make()
                 ->danger()
                 ->title('Proses Gagal')
@@ -231,6 +333,7 @@ class StatusCard extends Widget implements HasForms
         
     }
 
+    // Method untuk penolakan permohonan
     public function submitPenolakan()
     {
         $data = $this->form->getState();
@@ -240,7 +343,22 @@ class StatusCard extends Widget implements HasForms
             'catatan' => $data['catatan'],
         ]);
 
+        // Mengirim event Livewire untuk menutup modal dengan ID 'catatan-tolak'
         $this->dispatch('close-modal', id: 'catatan-tolak');
+
+        activity()
+            ->causedBy(Auth::user())
+            ->performedOn($this->record)
+            ->withProperties([
+                'attributes' => [
+                    'status_permohonan' => $this->record->status_permohonan,
+                    'nama_pemohon' => $this->record->nama_pemohon,
+                ],
+                'role' => Auth::user()?->getRoleNames()?->first(),
+            ])
+            ->event('updated')
+            ->useLog('Permohonan') 
+            ->log('Telah menolak permohonan izin milik "' . $this->record->identitas->nama_lembaga . '" dan mengubah status menjadi "Permohonan Ditolak"');
 
         Notification::make()
             ->success()
