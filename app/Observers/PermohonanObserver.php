@@ -59,7 +59,7 @@ class PermohonanObserver
     {
         if ($permohonan->wasChanged('tanggal_kunjungan')) {
             
-            $tanggal = $permohonan->tanggal_kunjungan;
+            $tanggal = $tanggal = \Carbon\Carbon::parse($permohonan->tanggal_kunjungan)->format('d F Y');
             $pemohon = $permohonan->user;
 
             Notification::make()
@@ -92,6 +92,8 @@ class PermohonanObserver
             $pemohon = $permohonan->user;
             // Ambil semua pengguna dengan peran admin
             $admins = User::role('admin')->get();
+            // Ambil tanggal kunjungan dari permohonan
+            $tanggal = \Carbon\Carbon::parse($permohonan->tanggal_kunjungan)->format('d F Y');
 
             if ($status === 'menunggu_verifikasi') {
                 foreach ($admins as $admin) {
@@ -146,7 +148,7 @@ class PermohonanObserver
                     ->title('Permohonan Telah Diverifikasi')
                     ->icon('heroicon-o-information-circle')
                     ->iconColor('primary')
-                    ->body('Permohonan Anda telah diverifikasi dan masuk tahap validasi lapangan.')
+                    ->body('Permohonan Anda telah diverifikasi dan masuk tahap validasi lapangan. Kunjungan dijadwalkan pada tanggal ' . $tanggal . '.')
                     ->sendToDatabase($pemohon);
 
                 $pemohon->notify(new EmailStatusNotification(
