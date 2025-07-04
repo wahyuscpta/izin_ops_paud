@@ -221,6 +221,10 @@
             </div>
         </div>
 
+        <x-slot name="description">
+            Silakan pilih tanggal baru untuk kunjungan validasi lapangan. Pastikan tanggal yang dipilih sudah disepakati dan bukan hari ini atau sebelumnya.
+        </x-slot>
+
         <x-slot name="footer">
             <div class="flex justify-end gap-3">
                 <x-filament::button color="gray" wire:click="closeModalEditTanggal">
@@ -259,7 +263,11 @@
         <x-slot name="heading">
             <div class="flex items-center gap-2">
                 <x-filament::icon icon="heroicon-o-shield-check" class="h-6 w-6 text-primary-500" />
-                <span>Konfirmasi Verifikasi</span>
+                @if ($wizardStep === 1)
+                    <span>Konfirmasi Verifikasi</span>
+                @elseif ($wizardStep === 2)
+                    <span>Atur Tanggal Kunjungan Lapangan</span>
+                @endif
             </div>
         </x-slot>
 
@@ -296,6 +304,10 @@
                 <div class="space-y-4 p-4">                    
                     {{ $this->form }}
                 </div>
+
+                <x-slot name="description">
+                    Silakan pilih tanggal baru untuk kunjungan validasi lapangan. Pastikan tanggal yang dipilih sudah disepakati dan bukan hari ini atau sebelumnya.
+                </x-slot>
             @endif
 
         </div>
