@@ -60,6 +60,7 @@ class StatusCard extends Widget implements HasForms
                 ->rules(['after:today'])
                 ->validationMessages([
                     'after' => 'Tanggal kunjungan harus lebih dari hari ini.',
+                    'required' => 'Tanggal kunjungan harus diisi.'
                 ])
                 ->visible(fn () => $this->showModalVerifikasi || $this->showModalEditTanggal),
 
@@ -69,6 +70,9 @@ class StatusCard extends Widget implements HasForms
                 ->label('')                
                 ->rows(4)
                 ->columnSpanFull()
+                ->validationMessages([
+                    'required' => 'Catatan harus diisi.'
+                ])
                 ->visible(fn () => $this->showModalTolak),
                     
                 TextInput::make('no_sk')
@@ -76,6 +80,9 @@ class StatusCard extends Widget implements HasForms
                     ->required()
                     ->numeric()
                     ->maxLength(255)
+                    ->validationMessages([
+                        'required' => 'No SK harus diisi.'
+                    ])
                     ->visible(fn () => $this->showModalValidasi),
 
                 TextInput::make('pemberi_rekomendasi')
@@ -83,6 +90,10 @@ class StatusCard extends Widget implements HasForms
                     ->required()
                     ->maxLength(255)
                     ->rules(['string', 'max:255',])
+                    ->validationMessages([
+                        'required' => 'Pemberi Rekomendasi harus diisi.',
+                        'rules' => 'Maksimal 255 kata'
+                    ])
                     ->visible(fn () => $this->showModalValidasi),
 
                 TextInput::make('no_surat_rekomendasi')
@@ -94,12 +105,20 @@ class StatusCard extends Widget implements HasForms
                         'max:255', 
                         'regex:/^[A-Za-z0-9\/\.\- ]+$/'
                     ])
+                    ->validationMessages([
+                        'required' => 'Nomor Surat Rekomendasi harus diisi.',
+                        'rules' => 'Inputan tidak sesuai kebijakan berlaku.'
+                    ])
                     ->visible(fn () => $this->showModalValidasi),
 
                 DatePicker::make('tgl_surat_rekomendasi')
                     ->label('Tanggal Surat Rekomendasi')
                     ->required()
                     ->rules(['date'])
+                    ->validationMessages([
+                        'required' => 'Tanggal Surat Rekomendasi harus diisi.',
+                        'rules' => 'Inputan tidak sesuai kebijakan berlaku.'
+                    ])
                     ->visible(fn () => $this->showModalValidasi),
 
                 TextInput::make('no_verifikasi')
@@ -111,12 +130,20 @@ class StatusCard extends Widget implements HasForms
                         'max:255',
                         'regex:/^[A-Za-z0-9\/\.\- ]+$/'
                     ])
+                    ->validationMessages([
+                        'required' => 'Nomor Berkas Verifikasi harus diisi.',
+                        'rules' => 'Inputan tidak sesuai kebijakan berlaku.'
+                    ])
                     ->visible(fn () => $this->showModalValidasi),
 
                 DatePicker::make('tgl_verifikasi')
                     ->label('Tanggal Verifikasi')
                     ->required()
                     ->rules(['date'])
+                    ->validationMessages([
+                        'required' => 'Tanggal Verifikasi harus diisi.',
+                        'rules' => 'Inputan tidak sesuai kebijakan berlaku.'
+                    ])
                     ->visible(fn () => $this->showModalValidasi),
 
 
@@ -129,6 +156,9 @@ class StatusCard extends Widget implements HasForms
                     ->maxSize(2048)
                     ->extraAttributes(['class' => 'custom-file-upload'])
                     ->required()
+                    ->validationMessages([
+                        'required' => 'Berkas Validasi Lapangan harus diisi.'
+                    ])
                     ->visible(fn () => $this->showModalValidasi),
 
                 FileUpload::make('sk_izin')
@@ -139,6 +169,9 @@ class StatusCard extends Widget implements HasForms
                     ->acceptedFileTypes(['application/pdf'])
                     ->maxSize(2048)
                     ->required()
+                    ->validationMessages([
+                        'required' => 'SK Izin Operasional harus diisi.'
+                    ])
                     ->visible(fn () => $this->showModalPenerbitanIzin),
 
                 FileUpload::make('sertifikat_izin')
@@ -149,6 +182,9 @@ class StatusCard extends Widget implements HasForms
                     ->acceptedFileTypes(['application/pdf'])
                     ->maxSize(2048)
                     ->required()
+                    ->validationMessages([
+                        'required' => 'Sertifikat Izin Operasional harus diisi.'
+                    ])
                     ->visible(fn () => $this->showModalPenerbitanIzin),
             ])
             ->visible(fn () => !$this->showModalVerifikasi && !$this->showModalEditTanggal),
