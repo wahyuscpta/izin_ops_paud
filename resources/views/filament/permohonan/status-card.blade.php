@@ -39,7 +39,7 @@
                 </p>
             </div>
 
-            @if ($record->user->hasRole('admin'))
+            @if (Auth::user()->hasRole('admin'))
                 <x-filament::button
                     size="sm"
                     color="primary"
