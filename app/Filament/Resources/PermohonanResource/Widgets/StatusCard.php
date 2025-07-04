@@ -73,17 +73,7 @@ class StatusCard extends Widget implements HasForms
                 ->validationMessages([
                     'required' => 'Catatan harus diisi.'
                 ])
-                ->visible(fn () => $this->showModalTolak),
-                    
-                TextInput::make('no_sk')
-                    ->label('Nomor SK Izin Operasional')
-                    ->required()
-                    ->numeric()
-                    ->maxLength(255)
-                    ->validationMessages([
-                        'required' => 'No SK harus diisi.'
-                    ])
-                    ->visible(fn () => $this->showModalValidasi),
+                ->visible(fn () => $this->showModalTolak),            
 
                 TextInput::make('pemberi_rekomendasi')
                     ->label('Pemberi Rekomendasi')
@@ -94,6 +84,7 @@ class StatusCard extends Widget implements HasForms
                         'required' => 'Pemberi Rekomendasi harus diisi.',
                         'rules' => 'Maksimal 255 kata'
                     ])
+                    ->columnSpanFull()
                     ->visible(fn () => $this->showModalValidasi),
 
                 TextInput::make('no_surat_rekomendasi')
