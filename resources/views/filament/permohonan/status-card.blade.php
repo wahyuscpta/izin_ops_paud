@@ -30,7 +30,7 @@
 <div class="root">
 
     {{-- Tanggal Kunjungan --}}
-    @if ($record->status_permohonan === 'menunggu_validasi_lapangan' && $record->user->hasRole('admin'))
+    @if ($record->status_permohonan === 'menunggu_validasi_lapangan')
         <div class="flex items-start justify-between border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 self-start" style="border-radius: 10px; padding: 10px 30px; margin-bottom: 20px">
             <div>
                 <p class="mt-1 text-sm font-semibold text-primary-700">Tanggal Kunjungan Lapangan</p>
@@ -39,16 +39,18 @@
                 </p>
             </div>
 
-            <x-filament::button
-                size="sm"
-                color="primary"
-                wire:click="openModalEditTanggal"
-                style="margin-top: 12px" 
-                :disabled="\Carbon\Carbon::parse($record->tanggal_kunjungan)->isToday()"
-                title="{{ \Carbon\Carbon::parse($record->tanggal_kunjungan)->isToday() ? 'Tanggal hari ini tidak dapat diubah' : 'Ubah tanggal kunjungan' }}"
-            >
-                <x-filament::icon icon="heroicon-o-pencil" class="h-4 w-4"/>
-            </x-filament::button>
+            @if ($record->user->hasRole('admin'))
+                <x-filament::button
+                    size="sm"
+                    color="primary"
+                    wire:click="openModalEditTanggal"
+                    style="margin-top: 12px" 
+                    :disabled="\Carbon\Carbon::parse($record->tanggal_kunjungan)->isToday()"
+                    title="{{ \Carbon\Carbon::parse($record->tanggal_kunjungan)->isToday() ? 'Tanggal hari ini tidak dapat diubah' : 'Ubah tanggal kunjungan' }}"
+                >
+                    <x-filament::icon icon="heroicon-o-pencil" class="h-4 w-4"/>
+                </x-filament::button>
+            @endif
         </div>
     @endif
 
