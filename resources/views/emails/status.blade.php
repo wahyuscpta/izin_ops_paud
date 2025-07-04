@@ -464,7 +464,7 @@
                             </tr>
                             <tr>
                                 <td>Tanggal Pembaruan</td>
-                                <td>{{ $permohonan->updated_at->format('d F Y H:i') }}</td>
+                                <td>{{ $permohonan->updated_at->format('d F Y') }}</td>
                             </tr>
                             @if($permohonan->notes)
                             <tr>
@@ -474,6 +474,39 @@
                             @endif
                         </table>
                     </div>
+
+                    @elseif($notificationType == 'tanggal_update' && $userRole == 'pemohon')
+                        <h1>Pembaruan Tanggal Kunjungan Lapangan Permohonan Anda</h1>
+
+                        <p>Yth. Bapak/Ibu {{ $user->name }},</p>
+
+                        <p>
+                            Kami informasikan bahwa permohonan <strong>Izin Operasional PAUD</strong> Anda pada
+                            <span class="full-text">Dinas Pendidikan Pemuda dan Olahraga Kabupaten Badung</span>
+                            <span class="short-text">Disdikpora Kabupaten Badung</span> telah mengalami perubahan pada tanggal kunjungan lapangan.
+                        </p>
+
+                        <div class="status-detail">
+                            <table class="info-table">
+                                <tr>
+                                    <td>Nomor Registrasi</td>
+                                    <td>{{ $permohonan->no_permohonan }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Nama Lembaga</td>
+                                    <td>{{ $permohonan->identitas->nama_lembaga }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Tanggal Kunjungan Baru</td>
+                                    <td><strong>{{ \Carbon\Carbon::parse($permohonan->tanggal_kunjungan)->format('d F Y') }}</strong></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <p>
+                            Harap pastikan kehadiran atau kesiapan lembaga pada tanggal tersebut. Terima kasih atas perhatian dan kerjasamanya.
+                        </p>
+                    @endif
                     
                     @if($formattedStatus  == 'Disetujui')
                     <p>Selamat! Permohonan Izin Operasional PAUD Anda telah <strong>disetujui</strong>. Sertifikat Izin Operasional dapat diunduh melalui sistem.</p>

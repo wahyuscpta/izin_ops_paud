@@ -57,6 +57,32 @@ class PermohonanObserver
 
     public function updated(Permohonan $permohonan): void
     {
+        if ($permohonan->wasChanged('tanggal_kunjungan')) {
+            
+            $tanggal = $permohonan->tanggal_kunjungan;
+            $pemohon = $permohonan->user;
+
+            Notification::make()
+            ->title('Perubahan Tanggal Kunjungan')
+            ->icon('heroicon-o-information-circle')
+            ->iconColor('primary')
+            ->body('Tanggal kunjungan lapangan untuk permohonan anda telah diubah ke tanggal ' . $tanggal  .' . Mohon segera lakukan pengecekan dan verifikasi.')
+            ->actions([
+                Action::make('view')
+                    ->button()
+                    ->url(fn () => route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id]))
+                    ->markAsRead(),
+            ])
+            ->sendToDatabase($pemohon);
+
+            $pemohon->notify(new EmailStatusNotification(
+                $permohonan, 
+                'tanggal_update', 
+                'pemohon', 
+                route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
+            ));
+        }
+
         // Periksa apakah status_permohonan mengalami perubahan setelah update
         if ($permohonan->wasChanged('status_permohonan')) {
 

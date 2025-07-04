@@ -90,6 +90,11 @@ class EmailStatusNotification extends Notification implements ShouldQueue
             }
 
         // Jika jenis notifikasi adalah 'reminder'
+        } elseif ($this->notificationType == 'tanggal_update') {
+            // Subjek berupa pengingat tindakan terhadap permohonan
+            return 'Perubahan Tanggal Kunjungan Lapangan';
+        
+        // Jika jenis notifikasi adalah 'reminder'
         } elseif ($this->notificationType == 'reminder') {
             // Subjek berupa pengingat tindakan terhadap permohonan
             return 'Pengingat: Permohonan Izin Operasional PAUD Menunggu Tindakan';

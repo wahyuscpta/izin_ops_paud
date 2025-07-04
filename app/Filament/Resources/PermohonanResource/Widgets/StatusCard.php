@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\PermohonanResource\Widgets;
 
 use App\Models\Permohonan;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\File;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Fieldset;
@@ -24,7 +25,11 @@ class StatusCard extends Widget implements HasForms
 
     public $record;
 
+    public int $wizardStep = 1;
+
     public $showModalTolak = false;
+
+    public $showModalEditTanggal = false;
 
     public $showModalVerifikasi = false;
 
@@ -47,7 +52,17 @@ class StatusCard extends Widget implements HasForms
 
     public function getFormSchema(): array
     {
-        return [                
+        return [                                
+            DatePicker::make('tanggal_kunjungan')
+                ->label('Tanggal Kunjungan Lapangan')
+                ->required()
+                ->columnSpanFull()
+                ->rules(['after:today'])
+                ->validationMessages([
+                    'after' => 'Tanggal kunjungan harus lebih dari hari ini.',
+                ])
+                ->visible(fn () => $this->showModalVerifikasi || $this->showModalEditTanggal),
+
             Fieldset::make('')
             ->schema([
                 Textarea::make('catatan')
@@ -136,14 +151,61 @@ class StatusCard extends Widget implements HasForms
                     ->required()
                     ->visible(fn () => $this->showModalPenerbitanIzin),
             ])
+            ->visible(fn () => !$this->showModalVerifikasi && !$this->showModalEditTanggal),
         ];
+    }
+
+    public function nextStep()
+    {
+        $this->wizardStep++;
+    }
+
+    // Method untuk memverifikasi permohonan
+    public function submitTanggalBaru()
+    {
+        // Ambil seluruh data form (termasuk file dan field input lainnya)
+        $data = $this->form->getState();
+
+        // Update status permohonan di database
+        $this->record->update([
+            'tanggal_kunjungan' => $data['tanggal_kunjungan'],
+        ]);        
+
+        // Catat aktivitas verifikasi
+        activity()
+            ->causedBy(Auth::user())
+            ->performedOn($this->record)
+            ->withProperties([
+                'attributes' => [
+                    'status_permohonan' => $this->record->status_permohonan,
+                    'nama_pemohon' => $this->record->nama_pemohon,
+                ],
+                'role' => Auth::user()?->getRoleNames()?->first(),
+            ])
+            ->event('updated')
+            ->useLog('Permohonan') 
+            ->log('Telah mengubah tanggal kunjungan lapangan pada ' . $this->record->tanggal_kunjungan . '');
+
+        // Tampilkan notifikasi berhasil ke pengguna
+        Notification::make()
+            ->success()
+            ->title('Proses Berhasil')
+            ->body('Tanggal kunjungan lapangan berhasil diubah.')
+            ->send();
+
+        // Redirect pengguna ke halaman daftar permohonan
+        return redirect()->to('permohonans');
     }
 
     // Method untuk memverifikasi permohonan
     public function submitVerifikasi()
     {
+        // Ambil seluruh data form (termasuk file dan field input lainnya)
+        $data = $this->form->getState();
+
         // Update status permohonan di database
         $this->record->update([
+            'tanggal_kunjungan' => $data['tanggal_kunjungan'],
             'status_permohonan' => 'menunggu_validasi_lapangan'
         ]);        
 
@@ -160,7 +222,7 @@ class StatusCard extends Widget implements HasForms
             ])
             ->event('updated')
             ->useLog('Permohonan') 
-            ->log('Telah memverifikasi permohonan izin operasional milik "' . $this->record->identitas->nama_lembaga . '" dan mengubah status menjadi "Menunggu Validasi Lapangan"');
+            ->log('Telah memverifikasi permohonan izin operasional milik ' . $this->record->identitas->nama_lembaga . ' dan mengubah status menjadi Menunggu Validasi Lapangan');
 
         // Tampilkan notifikasi berhasil ke pengguna
         Notification::make()
@@ -423,6 +485,29 @@ class StatusCard extends Widget implements HasForms
         $this->showModalPenerbitanIzin = false;
 
         $this->dispatch('close-modal', id: 'penerbitan-izin');
+    }
+
+    public function openModalEditTanggal()
+    {
+        if (Carbon::parse($this->record->tanggal_kunjungan)->isToday()) {
+            Notification::make()
+                ->warning()
+                ->title('Tanggal tidak dapat diubah')
+                ->body('Tanggal kunjungan hari ini tidak bisa diubah.')
+                ->send();
+            return;
+        }
+    
+        $this->showModalEditTanggal = true;
+
+        $this->dispatch('open-modal', id: 'edit-tanggal');
+    }
+
+    public function closeModalEditTanggal()
+    {
+        $this->showModalEditTanggal = false;
+
+        $this->dispatch('close-modal', id: 'edit-tanggal');
     }
 
 }
