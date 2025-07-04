@@ -2572,10 +2572,10 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                                         </div>
                                                     HTML);
                                                     } else {
-                                                        return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
+                                                        return new HtmlString('<div><p class="text-gray-500">Unggah File PDF maks. 10MB</p></div>');
                                                     }
                                                 } else {
-                                                    return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
+                                                    return new HtmlString('<div><p class="text-gray-500">Unggah File PDF maks. 10MB</p></div>');
                                                 }
                                             }),
     
@@ -2584,7 +2584,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                             ->directory('lampiran')
                                             ->disk('public')
                                             ->acceptedFileTypes(['application/pdf'])
-                                            ->maxSize(2048)
+                                            ->maxSize(10240)
                                             ->required(function ($record, $livewire) use ($field) {
                                                 if ($livewire->isKirimPermohonan) {
                                                     if ($record && $record->lampiran) {
@@ -2597,7 +2597,9 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                                 return false;
                                             })
                                             ->previewable(true)
-                                            ->helperText('Unggah file PDF maks. 2MB'),
+                                            ->validationMessages([
+                                                'required' => 'Dokumen wajib diunggah.',
+                                            ]),
                                     ])->flatten(1)->toArray()
                                 ))->toArray()
                             ),
@@ -2630,10 +2632,10 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                                 </div>
                                             HTML);
                                         } else {
-                                            return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
+                                            return new HtmlString('<div><p class="text-gray-500">Unggah File PDF maks. 10MB</p></div>');
                                         }
                                     } else {
-                                        return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
+                                        return new HtmlString('<div><p class="text-gray-500">Unggah File PDF maks. 10MB</p></div>');
                                     }
                                 }),
     
@@ -2657,7 +2659,9 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         return false;
                                     })
                                     ->previewable(true)
-                                    ->helperText('Unggah file PDF maks. 2MB'),
+                                    ->validationMessages([
+                                        'required' => 'Dokumen wajib diunggah.',
+                                    ]),
                             ])
                         ])    
                         ->hidden(function (Get $get): bool {

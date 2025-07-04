@@ -71,6 +71,9 @@ class CreatePermohonan extends CreateRecord
                 
                 // Save relationships
                 $this->form->model($record)->saveRelationships();
+
+                // Proses after create
+                $this->afterCreate(); 
     
                 if ($redirectUrl = $this->getRedirectUrl()) {
                     $this->redirect($redirectUrl);
@@ -153,6 +156,9 @@ class CreatePermohonan extends CreateRecord
     // Method untuk logging aktivitas
     protected function logActivity(): void
     {
+        // Refresh record dengan relasi
+        $this->record = $this->record->fresh(['identitas']);
+
         activity()
             ->causedBy(Auth::user())
             ->performedOn($this->record)
@@ -165,7 +171,7 @@ class CreatePermohonan extends CreateRecord
             ])
             ->event('created')
             ->useLog('Permohonan') 
-            ->log('Telah mengajukan permohonan izin operasional untuk "' . $this->record->identitas->nama_lembaga . '"');
+            ->log('Telah mengajukan permohonan izin operasional untuk ' . $this->record->identitas->nama_lembaga . '');
     }
     
     // Bersihkan data permohonan kalau terjadi error

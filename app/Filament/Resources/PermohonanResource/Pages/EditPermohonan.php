@@ -138,7 +138,7 @@ class EditPermohonan extends EditRecord
             ])
             ->event('created')
             ->useLog('Permohonan') 
-            ->log('Telah mengajukan permohonan izin operasional untuk "' . $this->record->identitas->nama_lembaga . '"');
+            ->log('Telah mengajukan permohonan izin operasional untuk ' . $this->record->identitas->nama_lembaga . '');
     }
 
     protected function getFormActions(): array
