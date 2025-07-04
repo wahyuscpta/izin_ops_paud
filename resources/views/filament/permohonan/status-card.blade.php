@@ -59,7 +59,7 @@
             <x-filament::badge
                 :color="match($record->status_permohonan) {
                     'draft' => 'secondary',
-                    'menunggu_verifikasi' => 'success',
+                    'menunggu_verifikasi' => 'warning',
                     'menunggu_validasi_lapangan', 'proses_penerbitan_izin' => 'success',
                     'izin_diterbitkan' => 'primary',
                     'ditolak' => 'danger',
