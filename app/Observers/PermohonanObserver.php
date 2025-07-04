@@ -57,7 +57,7 @@ class PermohonanObserver
 
     public function updated(Permohonan $permohonan): void
     {
-        if ($permohonan->wasChanged('tanggal_kunjungan')) {
+        if ($permohonan->isDirty('tanggal_kunjungan') && $permohonan->getOriginal('tanggal_kunjungan') !== null) {
             
             $tanggal = $tanggal = \Carbon\Carbon::parse($permohonan->tanggal_kunjungan)->format('d F Y');
             $pemohon = $permohonan->user;
