@@ -113,6 +113,26 @@
     </style>
 </head>
 <body>
+    @php
+        $identitas = $permohonan->identitas;
+        $penyelenggara = $permohonan->penyelenggara;
+        $pengelola = $permohonan->pengelola;
+        $pesertaDidik = $permohonan->peserta_didik;
+        $personalia = $permohonan->personalia;
+        $programPendidikan = $permohonan->program_pendidikan;
+        $prasarana = $permohonan->prasarana;
+        $sarana = $permohonan->sarana;
+
+        function formatValue($value) {
+            if ($value instanceof \Carbon\Carbon || \Carbon\Carbon::hasFormat($value, 'Y-m-d')) {
+                return \Carbon\Carbon::parse($value)->translatedFormat('d F Y');
+            } elseif (is_string($value)) {
+                return ucwords(strtolower($value));
+            }
+            return $value;
+        }
+    @endphp
+
     <span class="first-page-marker" style="display: none;"></span>
 
     <div class="kop-surat">
@@ -145,7 +165,7 @@
             KABUPATEN BADUNG
         </p>
 
-        <p>NOMOR 351 TAHUN 2025</p>
+        <p>NOMOR {{ $permohonan->no_sk }} TAHUN {{ now()->year }}</p>
 
         <p>TENTANG</p>
 
