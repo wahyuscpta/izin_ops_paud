@@ -104,6 +104,7 @@
         .button:hover {
             box-shadow: 0 4px 10px rgba(67, 97, 238, 0.4);
             background-color: #3651d4;
+            color: #fff !important;
         }
 
         .help {
@@ -305,7 +306,7 @@
                 <p>Sebagai langkah keamanan dan untuk memastikan keabsahan informasi, kami memerlukan verifikasi alamat email Anda. Silakan klik tombol di bawah ini untuk memverifikasi email dan melanjutkan proses permohonan izin operasional PAUD:</p>
                 
                 <div class="button-container">
-                    <a href="{{ $url }}" class="button">Verifikasi Email</a>
+                    <a href="{{ $url }}" class="button" style="color: #fff !important">Verifikasi Email</a>
                 </div>
 
                 <p>Jika Anda mengalami kendala dalam proses verifikasi, silakan klik tautan berikut atau salin ke browser Anda:</p>
