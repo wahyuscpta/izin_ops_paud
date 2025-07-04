@@ -35,7 +35,7 @@
             <div>
                 <p class="mt-1 text-sm font-semibold text-primary-700">Tanggal Kunjungan Lapangan</p>
                 <p class="text-gray-600 dark:text-gray-500">
-                    {{ $record->tanggal_kunjungan ? \Carbon\Carbon::parse($record->tanggal_kunjungan)->format('d M Y') : '-' }}
+                    {{ $record->tanggal_kunjungan ? \Carbon\Carbon::parse($record->tanggal_kunjungan)->locale('id')->format('d M Y') : '-' }}
                 </p>
             </div>
 
@@ -89,12 +89,12 @@
 
             <div>
                 <p class="text-sm font-semibold">Tanggal Diajukan</p>
-                <p class="text-gray-600 dark:text-gray-500">{{ \Carbon\Carbon::parse($record->tgl_permohonan)->format('d M Y') }}</p>
+                <p class="text-gray-600 dark:text-gray-500">{{ \Carbon\Carbon::parse($record->tgl_permohonan)->locale('id')->format('d M Y') }}</p>
             </div>
 
             @php
                 $status = $record->status_permohonan;
-                $tanggal = \Carbon\Carbon::parse($record->tgl_status_terakhir)->format('d M Y');
+                $tanggal = \Carbon\Carbon::parse($record->tgl_status_terakhir)->locale('id')->format('d M Y');
             
                 $labelTanggal = match ($status) {
                     'menunggu_validasi_lapangan' => 'Tanggal Verifikasi Permohonan',
