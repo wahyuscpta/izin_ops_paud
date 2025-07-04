@@ -76,7 +76,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
             return static::getModel()::where('user_id', $user->id)->count();
         }
         
-        return static::getModel()::count();
+        return static::getModel()::where('status_permohonan', '!=', 'draft')->count();
     }    
 
     public static function getPermissionPrefixes(): array
