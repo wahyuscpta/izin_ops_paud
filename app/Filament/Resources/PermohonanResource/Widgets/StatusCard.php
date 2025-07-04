@@ -292,7 +292,7 @@ class StatusCard extends Widget implements HasForms
                     ->value('no_sk');
                 // Konversi nilai ke integer, lalu tambahkan 1
                 $newSk = intval($latestSk ?? $defaultSk) + 1;
-    
+
                 // Update data permohonan
                 $this->record->update([
                     'status_permohonan' => 'proses_penerbitan_izin',

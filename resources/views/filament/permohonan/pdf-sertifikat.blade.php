@@ -89,7 +89,7 @@
         <p>
             <span style="font-size: 16pt">IZIN PENYELENGGARAAN PAUD</span> <br>
             SURAT KEPUTUSAN KEPALA DINAS PENDIDIKAN, KEPEMUDAAN DAN OLAH RAGA KABUPATEN BADUNG <br> 
-            NOMOR 351 TAHUN 2022
+            NOMOR {{ $permohonan->no_sk }} TAHUN {{ now()->year }}
         </p>
     </div>
 
@@ -147,7 +147,7 @@
 
         <tr>
             <td colspan="3" style="padding-top: 12px;">
-                Dengan memperhatikan Permendikbud No.84 Tahun 2014 Tentang Pendirian Satuan Pendidikan Anak Usia Dini, serta syarat-syarat yang ditetapkan dalam surat Keputusan Nomor 351 Tahun 2022, maka izin operasionalnya berlaku terhitung mulai tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_status_terakhir)->locale('id')->translatedFormat('d F Y') }}, dengan catatan bahwa izin ini sewaktu-waktu dapat dicabut bila menyimpang dari aturan yang berlaku.
+                Dengan memperhatikan Permendikbud No.84 Tahun 2014 Tentang Pendirian Satuan Pendidikan Anak Usia Dini, serta syarat-syarat yang ditetapkan dalam surat Keputusan Nomor {{ $permohonan->no_sk }} Tahun 2022, maka izin operasionalnya berlaku terhitung mulai tanggal {{ \Carbon\Carbon::parse($permohonan->tgl_status_terakhir)->locale('id')->translatedFormat('d F Y') }}, dengan catatan bahwa izin ini sewaktu-waktu dapat dicabut bila menyimpang dari aturan yang berlaku.
             </td>
         </tr>
     </table>

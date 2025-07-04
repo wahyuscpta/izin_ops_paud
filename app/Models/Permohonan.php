@@ -25,7 +25,8 @@ class Permohonan extends Model
         'pemberi_rekomendasi',
         'no_verifikasi',
         'tgl_verifikasi',
-        'tanggal_kunjungan'
+        'tanggal_kunjungan',
+        'no_sk'
     ];
     
     protected $guarded = ['id'];
