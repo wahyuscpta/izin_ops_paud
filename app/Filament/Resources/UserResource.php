@@ -54,7 +54,9 @@ class UserResource extends Resource implements HasShieldPermissions
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::count();
+        return static::getModel()::whereDoesntHave('roles', function ($query) {
+            $query->where('name', 'super_admin');
+        })->count();        
     }
 
     public static function getPermissionPrefixes(): array

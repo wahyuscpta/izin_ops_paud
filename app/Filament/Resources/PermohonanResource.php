@@ -2733,7 +2733,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
         }
 
         if ($user->hasRole('admin')) {
-            return parent::getEloquentQuery()->whereIn('status_permohonan', ['menunggu_verifikasi', 'menunggu_validasi_lapangan', 'proses_penerbitan_izin', 'izin_diterbitkan', 'ditolak']);
+            return parent::getEloquentQuery()->whereIn('status_permohonan', ['menunggu_verifikasi', 'menunggu_validasi_lapangan', 'proses_penerbitan_izin', 'izin_diterbitkan', 'permohonan_ditolak']);
         }
 
         if ($user->hasRole('kepala_dinas')) {

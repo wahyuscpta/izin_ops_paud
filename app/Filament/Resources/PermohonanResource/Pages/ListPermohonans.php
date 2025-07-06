@@ -52,6 +52,7 @@ class ListPermohonans extends ListRecords
                     ->badge(function () {
                         return $this->getTotalPermohonanCount();
                     })
+                    ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', '!=', 'draft'))
                     ->extraAttributes(['class' => 'admin-tab']),
 
                 'Menunggu Verifikasi' => Tab::make('Menunggu Verifikasi')
