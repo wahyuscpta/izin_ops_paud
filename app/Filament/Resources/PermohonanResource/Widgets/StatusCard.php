@@ -144,12 +144,14 @@ class StatusCard extends Widget implements HasForms
                     ->directory('lampiran')
                     ->disk('public')
                     ->acceptedFileTypes(['application/pdf'])
-                    ->maxSize(2048)
+                    ->maxSize(10240)
                     ->extraAttributes(['class' => 'custom-file-upload'])
                     ->required()
                     ->validationMessages([
-                        'required' => 'Berkas Validasi Lapangan harus diisi.'
+                        'required' => 'Berkas Validasi Lapangan harus diisi.',
+                        'max' => 'Ukuran berkas tidak boleh lebih dari 10 MB.'
                     ])
+                    ->helperText('Unggah File PDF maks. 10MB')
                     ->visible(fn () => $this->showModalValidasi),
 
                 FileUpload::make('sk_izin')

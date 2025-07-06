@@ -2644,7 +2644,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     ->directory('lampiran')
                                     ->disk('public')
                                     ->acceptedFileTypes(['application/pdf'])
-                                    ->maxSize(2048)
+                                    ->maxSize(10240)
                                     ->required(function ($record, $livewire) {
                                         // Jika mode kirim permohonan, periksa keberadaan lampiran
                                         if ($livewire->isKirimPermohonan) {
