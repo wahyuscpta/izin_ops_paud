@@ -11,6 +11,7 @@ use Filament\Support\Exceptions\Halt;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Str;
 
 class CreateUser extends CreateRecord
 {
@@ -82,7 +83,7 @@ class CreateUser extends CreateRecord
                 ])
                 ->event('created')
                 ->useLog('Pengguna')
-                ->log('Telah membuat akun pengguna baru dengan nama ' . $record->name . ' dengan role ' . $record->getRoleNames()->first() . '.');
+                ->log('Telah membuat akun pengguna baru atas nama ' . $record->name . ' dengan peran: ' . Str::upper($record->getRoleNames()->first()) . '.');
             
             return $record;
 

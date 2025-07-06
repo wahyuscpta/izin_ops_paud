@@ -213,7 +213,7 @@ class StatusCard extends Widget implements HasForms
             ])
             ->event('updated')
             ->useLog('Permohonan') 
-            ->log('Telah mengubah tanggal kunjungan lapangan pada ' . Carbon::parse($this->record->tanggal_kunjungan)->locale('id')->format('d M Y') . '');
+            ->log('Telah mengubah tanggal kunjungan lapangan menjadi ' . Carbon::parse($this->record->tanggal_kunjungan)->locale('id')->translatedFormat('d F Y') . '.');
 
         // Tampilkan notifikasi berhasil ke pengguna
         Notification::make()
@@ -251,7 +251,7 @@ class StatusCard extends Widget implements HasForms
             ])
             ->event('updated')
             ->useLog('Permohonan') 
-            ->log('Telah memverifikasi permohonan izin operasional milik ' . $this->record->identitas->nama_lembaga . ' dan mengubah status menjadi Menunggu Validasi Lapangan');
+            ->log('Telah memverifikasi permohonan milik ' . $this->record->identitas->nama_lembaga . '. Status diperbarui menjadi: MENUNGGU VALIDASI LAPANGAN.');
 
         // Tampilkan notifikasi berhasil ke pengguna
         Notification::make()
@@ -320,7 +320,7 @@ class StatusCard extends Widget implements HasForms
                 ])
                 ->event('updated')
                 ->useLog('Permohonan') 
-                ->log('Telah melakukan proses validasi lapangan milik ' . $this->record->identitas->nama_lembaga . ' dan mengubah status menjadi Proses Penerbitan Izin');
+                ->log('Telah melakukan proses validasi lapangan untuk permohonan milik ' . $this->record->identitas->nama_lembaga . '. Status diperbarui menjadi: PROSES PENERBITAN IZIN.');
             
             // Tampilkan notifikasi sukses ke pengguna
             Notification::make()
@@ -401,7 +401,7 @@ class StatusCard extends Widget implements HasForms
                 ])
                 ->event('updated')
                 ->useLog('Permohonan') 
-                ->log('Telah menerbitkan izin permohonan milik ' . $this->record->identitas->nama_lembaga . ' dan mengubah status menjadi "Izin Diterbitkan"');
+                ->log('Telah menerbitkan izin operasional untuk permohonan milik ' . $this->record->identitas->nama_lembaga . '. Status diperbarui menjadi: IZIN DITERBITKAN.');
         
             // Tampilkan notifikasi sukses ke pengguna
             Notification::make()
@@ -449,7 +449,7 @@ class StatusCard extends Widget implements HasForms
             ])
             ->event('updated')
             ->useLog('Permohonan') 
-            ->log('Telah menolak permohonan izin milik ' . $this->record->identitas->nama_lembaga . ' dan mengubah status menjadi Permohonan Ditolak');
+            ->log('Telah menolak permohonan izin operasional milik ' . $this->record->identitas->nama_lembaga . '. Status diperbarui menjadi: PERMOHONAN DITOLAK.');
 
         Notification::make()
             ->success()

@@ -11,6 +11,7 @@ use Filament\Support\Exceptions\Halt;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Str;
 
 class EditUser extends EditRecord
 {
@@ -67,7 +68,7 @@ class EditUser extends EditRecord
                 ])
                 ->event('updated')
                 ->useLog('Pengguna')
-                ->log('Telah mengubah akun pengguna dengan nama ' . $record->name);
+                ->log('Telah mengubah akun pengguna atas nama ' . $record->name . ' dengan peran: ' . Str::upper($record->getRoleNames()->first()) . '.');
 
             return $record;
         } catch (\Exception $e) {

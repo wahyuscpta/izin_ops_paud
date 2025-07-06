@@ -205,7 +205,7 @@ class UserResource extends Resource implements HasShieldPermissions
                                 ->performedOn($record)
                                 ->event('deleted')
                                 ->useLog('Pengguna')
-                                ->log('Telah menghapus akun pengguna dengan nama ' . $record->name . ' dengan role ' . $record->getRoleNames()->first() . '.');
+                                ->log('Telah menghapus akun pengguna atas nama ' . $record->name . ' dengan peran: ' . Str::upper($record->getRoleNames()->first()) . '.');
                         })
                         ->successNotification(
                             Notification::make()

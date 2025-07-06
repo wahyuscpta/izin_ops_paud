@@ -171,7 +171,7 @@ class CreatePermohonan extends CreateRecord
             ])
             ->event('created')
             ->useLog('Permohonan') 
-            ->log('Telah mengajukan permohonan izin operasional untuk ' . $this->record->identitas->nama_lembaga . '');
+            ->log('Telah mengajukan permohonan izin operasional untuk lembaga ' . $this->record->identitas->nama_lembaga . '.');
     }
     
     // Bersihkan data permohonan kalau terjadi error
