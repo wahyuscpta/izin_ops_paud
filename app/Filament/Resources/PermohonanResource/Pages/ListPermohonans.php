@@ -50,7 +50,7 @@ class ListPermohonans extends ListRecords
             return [
                 'Semua' => Tab::make('Semua')
                     ->badge(function () {
-                        return $this->getTotalPermohonanCount();
+                        return $this->getTotalPermohonanCount('!=', 'draft');
                     })
                     ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', '!=', 'draft'))
                     ->extraAttributes(['class' => 'admin-tab']),
