@@ -12,7 +12,48 @@ use Illuminate\Support\Str;
 
 class PermohonanController extends Controller
 {
-    // Generate Sertifikat
+    // Generate PDF Draft SK
+    public function generateSK(Request $request, $id)
+    {
+        // Ambil data permohonan beserta relasi
+        $permohonan = Permohonan::with(['identitas', 'penyelenggara', 'user'])->findOrFail($id);
+
+        $logoPath = public_path('images/logo.png');
+        $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+        
+        // Pastikan data diformat sebagai array untuk view
+        $data = [
+            'permohonan' => $permohonan,
+            'identitas' => $permohonan->identitas,
+            'penyelenggara' => $permohonan->penyelenggara,
+            'user' => $permohonan->user,
+            'logo' => $logoBase64
+            // Data lain yang mungkin diperlukan
+        ];
+        
+        // Load view dengan data yang benar
+        $pdf = PDF::loadView('filament.permohonan.pdf-izin-operasional', $data);
+        
+        // Konfigurasi PDF
+        $pdf->setPaper('legal');
+        $pdf->setOptions([
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+            'defaultFont' => 'times',
+            'isPhpEnabled' => true,
+            'isJavascriptEnabled' => false,
+        ]);
+        
+        // Tentukan nama file dengan format yang lebih baik
+        $filename = 'SK_IZIN_' . $permohonan->nomor_sk . '_' . $permohonan->id . '.pdf';
+        
+        // Return berdasarkan parameter request
+        return $request->has('download')
+            ? $pdf->download($filename)
+            : $pdf->stream($filename);
+    }
+
+    // Generate PDF Draft Sertifikat
     public function generateSertifikat(Request $request, $id)
     {
         $permohonan = Permohonan::with(['identitas', 'penyelenggara', 'user'])->findOrFail($id);
@@ -43,7 +84,7 @@ class PermohonanController extends Controller
             'isJavascriptEnabled' => false,
         ]);
         
-        $filename = 'SK_IZIN_' . $permohonan->nomor_sk . '_' . $permohonan->id . '.pdf';
+        $filename = 'SERTIFIKAT_IZIN_' . $permohonan->nomor_sk . '_' . $permohonan->id . '.pdf';
     
         return $request->has('download')
             ? $pdf->download($filename)
@@ -76,7 +117,7 @@ class PermohonanController extends Controller
         return redirect('storage/'.$dokumen->lampiran_path);
     }
     
-    // Download Semua Dokumen
+    // Download Semua Dokumen to ZIP
     public function downloadAllDokumen(Permohonan $permohonan)
     {
         // Validasi permohonan memiliki lampiran
