@@ -134,7 +134,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     ->label('No Telepon')
                                     ->tel()
                                     ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
-                                    ->rule('regex:/^(\+62|62)?[\s-]?(\(0[0-9]{2,3}\)[\s-]?|0[0-9]{2,3}[\s-]?)[0-9]{6,8}$|^(\+62|62|0)8[1-9][0-9]{6,9}$/')
+                                    ->rule('regex:/^(\+62|62|0)[0-9]{9,13}$/')
                                     ->required()
                                     ->maxLength(20)
                                     ->validationMessages([
@@ -433,7 +433,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     ->label('No Telepon')
                                     ->tel()
                                     ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
-                                    ->rule('regex:/^(\+62|62)?[\s-]?(\(0[0-9]{2,3}\)[\s-]?|0[0-9]{2,3}[\s-]?)[0-9]{6,8}$|^(\+62|62|0)8[1-9][0-9]{6,9}$/')
+                                    ->rule('regex:/^(\+62|62|0)[0-9]{9,13}$/')
                                     ->required()
                                     ->maxLength(20)
                                     ->validationMessages([
@@ -519,7 +519,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     ->label('No Telepon')
                                     ->tel()
                                     ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
-                                    ->rule('regex:/^(\+62|62)?[\s-]?(\(0[0-9]{2,3}\)[\s-]?|0[0-9]{2,3}[\s-]?)[0-9]{6,8}$|^(\+62|62|0)8[1-9][0-9]{6,9}$/')
+                                    ->rule('regex:/^(\+62|62|0)[0-9]{9,13}$/')
                                     ->required()
                                     ->maxLength(20)
                                     ->validationMessages([
@@ -637,7 +637,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->label('No Telepon')
                                         ->tel()
                                         ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
-                                        ->rule('regex:/^(\+62|62)?[\s-]?(\(0[0-9]{2,3}\)[\s-]?|0[0-9]{2,3}[\s-]?)[0-9]{6,8}$|^(\+62|62|0)8[1-9][0-9]{6,9}$/')
+                                        ->rule('regex:/^(\+62|62|0)[0-9]{9,13}$/')
                                         ->required()
                                         ->maxLength(20)
                                         ->validationMessages([
