@@ -2820,10 +2820,10 @@ class PermohonanResource extends Resource implements HasShieldPermissions
             ->defaultSort('created_at', 'desc')
             ->actions([
                 EditAction::make()
-                ->visible(fn (Model $record) => in_array($record->status_permohonan, ['draft', 'ditolak'])),
+                ->visible(fn (Model $record) => in_array($record->status_permohonan, ['draft', 'permohonan_ditolak'])),
 
                 DeleteAction::make()
-                ->visible(fn (Model $record) => in_array($record->status_permohonan, ['draft', 'ditolak']))
+                ->visible(fn (Model $record) => in_array($record->status_permohonan, ['draft', 'permohonan_ditolak']))
                 ->after(function (Model $record) {
                     foreach ($record->lampiran as $lampiran) {
                         Storage::disk('public')->delete($lampiran->lampiran_path);

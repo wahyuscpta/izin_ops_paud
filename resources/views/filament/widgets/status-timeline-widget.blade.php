@@ -80,7 +80,7 @@
             <div class="flex justify-center mt-6">
                 <x-filament::button
                     tag="a"
-                    href="{{ route('filament.admin.resources.permohonans.create') }}"
+                    href="{{ route('filament.admin.resources.permohonans.edit', $permohonan->id) }}"
                     icon="heroicon-m-arrow-path"
                     color="primary"
                 >
