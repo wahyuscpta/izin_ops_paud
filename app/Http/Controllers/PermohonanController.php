@@ -45,7 +45,7 @@ class PermohonanController extends Controller
         ]);
         
         // Tentukan nama file dengan format yang lebih baik
-        $filename = 'SK_IZIN_' . $permohonan->nomor_sk . '_' . $permohonan->id . '.pdf';
+        $filename = 'SK_IZIN_' . $permohonan->no_sk . '_' . Str::slug($permohonan->identitas->nama_lembaga, '_')  . '.pdf';
         
         // Return berdasarkan parameter request
         return $request->has('download')
@@ -84,7 +84,7 @@ class PermohonanController extends Controller
             'isJavascriptEnabled' => false,
         ]);
         
-        $filename = 'SERTIFIKAT_IZIN_' . $permohonan->nomor_sk . '_' . $permohonan->id . '.pdf';
+        $filename = 'SERTIFIKAT_IZIN_' . $permohonan->no_sk . '_' . Str::slug($permohonan->identitas->nama_lembaga, '_')  . '.pdf';
     
         return $request->has('download')
             ? $pdf->download($filename)
