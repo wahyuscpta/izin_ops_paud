@@ -174,23 +174,6 @@ class PermohonanObserver
                     route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
                 ));
 
-                foreach ($admins as $admin) {
-                    Notification::make()
-                        ->title('Permohonan Siap Diterbitkan')
-                        ->icon('heroicon-o-information-circle')
-                        ->iconColor('primary')
-                        ->body('Permohonan dari ' . $pemohon->name . ' menunggu proses penerbitan izin.')
-                        ->sendToDatabase($admin);
-
-                
-                    $admin->notify(new EmailStatusNotification(
-                        $permohonan,
-                        'status_update',
-                        'admin',
-                        route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
-                    ));
-                }
-
             }
 
             if ($status === 'izin_diterbitkan') {
@@ -212,21 +195,7 @@ class PermohonanObserver
                     'status_update', 
                     'pemohon', 
                     route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
-                ));
-
-                foreach ($admins as $admin) {
-                    Notification::make()
-                    ->title('Izin Telah Diterbitkan')
-                    ->icon('heroicon-o-check-circle')
-                    ->iconColor('success')
-                    ->body('Permohonan atas nama ' . $pemohon->name . ' telah disetujui dan izin sudah diterbitkan.')
-                    ->actions([
-                        Action::make('view')
-                            ->button()
-                            ->markAsRead(),
-                    ])
-                    ->sendToDatabase($admin);
-                }   
+                ));  
             }
         }
     }
