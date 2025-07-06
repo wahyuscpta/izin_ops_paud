@@ -64,7 +64,7 @@
                     'menunggu_verifikasi' => 'warning',
                     'menunggu_validasi_lapangan', 'proses_penerbitan_izin' => 'success',
                     'izin_diterbitkan' => 'primary',
-                    'ditolak' => 'danger',
+                    'permohonan_ditolak' => 'danger',
                     default => 'secondary',
                 }"
                 style="margin-top: -10px"
@@ -156,7 +156,7 @@
             tag="a"
             href="{{ route('filament.admin.resources.permohonans.edit', $record->id) }}"
             color="primary"
-            class="w-full p-2"
+            class="w-full p-2 mt-6"
         >
             Ajukan Kembali
         </x-filament::button>
