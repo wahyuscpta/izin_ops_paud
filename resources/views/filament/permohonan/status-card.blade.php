@@ -150,6 +150,18 @@
         </div>
     </div>
 
+    {{-- Tombol Ajukan Kembali --}}
+    @if (auth()->user()->hasRole('pemohon') && $record->status_permohonan === 'permohonan_ditolak')
+        <x-filament::button
+            tag="a"
+            href="{{ route('filament.admin.resources.permohonans.edit', $record->id) }}"
+            color="primary"
+            class="w-full p-2"
+        >
+            Ajukan Kembali
+        </x-filament::button>
+    @endif
+
     {{-- Tombol Verifikasi --}}
     @if (auth()->user()->hasRole('admin') && $record->status_permohonan === 'menunggu_verifikasi')
         <div class="flex md:flex-row justify-between gap-4 pt-6">
