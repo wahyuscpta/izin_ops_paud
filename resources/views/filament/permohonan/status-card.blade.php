@@ -156,7 +156,7 @@
             tag="a"
             href="{{ route('filament.admin.resources.permohonans.edit', $record->id) }}"
             color="primary"
-            class="w-full p-2 mt-6"
+            class="w-full p-4 mt-6"
         >
             Ajukan Kembali
         </x-filament::button>
