@@ -151,7 +151,7 @@ class StatusCard extends Widget implements HasForms
                         'required' => 'Berkas Validasi Lapangan harus diisi.',
                         'max' => 'Ukuran berkas tidak boleh lebih dari 10 MB.'
                     ])
-                    ->helperText('Unggah File PDF maks. 10MB')
+                    ->hint('Unggah File PDF maks. 10MB')
                     ->visible(fn () => $this->showModalValidasi),
 
                 FileUpload::make('sk_izin')
