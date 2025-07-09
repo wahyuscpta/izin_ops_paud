@@ -140,7 +140,7 @@
                                         </div>
                                         <div class="flex space-x-2">
                                             <!-- Tombol Lihat -->
-                                            <a href="{{ asset('storage/' . $lampiran->lampiran_path) }}" target="_blank" 
+                                            <a href="{{ route('view-document', $lampiran->id) }}" target="_blank" 
                                             class="px-3 py-2 bg-primary-600 text-white rounded-lg flex items-center gap-1.5 transition text-xs">
                                                 <x-filament::icon icon="heroicon-o-eye" class="h-4 w-4"/>
                                                 <span>Lihat</span>

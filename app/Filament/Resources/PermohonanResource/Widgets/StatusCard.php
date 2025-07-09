@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PermohonanResource\Widgets;
 
+use App\Models\Lampiran;
 use App\Models\Permohonan;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\File;
@@ -480,9 +481,29 @@ class StatusCard extends Widget implements HasForms
 
     public function openModalVerifikasi()
     {
-        $this->showModalVerifikasi = true;
+        // Cek apakah semua dokumen sudah dilihat
+        $totalDokumen = Lampiran::where('permohonan_id', $this->record->id)->count();
+        $dokumenDilihat = Lampiran::where('permohonan_id', $this->record->id)
+                                ->where('viewed', true)
+                                ->where('viewedBy', Auth::id())
+                                ->count();    
 
-        $this->dispatch('open-modal', id: 'konfirmasi-verifikasi');
+        // Jika belum semua dokumen dilihat
+        if ($totalDokumen !== $dokumenDilihat) {
+            
+            $this->showModalVerifikasi = false;
+
+            Notification::make()
+                ->title('Peringatan')
+                ->body('Verifikasi hanya bisa dilakukan setelah semua dokumen lampiran ditinjau.')
+                ->warning()
+                ->send();
+        } else {
+            
+            $this->showModalVerifikasi = true;
+
+            $this->dispatch('open-modal', id: 'konfirmasi-verifikasi');
+        }
     }
 
     public function closeModalVerifikasi()

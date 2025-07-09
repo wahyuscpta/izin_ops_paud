@@ -3,6 +3,7 @@
 use App\Http\Controllers\PermohonanController;
 use App\Http\Controllers\PermohonanExportController;
 use App\Http\Controllers\SKIzinController;
+use App\Models\Lampiran;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,17 @@ Route::get('/permohonan/{id}/download-sertifikat', [PermohonanController::class,
 Route::get('/permohonan/{permohonan}/download-all', [PermohonanController::class, 'downloadAllDokumen'])
     ->name('permohonan.download-all')
     ->middleware(['auth']);
+
+// Viewed Docs
+Route::get('/view-document/{lampiran}', function (Lampiran $lampiran) {
+    // Update viewed_docs
+    $lampiran->update([
+        'viewed' => true,
+        'viewedBy' => Auth::id(),
+    ]);
+    // Redirect ke file
+    return redirect()->away(asset('storage/' . $lampiran->lampiran_path));
+})->name('view-document');
     
 Route::get('/logout', function () {
     Auth::logout();
