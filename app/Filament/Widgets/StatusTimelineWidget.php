@@ -19,16 +19,18 @@ class StatusTimelineWidget extends Widget
     {
         $permohonanTerakhir = Permohonan::where('user_id', Auth::id())
             ->latest()
-            ->first();
+            ->first();         
 
         $status = $permohonanTerakhir?->status_permohonan;
         
         // Tambahkan tanggal untuk setiap status yang sudah dilalui
         $statusDates = [
-            'menunggu_verifikasi' => $permohonanTerakhir?->created_at,
-            'menunggu_validasi_lapangan' => $permohonanTerakhir?->tanggal_verifikasi,
-            'izin_diterbitkan' => $permohonanTerakhir?->tanggal_izin_terbit,
-            'permohonan_ditolak' => $permohonanTerakhir?->tanggal_ditolak,
+            'draft' => $permohonanTerakhir?->tgl_permohonan,
+            'menunggu_verifikasi' => $permohonanTerakhir?->tgl_verifikasi_berkas,
+            'menunggu_validasi_lapangan' => $permohonanTerakhir?->tgl_validasi_lapangan,
+            'proses_penerbitan_izin' => $permohonanTerakhir?->tgl_proses_penerbitan_izin,
+            'izin_diterbitkan' => $permohonanTerakhir?->tgl_izin_terbit,
+            'permohonan_ditolak' => $permohonanTerakhir?->tgl_ditolak,
         ];
 
         return [

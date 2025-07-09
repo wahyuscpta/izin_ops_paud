@@ -235,7 +235,8 @@ class StatusCard extends Widget implements HasForms
         // Update status permohonan di database
         $this->record->update([
             'tanggal_kunjungan' => $data['tanggal_kunjungan'],
-            'status_permohonan' => 'menunggu_validasi_lapangan'
+            'status_permohonan' => 'menunggu_validasi_lapangan',
+            'tgl_verifikasi_berkas' => now()
         ]);        
 
         // Catat aktivitas verifikasi
@@ -303,7 +304,9 @@ class StatusCard extends Widget implements HasForms
                     'pemberi_rekomendasi' => $data['pemberi_rekomendasi'],
                     'no_verifikasi' => $data['no_verifikasi'],
                     'tgl_verifikasi' => $data['tgl_verifikasi'],
-                    'no_sk' => $newSk
+                    'no_sk' => $newSk,
+                    'tgl_validasi_lapangan' => now(),
+                    'proses_penerbitan_izin' => now()
                 ]);
             });
 
@@ -385,7 +388,7 @@ class StatusCard extends Widget implements HasForms
             // Update data permohonan
             $this->record->update([
                 'status_permohonan' => 'izin_diterbitkan',
-                'tgl_status_terakhir' => now()
+                'tgl_izin_terbit' => now()
             ]);
 
             // Catat aktivitas bahwa proses validasi lapangan telah dilakukan
@@ -432,6 +435,7 @@ class StatusCard extends Widget implements HasForms
         $this->record->update([
             'status_permohonan' => 'permohonan_ditolak',
             'catatan' => $data['catatan'],
+            'tgl_tolak' => now()
         ]);
 
         // Mengirim event Livewire untuk menutup modal dengan ID 'catatan-tolak'
