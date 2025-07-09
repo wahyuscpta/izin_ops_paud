@@ -94,7 +94,7 @@
 
             @php
                 $status = $record->status_permohonan;
-                $tanggal = \Carbon\Carbon::parse($record->tgl_status_terakhir)->locale('id')->format('d M Y');
+                $tanggal = \Carbon\Carbon::parse($record->updated_at)->locale('id')->format('d M Y');
             
                 $labelTanggal = match ($status) {
                     'menunggu_validasi_lapangan' => 'Tanggal Verifikasi Permohonan',
@@ -103,8 +103,8 @@
                     'izin_diterbitkan' => 'Tanggal Diterbitkan',
                     default => null, // untuk 'menunggu_verifikasi', dll
                 };
-            @endphp
-            
+            @endphp        
+
             @if ($labelTanggal)
                 <div>
                     <p class="text-sm font-semibold">{{ $labelTanggal }}</p>

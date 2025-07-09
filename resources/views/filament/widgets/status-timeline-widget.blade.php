@@ -61,6 +61,31 @@
                     Lihat Permohonan
                 </x-filament::button>
             </div>
+        
+        @elseif($currentStatus === 'draft')
+            <div class="flex items-center gap-3">
+                <div class="flex-shrink-0">
+                    <div class="rounded-full p-2">
+                        <x-filament::icon icon='heroicon-o-pencil-square' class="text-primary-600 border-primary-600 p-2 h-10 w-10 border rounded-full"/>
+                    </div>
+                </div>
+                
+                <div class="flex-grow">
+                    <h4 class="font-medium text-primary-600">Draft</h4>                    
+                    <p class="text-sm text-gray-500">Permohonan masih dalam bentuk draft. Silakan lengkapi seluruh data terlebih dahulu.</p>
+                </div>                
+            </div>
+            
+            <div class="flex justify-between mt-6">
+                <x-filament::button
+                    tag="a"
+                    href="{{ route('filament.admin.resources.permohonans.edit', $permohonan->id) }}"
+                    class="w-full cursor-pointer"
+                    color="primary"
+                >
+                    Lengkapi Permohonan
+                </x-filament::button>
+            </div>
 
         @elseif($currentStatus === 'permohonan_ditolak')
             <div class="flex items-center gap-3">
@@ -91,12 +116,6 @@
         @else
             @php
                 $allSteps = [
-                    'draft' => [
-                        'label' => 'Draft',
-                        'description' => 'Permohonan masih dalam bentuk draft. Silakan lengkapi seluruh data terlebih dahulu.',
-                        'icon' => 'heroicon-o-pencil-square',
-                    ],
-
                     'menunggu_verifikasi' => [
                         'label' => 'Menunggu Verifikasi',
                         'description' => 'Permohonan sedang dalam tahap pemeriksaan dokumen',
@@ -133,9 +152,9 @@
                 // Hitung durasi antar status jika ada
                 $durasi = [];
 
-                if ($verifikasi) {
-                    $durasi['created_to_verifikasi'] = $created->diffInDays($verifikasi);
-                }
+                // if ($verifikasi) {
+                //     $durasi['created_to_verifikasi'] = $created->diffInDays($verifikasi);
+                // }
 
                 if ($validasi) {
                     $durasi['verifikasi_to_validasi'] = \Carbon\Carbon::parse($verifikasi)->diffInDays($validasi);
