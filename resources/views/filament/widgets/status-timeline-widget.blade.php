@@ -171,7 +171,7 @@
 
                     {{-- Tampilkan durasi --}}
                     @if(isset($durasiMapping[$key]) && isset($durasi[$durasiMapping[$key]]))
-                        <x-filament::badge icon="heroicon-o-arrow-path" color="gray" style="width: 80px; margin-left: 68px; margin-top: 15px; margin-bottom: -10px;">
+                        <x-filament::badge icon="heroicon-o-arrow-path" color="gray" style="width: 80px; margin-left: 68px; margin-top: 15px; margin-bottom: -5px;">
                             <span style="margin-left: 5px">{{ $durasi[$durasiMapping[$key]] }} hari</span>
                         </x-filament::badge>
                     @endif
