@@ -266,6 +266,21 @@ class StatusCard extends Widget implements HasForms
         return redirect()->to('permohonans');
     }
 
+    public function markAsViewed($lampiranId)
+    {
+        $lampiran = Lampiran::findOrFail($lampiranId);
+        $lampiran->update([
+            'viewed' => true,
+            'viewedBy' => Auth::id(),
+        ]);
+        
+        // Refresh data lampiran
+        $this->record->lampiran = $this->record->fresh()->lampiran;
+        
+        // Optional: Emit event atau notification
+        $this->dispatch('document-viewed', $lampiranId);
+    }
+
     // Method untuk menyimpan hasil validasi lapangan
     public function save()
     {
