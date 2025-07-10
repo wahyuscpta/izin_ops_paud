@@ -57,6 +57,32 @@ class PermohonanObserver
 
     public function updated(Permohonan $permohonan): void
     {
+        if ($permohonan->isDirty('tanggal_kunjungan') && $permohonan->getOriginal('tanggal_kunjungan') !== null) {
+            
+            $tanggal = $tanggal = \Carbon\Carbon::parse($permohonan->tanggal_kunjungan)->format('d F Y');
+            $pemohon = $permohonan->user;
+
+            Notification::make()
+            ->title('Perubahan Tanggal Kunjungan')
+            ->icon('heroicon-o-information-circle')
+            ->iconColor('primary')
+            ->body('Tanggal kunjungan lapangan untuk permohonan anda telah diubah ke tanggal ' . $tanggal  .' . Mohon segera lakukan pengecekan dan verifikasi.')
+            ->actions([
+                Action::make('view')
+                    ->button()
+                    ->url(fn () => route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id]))
+                    ->markAsRead(),
+            ])
+            ->sendToDatabase($pemohon);
+
+            $pemohon->notify(new EmailStatusNotification(
+                $permohonan, 
+                'tanggal_update', 
+                'pemohon', 
+                route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
+            ));
+        }
+
         // Periksa apakah status_permohonan mengalami perubahan setelah update
         if ($permohonan->wasChanged('status_permohonan')) {
 
@@ -66,6 +92,8 @@ class PermohonanObserver
             $pemohon = $permohonan->user;
             // Ambil semua pengguna dengan peran admin
             $admins = User::role('admin')->get();
+            // Ambil tanggal kunjungan dari permohonan
+            $tanggal = \Carbon\Carbon::parse($permohonan->tanggal_kunjungan)->format('d F Y');
 
             if ($status === 'menunggu_verifikasi') {
                 foreach ($admins as $admin) {
@@ -120,7 +148,7 @@ class PermohonanObserver
                     ->title('Permohonan Telah Diverifikasi')
                     ->icon('heroicon-o-information-circle')
                     ->iconColor('primary')
-                    ->body('Permohonan Anda telah diverifikasi dan masuk tahap validasi lapangan.')
+                    ->body('Permohonan Anda telah diverifikasi dan masuk tahap validasi lapangan. Kunjungan dijadwalkan pada tanggal ' . $tanggal . '.')
                     ->sendToDatabase($pemohon);
 
                 $pemohon->notify(new EmailStatusNotification(
@@ -146,23 +174,6 @@ class PermohonanObserver
                     route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
                 ));
 
-                foreach ($admins as $admin) {
-                    Notification::make()
-                        ->title('Permohonan Siap Diterbitkan')
-                        ->icon('heroicon-o-information-circle')
-                        ->iconColor('primary')
-                        ->body('Permohonan dari ' . $pemohon->name . ' menunggu proses penerbitan izin.')
-                        ->sendToDatabase($admin);
-
-                
-                    $admin->notify(new EmailStatusNotification(
-                        $permohonan,
-                        'status_update',
-                        'admin',
-                        route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
-                    ));
-                }
-
             }
 
             if ($status === 'izin_diterbitkan') {
@@ -184,21 +195,7 @@ class PermohonanObserver
                     'status_update', 
                     'pemohon', 
                     route('filament.admin.resources.permohonans.view', ['record' => $permohonan->id])
-                ));
-
-                foreach ($admins as $admin) {
-                    Notification::make()
-                    ->title('Izin Telah Diterbitkan')
-                    ->icon('heroicon-o-check-circle')
-                    ->iconColor('success')
-                    ->body('Permohonan atas nama ' . $pemohon->name . ' telah disetujui dan izin sudah diterbitkan.')
-                    ->actions([
-                        Action::make('view')
-                            ->button()
-                            ->markAsRead(),
-                    ])
-                    ->sendToDatabase($admin);
-                }   
+                ));  
             }
         }
     }

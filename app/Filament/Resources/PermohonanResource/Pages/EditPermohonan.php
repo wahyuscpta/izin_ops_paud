@@ -6,6 +6,7 @@ use App\Filament\Resources\PermohonanResource;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Support\Exceptions\Halt;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -38,37 +39,48 @@ class EditPermohonan extends EditRecord
         return $data;
     }
 
+    // Override afterSave untuk handle lampiran dan activity log
     protected function afterSave(): void
     {
-        // Mulai transaksi database untuk menjaga konsistensi data saat update lampiran
+        // MULAI TRANSAKSI
         DB::beginTransaction();
         
         try {
-            $this->updateLampiran($this->record); // Jalankan proses update file lampiran terkait permohonan
-            DB::commit();                         // Jika semua proses berhasil, simpan perubahan secara permanen
-            $this->showSuccessNotification();
-
+            // Update lampiran
+            $this->updateLampiran($this->record);
+            
             // Log aktivitas
-            activity()
-                ->causedBy(Auth::user())
-                ->performedOn($this->record)
-                ->withProperties([
-                    'attributes' => [
-                        'status_permohonan' => $this->record->status_permohonan,
-                        'nama_pemohon' => $this->record->nama_pemohon,
-                    ],
-                    'role' => Auth::user()?->getRoleNames()?->first(),
-                ])
-                ->event('created')
-                ->useLog('Permohonan') 
-                ->log('Telah meengajukan permohonan izin operasional untuk "' . $this->record->identitas->nama_lembaga . '"');
-                
-        } catch (\Exception $e) {                 // Jika terjadi error, batalkan semua perubahan
+            $this->logActivity($this->record);
+            
+            // Commit transaksi
+            DB::commit();
+            
+            // Notifikasi sukses
+            $this->showSuccessNotification();
+            
+        } catch (\Exception $e) {
             DB::rollBack();
-            report($e);
             $this->showErrorNotification();
+            throw $e;
         }
-    }    
+    }
+
+    // Method untuk handle draft dan kirim permohonan
+    protected function handleSaveAction(?bool $shouldValidateForms = null): void
+    {
+        $shouldValidateForms = $shouldValidateForms ?? $this->isKirimPermohonan;
+        
+        try {
+            if ($shouldValidateForms) {
+                $this->form->validate();
+            }
+            
+            $this->save();
+            
+        } catch (Halt $exception) {
+            return;
+        }
+    } 
 
     protected function updateLampiran($permohonan): void
     {
@@ -109,6 +121,24 @@ class EditPermohonan extends EditRecord
         if (!empty($lampiranData)) {
             $permohonan->lampiran()->createMany($lampiranData);
         }
+    }
+
+    // Method untuk logging aktivitas
+    protected function logActivity(): void
+    {
+        activity()
+            ->causedBy(Auth::user())
+            ->performedOn($this->record)
+            ->withProperties([
+                'attributes' => [
+                    'status_permohonan' => $this->record->status_permohonan,
+                    'nama_pemohon' => $this->record->nama_pemohon,
+                ],
+                'role' => Auth::user()?->getRoleNames()?->first(),
+            ])
+            ->event('created')
+            ->useLog('Permohonan') 
+            ->log('Telah mengajukan permohonan izin operasional untuk lembaga' . $this->record->identitas->nama_lembaga . '');
     }
 
     protected function getFormActions(): array
@@ -153,5 +183,10 @@ class EditPermohonan extends EditRecord
     protected function getSavedNotification(): ?Notification
     {
         return null; // Menonaktifkan notifikasi default dari CreateRecord
+    }
+
+    protected function canEdit(): bool
+    {
+        return in_array($this->record->status_permohonan, ['draft', 'ditolak']);
     }
 }

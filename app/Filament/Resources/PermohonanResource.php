@@ -76,7 +76,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
             return static::getModel()::where('user_id', $user->id)->count();
         }
         
-        return static::getModel()::count();
+        return static::getModel()::where('status_permohonan', '!=', 'draft')->count();
     }    
 
     public static function getPermissionPrefixes(): array
@@ -134,7 +134,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     ->label('No Telepon')
                                     ->tel()
                                     ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
-                                    ->rule('regex:/^(\+62|62)?[\s-]?(\(0[0-9]{2,3}\)[\s-]?|0[0-9]{2,3}[\s-]?)[0-9]{6,8}$|^(\+62|62|0)8[1-9][0-9]{6,9}$/')
+                                    ->rule('regex:/^(\+62|62|0)[0-9]{9,13}$/')
                                     ->required()
                                     ->maxLength(20)
                                     ->validationMessages([
@@ -433,7 +433,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     ->label('No Telepon')
                                     ->tel()
                                     ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
-                                    ->rule('regex:/^(\+62|62)?[\s-]?(\(0[0-9]{2,3}\)[\s-]?|0[0-9]{2,3}[\s-]?)[0-9]{6,8}$|^(\+62|62|0)8[1-9][0-9]{6,9}$/')
+                                    ->rule('regex:/^(\+62|62|0)[0-9]{9,13}$/')
                                     ->required()
                                     ->maxLength(20)
                                     ->validationMessages([
@@ -519,7 +519,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     ->label('No Telepon')
                                     ->tel()
                                     ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
-                                    ->rule('regex:/^(\+62|62)?[\s-]?(\(0[0-9]{2,3}\)[\s-]?|0[0-9]{2,3}[\s-]?)[0-9]{6,8}$|^(\+62|62|0)8[1-9][0-9]{6,9}$/')
+                                    ->rule('regex:/^(\+62|62|0)[0-9]{9,13}$/')
                                     ->required()
                                     ->maxLength(20)
                                     ->validationMessages([
@@ -637,7 +637,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         ->label('No Telepon')
                                         ->tel()
                                         ->placeholder('Contoh: 081234567890, (0361) 123456, 0361-123456')
-                                        ->rule('regex:/^(\+62|62)?[\s-]?(\(0[0-9]{2,3}\)[\s-]?|0[0-9]{2,3}[\s-]?)[0-9]{6,8}$|^(\+62|62|0)8[1-9][0-9]{6,9}$/')
+                                        ->rule('regex:/^(\+62|62|0)[0-9]{9,13}$/')
                                         ->required()
                                         ->maxLength(20)
                                         ->validationMessages([
@@ -2572,10 +2572,10 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                                         </div>
                                                     HTML);
                                                     } else {
-                                                        return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
+                                                        return new HtmlString('<div><p class="text-gray-500">Unggah File PDF maks. 10MB</p></div>');
                                                     }
                                                 } else {
-                                                    return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
+                                                    return new HtmlString('<div><p class="text-gray-500">Unggah File PDF maks. 10MB</p></div>');
                                                 }
                                             }),
     
@@ -2584,7 +2584,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                             ->directory('lampiran')
                                             ->disk('public')
                                             ->acceptedFileTypes(['application/pdf'])
-                                            ->maxSize(2048)
+                                            ->maxSize(10240)
                                             ->required(function ($record, $livewire) use ($field) {
                                                 if ($livewire->isKirimPermohonan) {
                                                     if ($record && $record->lampiran) {
@@ -2597,7 +2597,9 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                                 return false;
                                             })
                                             ->previewable(true)
-                                            ->helperText('Unggah file PDF maks. 2MB'),
+                                            ->validationMessages([
+                                                'required' => 'Dokumen wajib diunggah.',
+                                            ]),
                                     ])->flatten(1)->toArray()
                                 ))->toArray()
                             ),
@@ -2630,10 +2632,10 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                                 </div>
                                             HTML);
                                         } else {
-                                            return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
+                                            return new HtmlString('<div><p class="text-gray-500">Unggah File PDF maks. 10MB</p></div>');
                                         }
                                     } else {
-                                        return new HtmlString('<div><p class="text-gray-500">Belum ada dokumen yang diunggah</p></div>');
+                                        return new HtmlString('<div><p class="text-gray-500">Unggah File PDF maks. 10MB</p></div>');
                                     }
                                 }),
     
@@ -2642,7 +2644,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                     ->directory('lampiran')
                                     ->disk('public')
                                     ->acceptedFileTypes(['application/pdf'])
-                                    ->maxSize(2048)
+                                    ->maxSize(10240)
                                     ->required(function ($record, $livewire) {
                                         // Jika mode kirim permohonan, periksa keberadaan lampiran
                                         if ($livewire->isKirimPermohonan) {
@@ -2657,7 +2659,9 @@ class PermohonanResource extends Resource implements HasShieldPermissions
                                         return false;
                                     })
                                     ->previewable(true)
-                                    ->helperText('Unggah file PDF maks. 2MB'),
+                                    ->validationMessages([
+                                        'required' => 'Dokumen wajib diunggah.',
+                                    ]),
                             ])
                         ])    
                         ->hidden(function (Get $get): bool {
@@ -2729,7 +2733,7 @@ class PermohonanResource extends Resource implements HasShieldPermissions
         }
 
         if ($user->hasRole('admin')) {
-            return parent::getEloquentQuery()->whereIn('status_permohonan', ['menunggu_verifikasi', 'menunggu_validasi_lapangan', 'proses_penerbitan_izin', 'izin_diterbitkan', 'ditolak']);
+            return parent::getEloquentQuery()->whereIn('status_permohonan', ['menunggu_verifikasi', 'menunggu_validasi_lapangan', 'proses_penerbitan_izin', 'izin_diterbitkan', 'permohonan_ditolak']);
         }
 
         if ($user->hasRole('kepala_dinas')) {
@@ -2816,10 +2820,10 @@ class PermohonanResource extends Resource implements HasShieldPermissions
             ->defaultSort('created_at', 'desc')
             ->actions([
                 EditAction::make()
-                ->visible(fn (Model $record) => in_array($record->status_permohonan, ['draft', 'ditolak'])),
+                ->visible(fn (Model $record) => in_array($record->status_permohonan, ['draft'])),
 
                 DeleteAction::make()
-                ->visible(fn (Model $record) => in_array($record->status_permohonan, ['draft', 'ditolak']))
+                ->visible(fn (Model $record) => in_array($record->status_permohonan, ['draft']))
                 ->after(function (Model $record) {
                     foreach ($record->lampiran as $lampiran) {
                         Storage::disk('public')->delete($lampiran->lampiran_path);

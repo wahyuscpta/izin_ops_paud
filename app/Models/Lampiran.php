@@ -13,7 +13,9 @@ class Lampiran extends Model
 
     protected $fillable = [
         'lampiran_type',
-        'lampiran_path'
+        'lampiran_path',
+        'viewed',
+        'viewedBy',
     ];
     
     protected $guarded = ['id'];
@@ -24,4 +26,8 @@ class Lampiran extends Model
     {
         return $this->belongsTo(Permohonan::class);
     }
+
+    protected $casts = [
+        'viewed' => 'boolean',
+    ];
 }

@@ -129,31 +129,38 @@
                     <div class="space-y-6 mt-4" style="margin-top: 30px">
                         @foreach ($categorizedDocs as $category => $documents)
                             <x-filament::fieldset :label="$category">
-                                @foreach ($documents as $lampiran)
-                                    <div class="flex justify-between items-center py-3">
-                                        <div class="flex items-center gap-3">                                            
-                                            <x-filament::icon icon='heroicon-o-document-text' class="h-5 w-5 text-gray-500" />
-                                            <div>
-                                                <p class="text-sm font-medium">{{ $labels->get($lampiran->lampiran_type, 'Lampiran') }}</p>
-                                                <p class="text-xs text-gray-500">{{ basename($lampiran->lampiran_path) }}</p>
+                                <div wire:poll.1s>
+                                    @foreach ($documents as $lampiran)
+                                        <div class="flex justify-between items-center py-3">
+                                            <div class="flex items-center gap-3">     
+                                                @if($lampiran->viewed && $lampiran->viewedBy == auth()->id())
+                                                    <x-filament::icon icon='heroicon-o-document-text' class="h-5 w-5 text-primary-500" />
+                                                @else
+                                                    <x-filament::icon icon='heroicon-o-document-text' class="h-5 w-5 text-gray-500" />
+                                                @endif                                       
+
+                                                <div>
+                                                    <p class="text-sm font-medium">{{ $labels->get($lampiran->lampiran_type, 'Lampiran') }}</p>
+                                                    <p class="text-xs text-gray-500">{{ basename($lampiran->lampiran_path) }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex space-x-2">
+                                                <!-- Tombol Lihat -->
+                                                <a href="{{ route('view-document', $lampiran->id) }}" target="_blank" 
+                                                class="px-3 py-2 bg-primary-600 text-white rounded-lg flex items-center gap-1.5 transition text-xs">
+                                                    <x-filament::icon icon="heroicon-o-eye" class="h-4 w-4"/>
+                                                    <span>Lihat</span>
+                                                </a>
+                                                <!-- Tombol Download -->
+                                                <a href="{{ asset('storage/' . $lampiran->lampiran_path) }}" download
+                                                class="px-3 py-2 rounded-lg flex items-center gap-1.5 transition text-xs">
+                                                    <x-filament::icon icon="heroicon-o-arrow-down-tray" class="h-4 w-4"/>
+                                                    <span>Simpan</span>
+                                                </a>
                                             </div>
                                         </div>
-                                        <div class="flex space-x-2">
-                                            <!-- Tombol Lihat -->
-                                            <a href="{{ asset('storage/' . $lampiran->lampiran_path) }}" target="_blank" 
-                                            class="px-3 py-2 bg-primary-600 text-white rounded-lg flex items-center gap-1.5 transition text-xs">
-                                                <x-filament::icon icon="heroicon-o-eye" class="h-4 w-4"/>
-                                                <span>Lihat</span>
-                                            </a>
-                                            <!-- Tombol Download -->
-                                            <a href="{{ asset('storage/' . $lampiran->lampiran_path) }}" download
-                                            class="px-3 py-2 rounded-lg flex items-center gap-1.5 transition text-xs">
-                                                <x-filament::icon icon="heroicon-o-arrow-down-tray" class="h-4 w-4"/>
-                                                <span>Simpan</span>
-                                            </a>
-                                        </div>
-                                    </div>
-                                @endforeach
+                                    @endforeach
+                                </div>
                             </x-filament::fieldset>
                         @endforeach
                     </div>

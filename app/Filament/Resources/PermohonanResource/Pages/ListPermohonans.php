@@ -39,6 +39,11 @@ class ListPermohonans extends ListRecords
         return $query->count();
     }
 
+    public function getTotalPermohonanAll()
+    {
+        return Permohonan::where('status_permohonan', '!=', 'draft')->count();
+    }
+
     public function getTabs(): array
     {
         if (Auth::user()->hasRole('pemohon')) {
@@ -50,8 +55,9 @@ class ListPermohonans extends ListRecords
             return [
                 'Semua' => Tab::make('Semua')
                     ->badge(function () {
-                        return $this->getTotalPermohonanCount();
+                        return $this->getTotalPermohonanAll();
                     })
+                    ->modifyQueryUsing(fn ($query) => $query->where('status_permohonan', '!=', 'draft'))
                     ->extraAttributes(['class' => 'admin-tab']),
 
                 'Menunggu Verifikasi' => Tab::make('Menunggu Verifikasi')

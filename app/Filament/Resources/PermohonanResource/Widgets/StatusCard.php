@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\PermohonanResource\Widgets;
 
+use App\Models\Lampiran;
 use App\Models\Permohonan;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\File;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Fieldset;
@@ -24,7 +26,11 @@ class StatusCard extends Widget implements HasForms
 
     public $record;
 
+    public int $wizardStep = 1;
+
     public $showModalTolak = false;
+
+    public $showModalEditTanggal = false;
 
     public $showModalVerifikasi = false;
 
@@ -47,27 +53,39 @@ class StatusCard extends Widget implements HasForms
 
     public function getFormSchema(): array
     {
-        return [                
+        return [                                
+            DatePicker::make('tanggal_kunjungan')
+                ->label('Tanggal Kunjungan Lapangan')
+                ->required()
+                ->columnSpanFull()
+                ->rules(['after:today'])
+                ->validationMessages([
+                    'after' => 'Tanggal kunjungan harus lebih dari hari ini.',
+                    'required' => 'Tanggal kunjungan harus diisi.'
+                ])
+                ->visible(fn () => $this->showModalVerifikasi || $this->showModalEditTanggal),
+
             Fieldset::make('')
             ->schema([
                 Textarea::make('catatan')
                 ->label('')                
                 ->rows(4)
                 ->columnSpanFull()
-                ->visible(fn () => $this->showModalTolak),
-                    
-                TextInput::make('no_sk')
-                    ->label('Nomor SK Izin Operasional')
-                    ->required()
-                    ->numeric()
-                    ->maxLength(255)
-                    ->visible(fn () => $this->showModalValidasi),
+                ->validationMessages([
+                    'required' => 'Catatan harus diisi.'
+                ])
+                ->visible(fn () => $this->showModalTolak),            
 
                 TextInput::make('pemberi_rekomendasi')
                     ->label('Pemberi Rekomendasi')
                     ->required()
                     ->maxLength(255)
                     ->rules(['string', 'max:255',])
+                    ->validationMessages([
+                        'required' => 'Pemberi Rekomendasi harus diisi.',
+                        'rules' => 'Maksimal 255 kata'
+                    ])
+                    ->columnSpanFull()
                     ->visible(fn () => $this->showModalValidasi),
 
                 TextInput::make('no_surat_rekomendasi')
@@ -79,12 +97,20 @@ class StatusCard extends Widget implements HasForms
                         'max:255', 
                         'regex:/^[A-Za-z0-9\/\.\- ]+$/'
                     ])
+                    ->validationMessages([
+                        'required' => 'Nomor Surat Rekomendasi harus diisi.',
+                        'rules' => 'Inputan tidak sesuai kebijakan berlaku.'
+                    ])
                     ->visible(fn () => $this->showModalValidasi),
 
                 DatePicker::make('tgl_surat_rekomendasi')
                     ->label('Tanggal Surat Rekomendasi')
                     ->required()
                     ->rules(['date'])
+                    ->validationMessages([
+                        'required' => 'Tanggal Surat Rekomendasi harus diisi.',
+                        'rules' => 'Inputan tidak sesuai kebijakan berlaku.'
+                    ])
                     ->visible(fn () => $this->showModalValidasi),
 
                 TextInput::make('no_verifikasi')
@@ -96,12 +122,20 @@ class StatusCard extends Widget implements HasForms
                         'max:255',
                         'regex:/^[A-Za-z0-9\/\.\- ]+$/'
                     ])
+                    ->validationMessages([
+                        'required' => 'Nomor Berkas Verifikasi harus diisi.',
+                        'rules' => 'Inputan tidak sesuai kebijakan berlaku.'
+                    ])
                     ->visible(fn () => $this->showModalValidasi),
 
                 DatePicker::make('tgl_verifikasi')
                     ->label('Tanggal Verifikasi')
                     ->required()
                     ->rules(['date'])
+                    ->validationMessages([
+                        'required' => 'Tanggal Verifikasi harus diisi.',
+                        'rules' => 'Inputan tidak sesuai kebijakan berlaku.'
+                    ])
                     ->visible(fn () => $this->showModalValidasi),
 
 
@@ -111,9 +145,14 @@ class StatusCard extends Widget implements HasForms
                     ->directory('lampiran')
                     ->disk('public')
                     ->acceptedFileTypes(['application/pdf'])
-                    ->maxSize(2048)
+                    ->maxSize(10240)
                     ->extraAttributes(['class' => 'custom-file-upload'])
                     ->required()
+                    ->validationMessages([
+                        'required' => 'Berkas Validasi Lapangan harus diisi.',
+                        'max' => 'Ukuran berkas tidak boleh lebih dari 10 MB.'
+                    ])
+                    ->hint('Unggah File PDF maks. 10MB')
                     ->visible(fn () => $this->showModalValidasi),
 
                 FileUpload::make('sk_izin')
@@ -124,6 +163,9 @@ class StatusCard extends Widget implements HasForms
                     ->acceptedFileTypes(['application/pdf'])
                     ->maxSize(2048)
                     ->required()
+                    ->validationMessages([
+                        'required' => 'SK Izin Operasional harus diisi.'
+                    ])
                     ->visible(fn () => $this->showModalPenerbitanIzin),
 
                 FileUpload::make('sertifikat_izin')
@@ -134,17 +176,29 @@ class StatusCard extends Widget implements HasForms
                     ->acceptedFileTypes(['application/pdf'])
                     ->maxSize(2048)
                     ->required()
+                    ->validationMessages([
+                        'required' => 'Sertifikat Izin Operasional harus diisi.'
+                    ])
                     ->visible(fn () => $this->showModalPenerbitanIzin),
             ])
+            ->visible(fn () => !$this->showModalVerifikasi && !$this->showModalEditTanggal),
         ];
     }
 
-    // Method untuk memverifikasi permohonan
-    public function submitVerifikasi()
+    public function nextStep()
     {
+        $this->wizardStep++;
+    }
+
+    // Method untuk memverifikasi permohonan
+    public function submitTanggalBaru()
+    {
+        // Ambil seluruh data form (termasuk file dan field input lainnya)
+        $data = $this->form->getState();
+
         // Update status permohonan di database
         $this->record->update([
-            'status_permohonan' => 'menunggu_validasi_lapangan'
+            'tanggal_kunjungan' => $data['tanggal_kunjungan'],
         ]);        
 
         // Catat aktivitas verifikasi
@@ -160,7 +214,46 @@ class StatusCard extends Widget implements HasForms
             ])
             ->event('updated')
             ->useLog('Permohonan') 
-            ->log('Telah memverifikasi permohonan izin operasional milik "' . $this->record->identitas->nama_lembaga . '" dan mengubah status menjadi "Menunggu Validasi Lapangan"');
+            ->log('Telah mengubah tanggal kunjungan lapangan menjadi ' . Carbon::parse($this->record->tanggal_kunjungan)->locale('id')->translatedFormat('d F Y') . '.');
+
+        // Tampilkan notifikasi berhasil ke pengguna
+        Notification::make()
+            ->success()
+            ->title('Proses Berhasil')
+            ->body('Tanggal kunjungan lapangan berhasil diubah.')
+            ->send();
+
+        // Redirect pengguna ke halaman daftar permohonan
+        return redirect()->to('permohonans');
+    }
+
+    // Method untuk memverifikasi permohonan
+    public function submitVerifikasi()
+    {
+        // Ambil seluruh data form (termasuk file dan field input lainnya)
+        $data = $this->form->getState();
+
+        // Update status permohonan di database
+        $this->record->update([
+            'tanggal_kunjungan' => $data['tanggal_kunjungan'],
+            'status_permohonan' => 'menunggu_validasi_lapangan',
+            'tgl_verifikasi_berkas' => now()
+        ]);        
+
+        // Catat aktivitas verifikasi
+        activity()
+            ->causedBy(Auth::user())
+            ->performedOn($this->record)
+            ->withProperties([
+                'attributes' => [
+                    'status_permohonan' => $this->record->status_permohonan,
+                    'nama_pemohon' => $this->record->nama_pemohon,
+                ],
+                'role' => Auth::user()?->getRoleNames()?->first(),
+            ])
+            ->event('updated')
+            ->useLog('Permohonan') 
+            ->log('Telah memverifikasi permohonan milik ' . $this->record->identitas->nama_lembaga . '. Status diperbarui menjadi: MENUNGGU VALIDASI LAPANGAN.');
 
         // Tampilkan notifikasi berhasil ke pengguna
         Notification::make()
@@ -171,6 +264,21 @@ class StatusCard extends Widget implements HasForms
 
         // Redirect pengguna ke halaman daftar permohonan
         return redirect()->to('permohonans');
+    }
+
+    public function markAsViewed($lampiranId)
+    {
+        $lampiran = Lampiran::findOrFail($lampiranId);
+        $lampiran->update([
+            'viewed' => true,
+            'viewedBy' => Auth::id(),
+        ]);
+        
+        // Refresh data lampiran
+        $this->record->lampiran = $this->record->fresh()->lampiran;
+        
+        // Optional: Emit event atau notification
+        $this->dispatch('document-viewed', $lampiranId);
     }
 
     // Method untuk menyimpan hasil validasi lapangan
@@ -203,7 +311,7 @@ class StatusCard extends Widget implements HasForms
                     ->value('no_sk');
                 // Konversi nilai ke integer, lalu tambahkan 1
                 $newSk = intval($latestSk ?? $defaultSk) + 1;
-    
+
                 // Update data permohonan
                 $this->record->update([
                     'status_permohonan' => 'proses_penerbitan_izin',
@@ -212,7 +320,9 @@ class StatusCard extends Widget implements HasForms
                     'pemberi_rekomendasi' => $data['pemberi_rekomendasi'],
                     'no_verifikasi' => $data['no_verifikasi'],
                     'tgl_verifikasi' => $data['tgl_verifikasi'],
-                    'no_sk' => $newSk
+                    'no_sk' => $newSk,
+                    'tgl_validasi_lapangan' => now(),
+                    'proses_penerbitan_izin' => now()
                 ]);
             });
 
@@ -229,7 +339,7 @@ class StatusCard extends Widget implements HasForms
                 ])
                 ->event('updated')
                 ->useLog('Permohonan') 
-                ->log('Telah melakukan proses validasi lapangan milik "' . $this->record->identitas->nama_lembaga . '" dan mengubah status menjadi "Proses Penerbitan Izin"');
+                ->log('Telah melakukan proses validasi lapangan untuk permohonan milik ' . $this->record->identitas->nama_lembaga . '. Status diperbarui menjadi: PROSES PENERBITAN IZIN.');
             
             // Tampilkan notifikasi sukses ke pengguna
             Notification::make()
@@ -294,7 +404,7 @@ class StatusCard extends Widget implements HasForms
             // Update data permohonan
             $this->record->update([
                 'status_permohonan' => 'izin_diterbitkan',
-                'tgl_status_terakhir' => now()
+                'tgl_izin_terbit' => now()
             ]);
 
             // Catat aktivitas bahwa proses validasi lapangan telah dilakukan
@@ -310,7 +420,7 @@ class StatusCard extends Widget implements HasForms
                 ])
                 ->event('updated')
                 ->useLog('Permohonan') 
-                ->log('Telah menerbitkan izin permohonan milik "' . $this->record->identitas->nama_lembaga . '" dan mengubah status menjadi "Izin Diterbitkan"');
+                ->log('Telah menerbitkan izin operasional untuk permohonan milik ' . $this->record->identitas->nama_lembaga . '. Status diperbarui menjadi: IZIN DITERBITKAN.');
         
             // Tampilkan notifikasi sukses ke pengguna
             Notification::make()
@@ -341,6 +451,7 @@ class StatusCard extends Widget implements HasForms
         $this->record->update([
             'status_permohonan' => 'permohonan_ditolak',
             'catatan' => $data['catatan'],
+            'tgl_tolak' => now()
         ]);
 
         // Mengirim event Livewire untuk menutup modal dengan ID 'catatan-tolak'
@@ -358,7 +469,7 @@ class StatusCard extends Widget implements HasForms
             ])
             ->event('updated')
             ->useLog('Permohonan') 
-            ->log('Telah menolak permohonan izin milik "' . $this->record->identitas->nama_lembaga . '" dan mengubah status menjadi "Permohonan Ditolak"');
+            ->log('Telah menolak permohonan izin operasional milik ' . $this->record->identitas->nama_lembaga . '. Status diperbarui menjadi: PERMOHONAN DITOLAK.');
 
         Notification::make()
             ->success()
@@ -385,9 +496,29 @@ class StatusCard extends Widget implements HasForms
 
     public function openModalVerifikasi()
     {
-        $this->showModalVerifikasi = true;
+        // Cek apakah semua dokumen sudah dilihat
+        $totalDokumen = Lampiran::where('permohonan_id', $this->record->id)->count();
+        $dokumenDilihat = Lampiran::where('permohonan_id', $this->record->id)
+                                ->where('viewed', true)
+                                ->where('viewedBy', Auth::id())
+                                ->count();    
 
-        $this->dispatch('open-modal', id: 'konfirmasi-verifikasi');
+        // Jika belum semua dokumen dilihat
+        if ($totalDokumen !== $dokumenDilihat) {
+            
+            $this->showModalVerifikasi = false;
+
+            Notification::make()
+                ->title('Peringatan')
+                ->body('Verifikasi hanya bisa dilakukan setelah semua dokumen lampiran ditinjau.')
+                ->warning()
+                ->send();
+        } else {
+            
+            $this->showModalVerifikasi = true;
+
+            $this->dispatch('open-modal', id: 'konfirmasi-verifikasi');
+        }
     }
 
     public function closeModalVerifikasi()
@@ -423,6 +554,29 @@ class StatusCard extends Widget implements HasForms
         $this->showModalPenerbitanIzin = false;
 
         $this->dispatch('close-modal', id: 'penerbitan-izin');
+    }
+
+    public function openModalEditTanggal()
+    {
+        if (Carbon::parse($this->record->tanggal_kunjungan)->isToday()) {
+            Notification::make()
+                ->warning()
+                ->title('Tanggal tidak dapat diubah')
+                ->body('Tanggal kunjungan hari ini tidak bisa diubah.')
+                ->send();
+            return;
+        }
+    
+        $this->showModalEditTanggal = true;
+
+        $this->dispatch('open-modal', id: 'edit-tanggal');
+    }
+
+    public function closeModalEditTanggal()
+    {
+        $this->showModalEditTanggal = false;
+
+        $this->dispatch('close-modal', id: 'edit-tanggal');
     }
 
 }

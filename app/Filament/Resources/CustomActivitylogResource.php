@@ -78,7 +78,7 @@ class CustomActivitylogResource extends Resource
 
                 TextColumn::make('created_at')
                     ->label('Waktu Aktivitas')
-                    ->dateTime('d M Y, H:i')
+                    ->dateTime('d M Y')
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
